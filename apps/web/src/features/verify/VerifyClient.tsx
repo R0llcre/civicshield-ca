@@ -71,6 +71,7 @@ type ApiResponse = {
 
 export function VerifyClient() {
   const t = useTranslations("Verify");
+  const tCommon = useTranslations("Common");
 
   const [name, setName] = React.useState("");
   const [state, setState] = React.useState("CA");
@@ -87,17 +88,18 @@ export function VerifyClient() {
     setError(null);
     setResults(null);
     try {
-      const url = new URL("/api/verify/ra", window.location.origin);
-      url.searchParams.set("name", q);
-      url.searchParams.set("state", state);
-
-      const res = await fetch(url.toString());
+      // Use POST to avoid putting names in URL query strings.
+      const res = await fetch("/api/verify/ra", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ name: q, state }),
+      });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = (await res.json()) as ApiResponse;
       setResults(data.results);
       setFreshness(data.data_freshness ?? null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unknown error");
+      setError(e instanceof Error ? e.message : t("errors.unknown"));
     } finally {
       setLoading(false);
     }
@@ -150,7 +152,7 @@ export function VerifyClient() {
             </Button>
             {freshness?.ended_at ? (
               <div className="text-xs text-[color:var(--color-muted)]">
-                Data updated: {new Date(freshness.ended_at).toLocaleString()}
+                {t("dataUpdated", { time: new Date(freshness.ended_at).toLocaleString() })}
               </div>
             ) : null}
           </div>
@@ -178,7 +180,9 @@ export function VerifyClient() {
                           {r.name}
                         </div>
                         <div className="mt-1 text-xs font-semibold text-[color:var(--color-muted)]">
-                          {r.entry_type === "representative" ? "Accredited representative" : "Recognized organization"}
+                          {r.entry_type === "representative"
+                            ? t("entryType.representative")
+                            : t("entryType.organization")}
                           {r.organization_name ? ` · ${r.organization_name}` : ""}
                           {r.city || r.state ? ` · ${(r.city ? `${r.city}, ` : "") + r.state}` : ""}
                         </div>
@@ -200,26 +204,34 @@ export function VerifyClient() {
                       <div className="mt-3 grid gap-1 text-sm text-[color:var(--color-muted)]">
                         {r.accreditation_level ? (
                           <div className="text-xs">
-                            <span className="font-semibold text-[color:var(--color-foreground)]">Level:</span>{" "}
+                            <span className="font-semibold text-[color:var(--color-foreground)]">
+                              {t("fields.level")}:
+                            </span>{" "}
                             {r.accreditation_level}
                           </div>
                         ) : null}
                         {r.status ? (
                           <div className="text-xs">
-                            <span className="font-semibold text-[color:var(--color-foreground)]">Status:</span>{" "}
+                            <span className="font-semibold text-[color:var(--color-foreground)]">
+                              {t("fields.status")}:
+                            </span>{" "}
                             {r.status}
-                            {r.pending_renewal ? " (Pending renewal)" : ""}
+                            {r.pending_renewal ? ` (${t("pendingRenewal")})` : ""}
                           </div>
                         ) : null}
                         {r.phone ? (
                           <div className="text-xs">
-                            <span className="font-semibold text-[color:var(--color-foreground)]">Phone:</span>{" "}
+                            <span className="font-semibold text-[color:var(--color-foreground)]">
+                              {t("fields.phone")}:
+                            </span>{" "}
                             {r.phone}
                           </div>
                         ) : null}
                         {r.address ? (
                           <div className="text-xs whitespace-pre-line">
-                            <span className="font-semibold text-[color:var(--color-foreground)]">Address:</span>{" "}
+                            <span className="font-semibold text-[color:var(--color-foreground)]">
+                              {t("fields.address")}:
+                            </span>{" "}
                             {r.address}
                           </div>
                         ) : null}
@@ -253,7 +265,7 @@ export function VerifyClient() {
               rel="noreferrer"
               className="inline-flex items-center gap-2 text-[color:var(--color-accent)] hover:underline"
             >
-              Open
+              {tCommon("open")}
               <ExternalLink className="h-4 w-4" />
             </a>
           </div>
@@ -269,7 +281,7 @@ export function VerifyClient() {
               rel="noreferrer"
               className="inline-flex items-center gap-2 text-[color:var(--color-accent)] hover:underline"
             >
-              Open
+              {tCommon("open")}
               <ExternalLink className="h-4 w-4" />
             </a>
           </div>
@@ -278,4 +290,3 @@ export function VerifyClient() {
     </div>
   );
 }
-

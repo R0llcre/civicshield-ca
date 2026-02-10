@@ -29,7 +29,15 @@
   },
   "Common": {
     "informationOnlyTitle": "仅供信息参考，不构成法律建议",
-    "informationOnlyBody": "RegShield CA 仅提供公开信息与官方名录查询入口，不提供法律建议。"
+    "informationOnlyBody": "RegShield CA 仅提供公开信息与官方名录查询入口，不提供法律建议。",
+    "open": "打开",
+    "cancel": "取消",
+    "switchLanguage": "切换语言",
+    "links": {
+      "about": "关于",
+      "privacy": "隐私",
+      "disclaimer": "免责声明"
+    }
   },
   "Verify": {
     "title": "核验",
@@ -39,9 +47,21 @@
     "stateLabel": "州筛选",
     "stateHint": "机构按州筛选；认证代表默认全国搜索。",
     "searchButton": "查询名录",
+    "dataUpdated": "数据更新时间：{time}",
     "resultsTitle": "匹配结果",
     "noResults": "未找到匹配。",
     "evidence": "证据",
+    "entryType": {
+      "representative": "认证代表",
+      "organization": "认可机构"
+    },
+    "fields": {
+      "level": "级别",
+      "status": "状态",
+      "phone": "电话",
+      "address": "地址"
+    },
+    "pendingRenewal": "待续期",
     "disclaimer": "我们不对任何个案提供结论性判断。请始终以官方渠道核验为准。",
     "officialLinks": {
       "title": "官方核验入口（手动）",
@@ -49,12 +69,23 @@
       "calbarBody": "对方自称律师时，请直接在 CA State Bar 官方网站核验执业状态。",
       "sosTitle": "加州州务卿（CA SOS）移民顾问查询",
       "sosBody": "对方自称移民顾问时，请核验其注册与合规信息。"
+    },
+    "errors": {
+      "unknown": "未知错误"
     }
   },
   "Shield": {
     "title": "防骗",
     "description": "尽早识别风险信号；证据材料仅在本地加密保存，不会上传。",
     "redFlagsTitle": "红旗信号清单",
+    "redFlags": {
+      "cashOnlyNoReceipt": "只收现金，不提供收据",
+      "guaranteesResults": "保证结果",
+      "signBlankForms": "让你签空白表格",
+      "tellsYouToLie": "让你在表格中撒谎",
+      "keepsOriginalDocuments": "扣留你的原件",
+      "refusesWrittenAgreement": "拒绝提供书面协议"
+    },
     "actionsTitle": "你可以做什么",
     "actions": {
       "verify": "使用官方名录核验资质",
@@ -84,7 +115,9 @@
     "importConfirm": "导入",
     "errors": {
       "wrongPassphrase": "解密失败，请检查口令。",
-      "invalidFile": "证据库文件无效。"
+      "invalidFile": "证据库文件无效。",
+      "addFilesFailed": "添加文件失败。",
+      "exportFailed": "导出失败。"
     }
   },
   "Help": {
@@ -93,9 +126,46 @@
     "countyLabel": "所在县",
     "languageLabel": "语言",
     "serviceLabel": "服务类别",
+    "any": "不限",
     "searchButton": "查找机构",
     "resultsTitle": "机构列表",
-    "noResults": "没有符合条件的机构。"
+    "noResults": "没有符合条件的机构。",
+    "emptyState": "设置筛选条件并点击查询以查看结果。",
+    "status": {
+      "open": "可接案",
+      "waitlist": "等待名单",
+      "closed": "暂停接案"
+    },
+    "verifiedAt": "最近核验：{time}",
+    "result": {
+      "counties": "县",
+      "languages": "语言",
+      "services": "服务",
+      "etaCallbackDays": "预计回拨：{days} 天",
+      "nextClinicAt": "下次门诊：{time}",
+      "website": "官网",
+      "source": "来源"
+    },
+    "languages": {
+      "english": "英语",
+      "spanish": "西班牙语",
+      "chinese": "中文",
+      "vietnamese": "越南语",
+      "korean": "韩语",
+      "tagalog": "塔加洛语",
+      "arabic": "阿拉伯语"
+    },
+    "services": {
+      "asylum": "庇护",
+      "family": "家庭",
+      "vawa": "VAWA",
+      "workAuth": "工卡/工作许可",
+      "removalDefense": "遣返抗辩",
+      "naturalization": "入籍"
+    },
+    "errors": {
+      "unknown": "未知错误"
+    }
   },
   "Partner": {
     "title": "机构后台",
@@ -103,10 +173,68 @@
     "missingEnv": "尚未配置 Supabase 环境变量。请按 docs 启用机构后台。",
     "emailLabel": "邮箱",
     "sendLink": "发送登录链接",
+    "checkEmail": "请查看邮箱中的登录链接。",
+    "sendLinkFailed": "发送登录链接失败。",
     "statusTitle": "你的机构",
     "save": "保存",
     "saved": "已保存。",
+    "saveFailed": "保存失败。",
+    "noOrgs": "未分配任何机构。",
+    "loading": "加载中…",
+    "updatedAt": "更新时间：{time}",
+    "fields": {
+      "intake": "接案状态",
+      "callbackEtaDays": "预计回拨（天）",
+      "nextClinic": "下次门诊",
+      "languages": "可接语言（逗号分隔）",
+      "counties": "可接县（逗号分隔）"
+    },
+    "intakeStatus": {
+      "open": "可接案",
+      "waitlist": "等待名单",
+      "closed": "暂停接案"
+    },
     "signOut": "退出登录"
+  },
+  "About": {
+    "title": "关于",
+    "body": "RegShield CA 是一个安全层，帮助你核验资质、识别诈骗，并更快找到法律援助。它提供公开信息与官方入口链接，不提供法律建议。",
+    "sourcesTitle": "数据来源",
+    "sources": {
+      "doj": {
+        "title": "DOJ EOIR 认可与认证名录",
+        "body": "我们同步公开 PDF 名录，支持搜索认可机构与认证代表。"
+      },
+      "calbar": {
+        "title": "加州律师协会（State Bar of California）",
+        "body": "对方自称律师时，请务必在 State Bar 官方网站核验。"
+      },
+      "sos": {
+        "title": "加州州务卿（移民顾问查询）",
+        "body": "对方自称移民顾问时，请在 CA SOS 官方系统核验注册与合规信息。"
+      }
+    },
+    "updatesTitle": "更新频率",
+    "updatesBody": "名录数据每天在 America/Los_Angeles 时间 06:00 左右同步（尽力而为）。"
+  },
+  "Privacy": {
+    "title": "隐私",
+    "body": "我们尽量减少敏感信息采集。证据库默认仅在本地保存并加密，不会自动上传；只有你选择在应用外分享时才会离开设备。",
+    "vaultTitle": "证据库仅在本地",
+    "vaultBody": "证据库文件保存在浏览器（IndexedDB）并使用口令加密。口令不会上传到服务器。",
+    "logsTitle": "日志与分析",
+    "logsBody": "我们避免在日志与监控中收集敏感信息。除非必要，请勿输入敏感编号类信息。",
+    "thirdPartiesTitle": "第三方服务",
+    "thirdPartiesBody": "RegShield CA 可能使用基础设施提供商（例如托管与数据库）来运行服务。证据库内容默认不会上传。"
+  },
+  "Disclaimer": {
+    "title": "免责声明",
+    "body": "RegShield CA 提供信息与官方查询入口链接。它不是律所，也不提供法律建议。",
+    "rosterTitle": "名录匹配含义",
+    "rosterBody": "匹配结果表示该姓名/机构出现在官方名录条目中，但不保证其在所有情境下都有资格代表你。",
+    "noAdviceTitle": "不提供法律建议",
+    "noAdviceBody": "应用中的任何内容都不应被理解为法律建议或个案策略推荐。",
+    "emergencyTitle": "紧急情况",
+    "emergencyBody": "如遇紧急危险，请拨打 911。"
   }
 }
-

@@ -29,6 +29,9 @@ type Labels = {
   importDialogTitle: string;
   importDialogBody: string;
   importConfirm: string;
+  cancel: string;
+  addFilesFailed: string;
+  exportFailed: string;
   wrongPassphrase: string;
   invalidFile: string;
 };
@@ -120,8 +123,8 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
 
       await vaultDb.addItems(state.key, itemsToAdd);
       await refreshManifest(state.key);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Failed to add files");
+    } catch {
+      setError(labels.addFilesFailed);
     } finally {
       setBusy(false);
       if (fileInputRef.current) fileInputRef.current.value = "";
@@ -180,8 +183,8 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
       a.click();
       a.remove();
       URL.revokeObjectURL(url);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Export failed");
+    } catch {
+      setError(labels.exportFailed);
     } finally {
       setBusy(false);
     }
@@ -200,8 +203,13 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
       setImportOpen(false);
       await refreshManifest(key);
       setState({ kind: "unlocked", key, meta: plain.items ?? [] });
-    } catch {
-      setError(labels.wrongPassphrase);
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : "";
+      if (/invalid vault|unsupported vault|invalid payload/i.test(msg)) {
+        setError(labels.invalidFile);
+      } else {
+        setError(labels.wrongPassphrase);
+      }
     } finally {
       setBusy(false);
       if (importFileRef.current) importFileRef.current.value = "";
@@ -261,17 +269,29 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
                   </Dialog.Description>
 
                   <div className="mt-4 space-y-3">
-                    <input ref={importFileRef} type="file" accept=".zip" />
-                    <Input
-                      type="password"
-                      value={passphrase}
-                      onChange={(e) => setPassphrase(e.target.value)}
-                      placeholder="••••••••"
-                    />
+                    <label className="block space-y-2">
+                      <div className="text-xs font-semibold text-[color:var(--color-muted)]">
+                        {labels.import}
+                      </div>
+                      <input ref={importFileRef} type="file" accept=".zip" aria-label={labels.import} />
+                    </label>
+
+                    <label className="block space-y-2">
+                      <div className="text-xs font-semibold text-[color:var(--color-muted)]">
+                        {labels.passphraseLabel}
+                      </div>
+                      <Input
+                        type="password"
+                        value={passphrase}
+                        onChange={(e) => setPassphrase(e.target.value)}
+                        placeholder="••••••••"
+                        aria-label={labels.passphraseLabel}
+                      />
+                    </label>
                     <div className="flex justify-end gap-2">
                       <Dialog.Close asChild>
                         <Button variant="ghost" disabled={busy}>
-                          Cancel
+                          {labels.cancel}
                         </Button>
                       </Dialog.Close>
                       <Button onClick={doImport} disabled={busy || !passphrase}>
@@ -308,6 +328,7 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
                   ref={fileInputRef}
                   type="file"
                   multiple
+                  aria-label={labels.addFiles}
                   onChange={(e) => {
                     if (e.target.files) addFiles(e.target.files);
                   }}

@@ -6,18 +6,19 @@ import * as React from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { EvidenceVault } from "@/features/shield/VaultClient";
 
-const RED_FLAGS = [
-  "Cash only, no receipt",
-  "Guarantees results",
-  "Asks you to sign blank forms",
-  "Tells you to lie on forms",
-  "Keeps your original documents",
-  "Refuses to provide a written agreement"
+const RED_FLAG_KEYS = [
+  "cashOnlyNoReceipt",
+  "guaranteesResults",
+  "signBlankForms",
+  "tellsYouToLie",
+  "keepsOriginalDocuments",
+  "refusesWrittenAgreement",
 ] as const;
 
 export function ShieldClient() {
   const t = useTranslations("Shield");
   const tVault = useTranslations("Vault");
+  const tCommon = useTranslations("Common");
 
   const [checked, setChecked] = React.useState<Record<string, boolean>>({});
 
@@ -31,15 +32,17 @@ export function ShieldClient() {
         </CardHeader>
         <CardContent className="space-y-4">
           <ul className="space-y-2">
-            {RED_FLAGS.map((flag) => (
-              <li key={flag} className="flex items-start gap-3">
-                <input
-                  type="checkbox"
-                  className="mt-1 h-4 w-4"
-                  checked={!!checked[flag]}
-                  onChange={(e) => setChecked((prev) => ({ ...prev, [flag]: e.target.checked }))}
-                />
-                <div className="text-sm text-[color:var(--color-muted)]">{flag}</div>
+            {RED_FLAG_KEYS.map((key) => (
+              <li key={key} className="flex items-start gap-3">
+                <label className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    className="mt-1 h-4 w-4"
+                    checked={!!checked[key]}
+                    onChange={(e) => setChecked((prev) => ({ ...prev, [key]: e.target.checked }))}
+                  />
+                  <span className="text-sm text-[color:var(--color-muted)]">{t(`redFlags.${key}`)}</span>
+                </label>
               </li>
             ))}
           </ul>
@@ -82,6 +85,9 @@ export function ShieldClient() {
               importDialogTitle: tVault("importDialogTitle"),
               importDialogBody: tVault("importDialogBody"),
               importConfirm: tVault("importConfirm"),
+              cancel: tCommon("cancel"),
+              addFilesFailed: tVault("errors.addFilesFailed"),
+              exportFailed: tVault("errors.exportFailed"),
               wrongPassphrase: tVault("errors.wrongPassphrase"),
               invalidFile: tVault("errors.invalidFile"),
             }}
@@ -91,4 +97,3 @@ export function ShieldClient() {
     </div>
   );
 }
-

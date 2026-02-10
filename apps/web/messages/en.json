@@ -29,7 +29,15 @@
   },
   "Common": {
     "informationOnlyTitle": "Information only, not legal advice",
-    "informationOnlyBody": "RegShield CA provides public information and official roster lookups. It does not provide legal advice."
+    "informationOnlyBody": "RegShield CA provides public information and official roster lookups. It does not provide legal advice.",
+    "open": "Open",
+    "cancel": "Cancel",
+    "switchLanguage": "Switch language",
+    "links": {
+      "about": "About",
+      "privacy": "Privacy",
+      "disclaimer": "Disclaimer"
+    }
   },
   "Verify": {
     "title": "Verify",
@@ -39,9 +47,21 @@
     "stateLabel": "State filter",
     "stateHint": "Organizations are filtered by state. Accredited representatives are searched nationally.",
     "searchButton": "Search rosters",
+    "dataUpdated": "Data updated: {time}",
     "resultsTitle": "Matches",
     "noResults": "No matches found.",
     "evidence": "Evidence",
+    "entryType": {
+      "representative": "Accredited representative",
+      "organization": "Recognized organization"
+    },
+    "fields": {
+      "level": "Level",
+      "status": "Status",
+      "phone": "Phone",
+      "address": "Address"
+    },
+    "pendingRenewal": "Pending renewal",
     "disclaimer": "We do not confirm someone is authorized to represent you in all contexts. Always verify via official sources.",
     "officialLinks": {
       "title": "Official verification links (manual check)",
@@ -49,12 +69,23 @@
       "calbarBody": "If someone claims to be an attorney, verify their status directly with the State Bar of California.",
       "sosTitle": "CA SOS immigration consultant search",
       "sosBody": "If someone claims to be an immigration consultant in California, check registration and compliance."
+    },
+    "errors": {
+      "unknown": "Unknown error"
     }
   },
   "Shield": {
     "title": "Shield",
     "description": "Spot red flags early. Save evidence locally with encryption. Nothing is uploaded.",
     "redFlagsTitle": "Red flags checklist",
+    "redFlags": {
+      "cashOnlyNoReceipt": "Cash only, no receipt",
+      "guaranteesResults": "Guarantees results",
+      "signBlankForms": "Asks you to sign blank forms",
+      "tellsYouToLie": "Tells you to lie on forms",
+      "keepsOriginalDocuments": "Keeps your original documents",
+      "refusesWrittenAgreement": "Refuses to provide a written agreement"
+    },
     "actionsTitle": "What you can do",
     "actions": {
       "verify": "Verify credentials using official rosters",
@@ -84,7 +115,9 @@
     "importConfirm": "Import",
     "errors": {
       "wrongPassphrase": "Could not decrypt. Check the passphrase and try again.",
-      "invalidFile": "Invalid vault file."
+      "invalidFile": "Invalid vault file.",
+      "addFilesFailed": "Could not add files.",
+      "exportFailed": "Could not export the vault."
     }
   },
   "Help": {
@@ -93,9 +126,46 @@
     "countyLabel": "County",
     "languageLabel": "Language",
     "serviceLabel": "Service",
+    "any": "Any",
     "searchButton": "Find organizations",
     "resultsTitle": "Organizations",
-    "noResults": "No organizations match these filters."
+    "noResults": "No organizations match these filters.",
+    "emptyState": "Set filters and search to see results.",
+    "status": {
+      "open": "Open",
+      "waitlist": "Waitlist",
+      "closed": "Closed"
+    },
+    "verifiedAt": "Last verified: {time}",
+    "result": {
+      "counties": "Counties",
+      "languages": "Languages",
+      "services": "Services",
+      "etaCallbackDays": "Estimated callback: {days} day(s)",
+      "nextClinicAt": "Next clinic: {time}",
+      "website": "Website",
+      "source": "Source"
+    },
+    "languages": {
+      "english": "English",
+      "spanish": "Spanish",
+      "chinese": "Chinese",
+      "vietnamese": "Vietnamese",
+      "korean": "Korean",
+      "tagalog": "Tagalog",
+      "arabic": "Arabic"
+    },
+    "services": {
+      "asylum": "Asylum",
+      "family": "Family",
+      "vawa": "VAWA",
+      "workAuth": "Work authorization",
+      "removalDefense": "Removal defense",
+      "naturalization": "Naturalization"
+    },
+    "errors": {
+      "unknown": "Unknown error"
+    }
   },
   "Partner": {
     "title": "Partner portal",
@@ -103,10 +173,68 @@
     "missingEnv": "Supabase environment variables are not configured. See docs to enable the partner portal.",
     "emailLabel": "Email",
     "sendLink": "Send magic link",
+    "checkEmail": "Check your email for the magic link.",
+    "sendLinkFailed": "Failed to send link.",
     "statusTitle": "Your organizations",
     "save": "Save updates",
     "saved": "Saved.",
+    "saveFailed": "Save failed.",
+    "noOrgs": "No organizations assigned.",
+    "loading": "Loading…",
+    "updatedAt": "Updated: {time}",
+    "fields": {
+      "intake": "Intake",
+      "callbackEtaDays": "Callback ETA (days)",
+      "nextClinic": "Next clinic",
+      "languages": "Languages (comma-separated)",
+      "counties": "Counties (comma-separated)"
+    },
+    "intakeStatus": {
+      "open": "Open",
+      "waitlist": "Waitlist",
+      "closed": "Closed"
+    },
     "signOut": "Sign out"
+  },
+  "About": {
+    "title": "About",
+    "body": "RegShield CA is a safety layer that helps people verify credentials, avoid scams, and find legal aid faster. It provides public information and official links, not legal advice.",
+    "sourcesTitle": "Data sources",
+    "sources": {
+      "doj": {
+        "title": "DOJ EOIR Recognition & Accreditation rosters",
+        "body": "We sync public roster PDFs so you can search recognized organizations and accredited representatives."
+      },
+      "calbar": {
+        "title": "State Bar of California",
+        "body": "For attorney claims, always verify directly with the State Bar."
+      },
+      "sos": {
+        "title": "CA Secretary of State (Immigration Consultant Search)",
+        "body": "For immigration consultant claims in California, verify registration and compliance with CA SOS."
+      }
+    },
+    "updatesTitle": "Update frequency",
+    "updatesBody": "Roster data is synced daily around 06:00 America/Los_Angeles (best effort)."
+  },
+  "Privacy": {
+    "title": "Privacy",
+    "body": "We design RegShield CA to minimize sensitive data collection. The evidence vault is local by default and is never uploaded unless you choose to share it outside the app.",
+    "vaultTitle": "Evidence vault is local",
+    "vaultBody": "Evidence vault files are stored in your browser (IndexedDB) and encrypted with your passphrase. The passphrase is never sent to a server.",
+    "logsTitle": "Logging and analytics",
+    "logsBody": "We avoid collecting sensitive information in logs and monitoring. Do not enter sensitive identifiers unless necessary.",
+    "thirdPartiesTitle": "Third-party services",
+    "thirdPartiesBody": "RegShield CA may use infrastructure providers (e.g., hosting and database) to operate the service. Evidence vault content is not uploaded by default."
+  },
+  "Disclaimer": {
+    "title": "Disclaimer",
+    "body": "RegShield CA provides information and official lookup links. It is not a law firm and does not provide legal advice.",
+    "rosterTitle": "Roster matches",
+    "rosterBody": "A match means a person or organization appears on an official roster entry. It does not guarantee they are authorized to represent you in every context.",
+    "noAdviceTitle": "No legal advice",
+    "noAdviceBody": "Nothing in this app should be interpreted as legal advice or a recommendation for a specific case strategy.",
+    "emergencyTitle": "Emergency",
+    "emergencyBody": "If you are in immediate danger, call 911."
   }
 }
-

@@ -17,6 +17,7 @@ type AidOrg = {
   eta_callback_days: number | null;
   languages: string[];
   counties: string[];
+  updated_at: string | null;
 };
 
 type MembershipRow = {
@@ -81,7 +82,7 @@ export function PartnerClient() {
       }
       const orgRes = await supabase
         .from("aid_org")
-        .select("id,name,intake_status,next_clinic_at,eta_callback_days,languages,counties")
+        .select("id,name,intake_status,next_clinic_at,eta_callback_days,languages,counties,updated_at")
         .in("id", orgIds);
       if (orgRes.error) {
         setStatus(orgRes.error.message);
@@ -103,9 +104,9 @@ export function PartnerClient() {
         },
       });
       if (res.error) throw res.error;
-      setStatus("Check your email for the magic link.");
+      setStatus(t("checkEmail"));
     } catch (e) {
-      setStatus(e instanceof Error ? e.message : "Failed to send link");
+      setStatus(e instanceof Error ? e.message : t("sendLinkFailed"));
     } finally {
       setBusy(false);
     }
@@ -139,8 +140,11 @@ export function PartnerClient() {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setStatus(t("saved"));
+      setOrgs((prev) =>
+        prev ? prev.map((o) => (o.id === org.id ? { ...o, updated_at: new Date().toISOString() } : o)) : prev,
+      );
     } catch (e) {
-      setStatus(e instanceof Error ? e.message : "Save failed");
+      setStatus(e instanceof Error ? e.message : t("saveFailed"));
     } finally {
       setBusy(false);
     }
@@ -200,7 +204,7 @@ export function PartnerClient() {
 
             {orgs ? (
               orgs.length === 0 ? (
-                <div className="text-sm text-[color:var(--color-muted)]">No organizations assigned.</div>
+                <div className="text-sm text-[color:var(--color-muted)]">{t("noOrgs")}</div>
               ) : (
                 <ul className="space-y-3">
                   {orgs.map((org, idx) => (
@@ -211,10 +215,17 @@ export function PartnerClient() {
                       <div className="font-[family-name:var(--font-display)] text-base font-semibold">
                         {org.name}
                       </div>
+                      {org.updated_at ? (
+                        <div className="mt-1 text-xs text-[color:var(--color-muted)]">
+                          {t("updatedAt", { time: new Date(org.updated_at).toLocaleString() })}
+                        </div>
+                      ) : null}
 
                       <div className="mt-3 grid gap-3 sm:grid-cols-2">
                         <label className="space-y-2">
-                          <div className="text-xs font-semibold text-[color:var(--color-muted)]">Intake</div>
+                          <div className="text-xs font-semibold text-[color:var(--color-muted)]">
+                            {t("fields.intake")}
+                          </div>
                           <select
                             value={org.intake_status}
                             onChange={(e) =>
@@ -233,14 +244,16 @@ export function PartnerClient() {
                               "ring-1 ring-[color:var(--color-surface-border)]",
                             )}
                           >
-                            <option value="open">open</option>
-                            <option value="waitlist">waitlist</option>
-                            <option value="closed">closed</option>
+                            <option value="open">{t("intakeStatus.open")}</option>
+                            <option value="waitlist">{t("intakeStatus.waitlist")}</option>
+                            <option value="closed">{t("intakeStatus.closed")}</option>
                           </select>
                         </label>
 
                         <label className="space-y-2">
-                          <div className="text-xs font-semibold text-[color:var(--color-muted)]">ETA callback (days)</div>
+                          <div className="text-xs font-semibold text-[color:var(--color-muted)]">
+                            {t("fields.callbackEtaDays")}
+                          </div>
                           <Input
                             type="number"
                             value={org.eta_callback_days ?? ""}
@@ -259,7 +272,9 @@ export function PartnerClient() {
                         </label>
 
                         <label className="space-y-2 sm:col-span-2">
-                          <div className="text-xs font-semibold text-[color:var(--color-muted)]">Next clinic</div>
+                          <div className="text-xs font-semibold text-[color:var(--color-muted)]">
+                            {t("fields.nextClinic")}
+                          </div>
                           <Input
                             type="datetime-local"
                             value={toDatetimeLocal(org.next_clinic_at)}
@@ -275,7 +290,9 @@ export function PartnerClient() {
                         </label>
 
                         <label className="space-y-2 sm:col-span-2">
-                          <div className="text-xs font-semibold text-[color:var(--color-muted)]">Languages (comma-separated)</div>
+                          <div className="text-xs font-semibold text-[color:var(--color-muted)]">
+                            {t("fields.languages")}
+                          </div>
                           <Input
                             value={org.languages.join(", ")}
                             onChange={(e) =>
@@ -296,7 +313,9 @@ export function PartnerClient() {
                         </label>
 
                         <label className="space-y-2 sm:col-span-2">
-                          <div className="text-xs font-semibold text-[color:var(--color-muted)]">Counties (comma-separated)</div>
+                          <div className="text-xs font-semibold text-[color:var(--color-muted)]">
+                            {t("fields.counties")}
+                          </div>
                           <Input
                             value={org.counties.join(", ")}
                             onChange={(e) =>
@@ -327,7 +346,7 @@ export function PartnerClient() {
                 </ul>
               )
             ) : (
-              <div className="text-sm text-[color:var(--color-muted)]">Loading…</div>
+              <div className="text-sm text-[color:var(--color-muted)]">{t("loading")}</div>
             )}
           </CardContent>
         </Card>

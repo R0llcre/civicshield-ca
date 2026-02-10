@@ -10,6 +10,9 @@ export type AidOrg = {
   intake_status: "open" | "waitlist" | "closed";
   next_clinic_at?: string | null;
   eta_callback_days?: number | null;
+  source_url?: string | null;
+  verified_at?: string | null;
+  verified_by?: string | null;
   updated_at: string;
 };
 
@@ -24,6 +27,9 @@ export const SAMPLE_AID_ORGS: AidOrg[] = [
     services: ["Asylum", "Family"],
     intake_status: "waitlist",
     eta_callback_days: 5,
+    source_url: "https://example.org",
+    verified_at: new Date().toISOString(),
+    verified_by: "demo",
     updated_at: new Date().toISOString(),
   },
   {
@@ -36,7 +42,9 @@ export const SAMPLE_AID_ORGS: AidOrg[] = [
     services: ["Work authorization", "VAWA"],
     intake_status: "open",
     next_clinic_at: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
+    source_url: "https://example.org",
+    verified_at: new Date().toISOString(),
+    verified_by: "demo",
     updated_at: new Date().toISOString(),
   }
 ];
-

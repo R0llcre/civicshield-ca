@@ -70,24 +70,26 @@ const CA_COUNTIES = [
   "Yuba"
 ];
 
-const LANGUAGES = ["English", "Spanish", "Chinese", "Vietnamese", "Korean", "Tagalog", "Arabic"] as const;
+const LANGUAGES = [
+  { value: "English", key: "english" },
+  { value: "Spanish", key: "spanish" },
+  { value: "Chinese", key: "chinese" },
+  { value: "Vietnamese", key: "vietnamese" },
+  { value: "Korean", key: "korean" },
+  { value: "Tagalog", key: "tagalog" },
+  { value: "Arabic", key: "arabic" },
+] as const;
 
 const SERVICES = [
-  "Asylum",
-  "Family",
-  "VAWA",
-  "Work authorization",
-  "Removal defense",
-  "Naturalization"
+  { value: "Asylum", key: "asylum" },
+  { value: "Family", key: "family" },
+  { value: "VAWA", key: "vawa" },
+  { value: "Work authorization", key: "workAuth" },
+  { value: "Removal defense", key: "removalDefense" },
+  { value: "Naturalization", key: "naturalization" },
 ] as const;
 
 type ApiResponse = { results: AidOrg[] };
-
-function statusLabel(status: AidOrg["intake_status"]) {
-  if (status === "open") return "Open";
-  if (status === "waitlist") return "Waitlist";
-  return "Closed";
-}
 
 function statusPill(status: AidOrg["intake_status"]) {
   if (status === "open") return "bg-emerald-50 text-emerald-800 ring-emerald-200";
@@ -120,7 +122,7 @@ export function HelpClient() {
       const data = (await res.json()) as ApiResponse;
       setResults(data.results);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unknown error");
+      setError(e instanceof Error ? e.message : t("errors.unknown"));
     } finally {
       setLoading(false);
     }
@@ -145,7 +147,7 @@ export function HelpClient() {
                   "focus:outline-none focus:ring-2 focus:ring-[color:var(--color-focus)]",
                 )}
               >
-                <option value="">Any</option>
+                <option value="">{t("any")}</option>
                 {CA_COUNTIES.map((c) => (
                   <option key={c} value={c}>
                     {c}
@@ -165,10 +167,10 @@ export function HelpClient() {
                   "focus:outline-none focus:ring-2 focus:ring-[color:var(--color-focus)]",
                 )}
               >
-                <option value="">Any</option>
+                <option value="">{t("any")}</option>
                 {LANGUAGES.map((l) => (
-                  <option key={l} value={l}>
-                    {l}
+                  <option key={l.value} value={l.value}>
+                    {t(`languages.${l.key}`)}
                   </option>
                 ))}
               </select>
@@ -185,10 +187,10 @@ export function HelpClient() {
                   "focus:outline-none focus:ring-2 focus:ring-[color:var(--color-focus)]",
                 )}
               >
-                <option value="">Any</option>
+                <option value="">{t("any")}</option>
                 {SERVICES.map((s) => (
-                  <option key={s} value={s}>
-                    {s}
+                  <option key={s.value} value={s.value}>
+                    {t(`services.${s.key}`)}
                   </option>
                 ))}
               </select>
@@ -227,57 +229,85 @@ export function HelpClient() {
                       s === "open" ? 0 : s === "waitlist" ? 1 : 2;
                     return rank(a.intake_status) - rank(b.intake_status);
                   })
-                  .map((org) => (
-                    <li
-                      key={org.id}
-                      className="rounded-2xl bg-white/60 p-4 ring-1 ring-[color:var(--color-surface-border)]"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-2">
-                        <div>
-                          <div className="font-[family-name:var(--font-display)] text-base font-semibold">
-                            {org.name}
-                          </div>
-                          <div className="mt-1 text-xs text-[color:var(--color-muted)]">
-                            Counties: {org.counties.join(", ")}
-                          </div>
-                        </div>
-                        <span
-                          className={cn(
-                            "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1",
-                            statusPill(org.intake_status),
-                          )}
-                        >
-                          {statusLabel(org.intake_status)}
-                        </span>
-                      </div>
+                  .map((org) => {
+                    const verifiedAt = org.verified_at ?? org.updated_at ?? null;
+                    const verifiedLabel = verifiedAt
+                      ? t("verifiedAt", { time: new Date(verifiedAt).toLocaleString() })
+                      : null;
 
-                      <div className="mt-3 grid gap-1 text-xs text-[color:var(--color-muted)]">
-                        <div>Languages: {org.languages.join(", ")}</div>
-                        <div>Services: {org.services.join(", ")}</div>
-                        {org.eta_callback_days ? (
-                          <div>Estimated callback: {org.eta_callback_days} day(s)</div>
-                        ) : null}
-                        {org.next_clinic_at ? (
-                          <div>Next clinic: {new Date(org.next_clinic_at).toLocaleString()}</div>
-                        ) : null}
-                        {org.website ? (
-                          <a
-                            href={org.website}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[color:var(--color-accent)] hover:underline"
+                    return (
+                      <li
+                        key={org.id}
+                        className="rounded-2xl bg-white/60 p-4 ring-1 ring-[color:var(--color-surface-border)]"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <div>
+                            <div className="font-[family-name:var(--font-display)] text-base font-semibold">
+                              {org.name}
+                            </div>
+                            <div className="mt-1 text-xs text-[color:var(--color-muted)]">
+                              {t("result.counties")}: {org.counties.join(", ")}
+                            </div>
+                            {verifiedLabel ? (
+                              <div className="mt-1 text-xs text-[color:var(--color-muted)]">{verifiedLabel}</div>
+                            ) : null}
+                          </div>
+                          <span
+                            className={cn(
+                              "inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ring-1",
+                              statusPill(org.intake_status),
+                            )}
                           >
-                            Website
-                          </a>
-                        ) : null}
-                      </div>
-                    </li>
-                  ))}
+                            {t(`status.${org.intake_status}`)}
+                          </span>
+                        </div>
+
+                        <div className="mt-3 grid gap-1 text-xs text-[color:var(--color-muted)]">
+                          <div>
+                            {t("result.languages")}: {org.languages.join(", ")}
+                          </div>
+                          <div>
+                            {t("result.services")}: {org.services.join(", ")}
+                          </div>
+                          {org.eta_callback_days ? (
+                            <div>{t("result.etaCallbackDays", { days: org.eta_callback_days })}</div>
+                          ) : null}
+                          {org.next_clinic_at ? (
+                            <div>
+                              {t("result.nextClinicAt", {
+                                time: new Date(org.next_clinic_at).toLocaleString(),
+                              })}
+                            </div>
+                          ) : null}
+                          {org.website ? (
+                            <a
+                              href={org.website}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[color:var(--color-accent)] hover:underline"
+                            >
+                              {t("result.website")}
+                            </a>
+                          ) : null}
+                          {org.source_url ? (
+                            <a
+                              href={org.source_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-[color:var(--color-accent)] hover:underline"
+                            >
+                              {t("result.source")}
+                            </a>
+                          ) : null}
+                        </div>
+                      </li>
+                    );
+                  })}
               </ul>
             )
           ) : (
             <div className="text-sm text-[color:var(--color-muted)]">
-              Set filters and search to see results.
+              {t("emptyState")}
             </div>
           )}
         </CardContent>
@@ -285,4 +315,3 @@ export function HelpClient() {
     </div>
   );
 }
-

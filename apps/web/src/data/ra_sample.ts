@@ -13,6 +13,8 @@ export type RaEntry = {
   pending_renewal?: boolean | null;
   source_url?: string | null;
   source_sha256?: string | null;
+  score?: number | null;
+  matched_on?: "name" | "organization_name" | null;
 };
 
 export const SAMPLE_RA: RaEntry[] = [
@@ -34,4 +36,3 @@ export const SAMPLE_RA: RaEntry[] = [
     source_url: "https://www.justice.gov/media/1193716/dl?inline",
   },
 ];
-

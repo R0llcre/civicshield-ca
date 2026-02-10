@@ -9,7 +9,8 @@
   --surface-border: rgba(12, 42, 55, 0.14);
 
   --muted: rgba(11, 31, 38, 0.7);
-  --muted-2: rgba(11, 31, 38, 0.55);
+  /* Keep `--muted-2` WCAG AA compliant for normal-sized text on light surfaces. */
+  --muted-2: rgba(11, 31, 38, 0.62);
 
   --accent: #0f766e; /* teal */
   --accent-2: #ee6c4d; /* ember */

@@ -2,6 +2,7 @@
 
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useLocale } from "next-intl";
+import { useTranslations } from "next-intl";
 import { Check, Languages } from "lucide-react";
 
 import { routing, type AppLocale } from "@/i18n/routing";
@@ -15,6 +16,7 @@ const LOCALE_LABEL: Record<AppLocale, string> = {
 };
 
 export function LocaleSwitcher() {
+  const t = useTranslations("Common");
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale() as AppLocale;
@@ -26,7 +28,7 @@ export function LocaleSwitcher() {
           "inline-flex items-center gap-2 rounded-xl bg-white/60 px-3 py-2 text-sm font-semibold",
           "ring-1 ring-[color:var(--color-surface-border)] hover:bg-white/80",
         )}
-        aria-label="Switch language"
+        aria-label={t("switchLanguage")}
       >
         <Languages className="h-4 w-4" />
         <span>{LOCALE_LABEL[locale] ?? locale}</span>
@@ -61,4 +63,3 @@ export function LocaleSwitcher() {
     </DropdownMenu.Root>
   );
 }
-

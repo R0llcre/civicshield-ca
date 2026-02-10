@@ -31,8 +31,7 @@ test("evidence vault export/import roundtrip (chromium only)", async ({ page }, 
 
   await importDialog.locator('input[type="file"]').setInputFiles(zipPath);
   await importDialog.getByPlaceholder("••••••••").fill(passphrase);
-  await importDialog.getByRole("button", { name: "Import" }).click();
+  await importDialog.getByRole("button", { name: "Import", exact: true }).click();
 
   await expect(page.getByText("sample.txt", { exact: true })).toBeVisible();
 });
-

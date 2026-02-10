@@ -1,7 +1,13 @@
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { SAMPLE_RA, type RaEntry } from "@/data/ra_sample";
+
+const requestSchema = z.object({
+  name: z.string().min(1),
+  state: z.string().min(2).max(2).optional(),
+});
 
 function scoreMatch(q: string, value: string) {
   const needle = q.toLowerCase();
@@ -16,14 +22,19 @@ function scoreMatch(q: string, value: string) {
   return inter * 10;
 }
 
-export async function GET(req: Request) {
-  const { searchParams } = new URL(req.url);
-  const name = (searchParams.get("name") ?? "").trim();
-  const state = (searchParams.get("state") ?? "CA").trim().toUpperCase();
+function annotateScore(q: string, r: RaEntry): RaEntry {
+  const sName = scoreMatch(q, r.name);
+  const sOrg = r.organization_name ? scoreMatch(q, r.organization_name) : 0;
+  const score = Math.max(sName, sOrg);
+  const matched_on: RaEntry["matched_on"] = sName >= sOrg ? "name" : "organization_name";
+  return { ...r, score, matched_on };
+}
 
-  if (!name) {
-    return NextResponse.json({ error: "Missing name" }, { status: 400 });
-  }
+async function handleVerify(name: string, state: string) {
+  const trimmedName = name.trim();
+  const trimmedState = state.trim().toUpperCase();
+
+  if (!trimmedName) return NextResponse.json({ error: "Missing name" }, { status: 400 });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -33,12 +44,13 @@ export async function GET(req: Request) {
     const results = SAMPLE_RA.slice()
       .filter((r) => {
         const hay = `${r.name} ${r.organization_name ?? ""}`.toLowerCase();
-        const ok = hay.includes(name.toLowerCase());
+        const ok = hay.includes(trimmedName.toLowerCase());
         if (!ok) return false;
-        if (r.entry_type === "organization") return r.state === state;
+        if (r.entry_type === "organization") return r.state === trimmedState;
         return true;
       })
-      .sort((a, b) => scoreMatch(name, b.name) - scoreMatch(name, a.name))
+      .map((r) => annotateScore(trimmedName, r))
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
       .slice(0, 20);
 
     return NextResponse.json({
@@ -95,7 +107,24 @@ export async function GET(req: Request) {
   }
 
   // Search recognized orgs by state + reps nationwide.
-  const q = name;
+  const q = trimmedName;
+
+  // Prefer similarity-ranked search via RPC (pg_trgm). Fall back to ILIKE if unavailable.
+  try {
+    const rpc = await supabase.rpc("search_ra_entries", {
+      q,
+      state: trimmedState,
+      lim: 20,
+    });
+    if (!rpc.error && rpc.data) {
+      return NextResponse.json({
+        results: (rpc.data as unknown as RaEntry[]) ?? [],
+        data_freshness: freshness,
+      });
+    }
+  } catch {
+    // ignore and fall back
+  }
 
   let orgQuery = supabase
     .from("ra_entry")
@@ -104,7 +133,7 @@ export async function GET(req: Request) {
     )
     .eq("dataset", "orgs_by_state_city")
     .eq("entry_type", "organization")
-    .eq("state", state)
+    .eq("state", trimmedState)
     .ilike("name", `%${q}%`);
   if (orgSha) orgQuery = orgQuery.eq("source_sha256", orgSha);
   const orgRes = await orgQuery.limit(15);
@@ -127,15 +156,31 @@ export async function GET(req: Request) {
 
   const results = resultsRaw
     .slice()
-    .sort((a, b) => {
-      const sa = Math.max(scoreMatch(q, a.name), scoreMatch(q, a.organization_name ?? ""));
-      const sb = Math.max(scoreMatch(q, b.name), scoreMatch(q, b.organization_name ?? ""));
-      return sb - sa;
-    })
+    .map((r) => annotateScore(q, r))
+    .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
     .slice(0, 20);
 
   return NextResponse.json({
     results,
     data_freshness: freshness,
   });
+}
+
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const parsed = requestSchema.safeParse({
+    name: (searchParams.get("name") ?? "").trim(),
+    state: (searchParams.get("state") ?? "CA").trim().toUpperCase(),
+  });
+  if (!parsed.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+
+  return handleVerify(parsed.data.name, parsed.data.state ?? "CA");
+}
+
+export async function POST(req: Request) {
+  const body = await req.json().catch(() => null);
+  const parsed = requestSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+
+  return handleVerify(parsed.data.name, parsed.data.state ?? "CA");
 }

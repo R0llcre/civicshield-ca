@@ -27,7 +27,7 @@ export async function GET(req: Request) {
   let q = supabase
     .from("aid_org")
     .select(
-      "id,name,website,phone,email,counties,languages,services,intake_status,next_clinic_at,eta_callback_days,updated_at",
+      "id,name,website,phone,email,counties,languages,services,intake_status,next_clinic_at,eta_callback_days,source_url,verified_at,verified_by,updated_at",
     )
     .limit(50);
 
@@ -40,4 +40,3 @@ export async function GET(req: Request) {
 
   return NextResponse.json({ results: (res.data as unknown as AidOrg[]) ?? [] });
 }
-

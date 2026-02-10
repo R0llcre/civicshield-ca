@@ -29,7 +29,15 @@
   },
   "Common": {
     "informationOnlyTitle": "Solo información, no asesoría legal",
-    "informationOnlyBody": "RegShield CA ofrece información pública y búsquedas oficiales. No proporciona asesoría legal."
+    "informationOnlyBody": "RegShield CA ofrece información pública y búsquedas oficiales. No proporciona asesoría legal.",
+    "open": "Abrir",
+    "cancel": "Cancelar",
+    "switchLanguage": "Cambiar idioma",
+    "links": {
+      "about": "Acerca de",
+      "privacy": "Privacidad",
+      "disclaimer": "Aviso legal"
+    }
   },
   "Verify": {
     "title": "Verificar",
@@ -39,9 +47,21 @@
     "stateLabel": "Filtro por estado",
     "stateHint": "Las organizaciones se filtran por estado. Los representantes se buscan a nivel nacional.",
     "searchButton": "Buscar en listados",
+    "dataUpdated": "Datos actualizados: {time}",
     "resultsTitle": "Coincidencias",
     "noResults": "No se encontraron coincidencias.",
     "evidence": "Evidencia",
+    "entryType": {
+      "representative": "Representante acreditado",
+      "organization": "Organización reconocida"
+    },
+    "fields": {
+      "level": "Nivel",
+      "status": "Estado",
+      "phone": "Teléfono",
+      "address": "Dirección"
+    },
+    "pendingRenewal": "Renovación pendiente",
     "disclaimer": "No confirmamos autorización para representarte en todos los contextos. Verifica siempre en fuentes oficiales.",
     "officialLinks": {
       "title": "Enlaces oficiales (verificación manual)",
@@ -49,12 +69,23 @@
       "calbarBody": "Si alguien dice ser abogado, verifica su estado directamente con el State Bar of California.",
       "sosTitle": "Búsqueda de consultores (CA SOS)",
       "sosBody": "Si alguien dice ser consultor de inmigración en California, verifica su registro."
+    },
+    "errors": {
+      "unknown": "Error desconocido"
     }
   },
   "Shield": {
     "title": "Escudo",
     "description": "Detecta señales de alerta. Guarda evidencia localmente con cifrado. Nada se sube.",
     "redFlagsTitle": "Señales de alerta",
+    "redFlags": {
+      "cashOnlyNoReceipt": "Solo efectivo, sin recibo",
+      "guaranteesResults": "Garantiza resultados",
+      "signBlankForms": "Te pide que firmes formularios en blanco",
+      "tellsYouToLie": "Te dice que mientas en los formularios",
+      "keepsOriginalDocuments": "Se queda con tus documentos originales",
+      "refusesWrittenAgreement": "Se niega a darte un acuerdo por escrito"
+    },
     "actionsTitle": "Qué puedes hacer",
     "actions": {
       "verify": "Verifica credenciales en listados oficiales",
@@ -84,7 +115,9 @@
     "importConfirm": "Importar",
     "errors": {
       "wrongPassphrase": "No se pudo descifrar. Verifica la frase e intenta de nuevo.",
-      "invalidFile": "Archivo de bóveda inválido."
+      "invalidFile": "Archivo de bóveda inválido.",
+      "addFilesFailed": "No se pudieron agregar los archivos.",
+      "exportFailed": "No se pudo exportar la bóveda."
     }
   },
   "Help": {
@@ -93,9 +126,46 @@
     "countyLabel": "Condado",
     "languageLabel": "Idioma",
     "serviceLabel": "Servicio",
+    "any": "Cualquiera",
     "searchButton": "Buscar organizaciones",
     "resultsTitle": "Organizaciones",
-    "noResults": "No hay organizaciones con estos filtros."
+    "noResults": "No hay organizaciones con estos filtros.",
+    "emptyState": "Elige filtros y busca para ver resultados.",
+    "status": {
+      "open": "Abierto",
+      "waitlist": "Lista de espera",
+      "closed": "Cerrado"
+    },
+    "verifiedAt": "Última verificación: {time}",
+    "result": {
+      "counties": "Condados",
+      "languages": "Idiomas",
+      "services": "Servicios",
+      "etaCallbackDays": "Devolución de llamada estimada: {days} día(s)",
+      "nextClinicAt": "Próxima clínica: {time}",
+      "website": "Sitio web",
+      "source": "Fuente"
+    },
+    "languages": {
+      "english": "Inglés",
+      "spanish": "Español",
+      "chinese": "Chino",
+      "vietnamese": "Vietnamita",
+      "korean": "Coreano",
+      "tagalog": "Tagalo",
+      "arabic": "Árabe"
+    },
+    "services": {
+      "asylum": "Asilo",
+      "family": "Familia",
+      "vawa": "VAWA",
+      "workAuth": "Autorización de trabajo",
+      "removalDefense": "Defensa en deportación",
+      "naturalization": "Naturalización"
+    },
+    "errors": {
+      "unknown": "Error desconocido"
+    }
   },
   "Partner": {
     "title": "Portal de aliados",
@@ -103,10 +173,68 @@
     "missingEnv": "No se configuraron variables de Supabase. Ver docs para habilitar el portal.",
     "emailLabel": "Correo",
     "sendLink": "Enviar enlace",
+    "checkEmail": "Revisa tu correo para el enlace mágico.",
+    "sendLinkFailed": "No se pudo enviar el enlace.",
     "statusTitle": "Tus organizaciones",
     "save": "Guardar",
     "saved": "Guardado.",
+    "saveFailed": "No se pudo guardar.",
+    "noOrgs": "No tienes organizaciones asignadas.",
+    "loading": "Cargando…",
+    "updatedAt": "Actualizado: {time}",
+    "fields": {
+      "intake": "Admisión",
+      "callbackEtaDays": "ETA de devolución (días)",
+      "nextClinic": "Próxima clínica",
+      "languages": "Idiomas (separados por comas)",
+      "counties": "Condados (separados por comas)"
+    },
+    "intakeStatus": {
+      "open": "Abierto",
+      "waitlist": "Lista de espera",
+      "closed": "Cerrado"
+    },
     "signOut": "Cerrar sesión"
+  },
+  "About": {
+    "title": "Acerca de",
+    "body": "RegShield CA es una capa de seguridad que ayuda a verificar credenciales, evitar fraudes y encontrar ayuda legal más rápido. Proporciona información pública y enlaces oficiales, no asesoría legal.",
+    "sourcesTitle": "Fuentes de datos",
+    "sources": {
+      "doj": {
+        "title": "Listados del DOJ EOIR (Reconocimiento y Acreditación)",
+        "body": "Sincronizamos PDFs públicos para que puedas buscar organizaciones reconocidas y representantes acreditados."
+      },
+      "calbar": {
+        "title": "State Bar of California",
+        "body": "Si alguien dice ser abogado, verifica siempre directamente con el State Bar."
+      },
+      "sos": {
+        "title": "CA Secretary of State (búsqueda de consultores)",
+        "body": "Si alguien dice ser consultor de inmigración en California, verifica el registro y cumplimiento con CA SOS."
+      }
+    },
+    "updatesTitle": "Frecuencia de actualización",
+    "updatesBody": "Los listados se sincronizan diariamente alrededor de las 06:00 America/Los_Angeles (mejor esfuerzo)."
+  },
+  "Privacy": {
+    "title": "Privacidad",
+    "body": "Diseñamos RegShield CA para minimizar la recolección de datos sensibles. La bóveda de evidencia es local por defecto y no se sube a internet a menos que tú decidas compartirla fuera de la app.",
+    "vaultTitle": "La bóveda es local",
+    "vaultBody": "Los archivos se guardan en tu navegador (IndexedDB) y se cifran con tu frase. La frase nunca se envía a un servidor.",
+    "logsTitle": "Registros y analíticas",
+    "logsBody": "Evitamos recopilar información sensible en registros y monitoreo. No ingreses identificadores sensibles a menos que sea necesario.",
+    "thirdPartiesTitle": "Servicios de terceros",
+    "thirdPartiesBody": "RegShield CA puede usar proveedores de infraestructura (por ejemplo, hosting y base de datos) para operar el servicio. El contenido de la bóveda no se sube por defecto."
+  },
+  "Disclaimer": {
+    "title": "Aviso legal",
+    "body": "RegShield CA proporciona información y enlaces oficiales. No es un bufete y no ofrece asesoría legal.",
+    "rosterTitle": "Coincidencias en listados",
+    "rosterBody": "Una coincidencia significa que la persona u organización aparece en un registro oficial. No garantiza autorización para representarte en todos los contextos.",
+    "noAdviceTitle": "Sin asesoría legal",
+    "noAdviceBody": "Nada en esta app debe interpretarse como asesoría legal o una recomendación de estrategia para un caso.",
+    "emergencyTitle": "Emergencia",
+    "emergencyBody": "Si estás en peligro inmediato, llama al 911."
   }
 }
-
