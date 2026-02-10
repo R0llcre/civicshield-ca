@@ -10,6 +10,7 @@
     "start": "npm -w apps/web run start",
     "lint": "npm -w apps/web run lint",
     "typecheck": "npm -w apps/web run typecheck",
+    "i18n:check": "npm -w apps/web run i18n:check",
     "test": "npm -w apps/web run test",
     "test:e2e": "npm -w apps/web run test:e2e",
     "etl:test": "python3 -m pip install -r etl/requirements.txt && python3 -m pytest -q etl/tests",
