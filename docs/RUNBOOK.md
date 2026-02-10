@@ -33,6 +33,28 @@ In Supabase Auth settings:
 Health check endpoint:
 - `GET /api/meta/health`
 
+## 2.5 Android (Internal APK)
+
+The Android app calls the deployed Web API endpoints:
+
+- `POST /api/verify/ra`
+- `GET /api/directory/search`
+- `GET /api/meta/health`
+
+Build a staging debug APK:
+
+```bash
+JAVA_HOME=$(/usr/libexec/java_home -v 17) \
+ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
+./gradlew :app:assembleStagingDebug
+```
+
+APK output:
+- `apps/android/app/build/outputs/apk/staging/debug/app-staging-debug.apk`
+
+Update the Android `staging` base URL in:
+- `apps/android/app/build.gradle.kts` (`BuildConfig.API_BASE_URL`)
+
 ## 3. GitHub Actions ETL
 
 Workflow: `.github/workflows/etl-ra-roster.yml`
@@ -97,4 +119,3 @@ python3 etl/ra_roster_etl.py --dry-run --artifacts-dir etl_artifacts --output-su
 1. Confirm the user exists in Supabase Auth.
 2. Confirm `aid_org_membership` has the correct `user_id` + `org_id`.
 3. Confirm `0004_partner_hardening.sql` has been applied (column-level update grants).
-
