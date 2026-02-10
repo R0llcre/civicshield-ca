@@ -15,6 +15,7 @@
     "test:e2e": "npm -w apps/web run test:e2e",
     "etl:test": "python3 -m pip install -r etl/requirements.txt && python3 -m pytest -q etl/tests",
     "etl:run": "python3 etl/ra_roster_etl.py",
-    "partner:provision": "node scripts/provision_partner.mjs"
+    "partner:provision": "node scripts/provision_partner.mjs",
+    "smoke:api": "node scripts/smoke_api.mjs"
   }
 }
