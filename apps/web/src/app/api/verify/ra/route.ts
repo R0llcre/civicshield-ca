@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { SAMPLE_RA, type RaEntry } from "@/data/ra_sample";
+import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
 
 const requestSchema = z.object({
   name: z.string().min(1),
@@ -166,6 +167,28 @@ async function handleVerify(name: string, state: string) {
   });
 }
 
+function setRateLimitHeaders(res: NextResponse, params: { limit: number; remaining: number; resetAtMs: number }) {
+  res.headers.set("X-RateLimit-Limit", String(params.limit));
+  res.headers.set("X-RateLimit-Remaining", String(params.remaining));
+  res.headers.set("X-RateLimit-Reset", String(Math.floor(params.resetAtMs / 1000)));
+}
+
+function rateLimitExceededResponse(params: { limit: number; resetAtMs: number }) {
+  const retryAfterSec = Math.max(1, Math.ceil((params.resetAtMs - Date.now()) / 1000));
+  return NextResponse.json(
+    { error: "Too many requests" },
+    {
+      status: 429,
+      headers: {
+        "Retry-After": String(retryAfterSec),
+        "X-RateLimit-Limit": String(params.limit),
+        "X-RateLimit-Remaining": "0",
+        "X-RateLimit-Reset": String(Math.floor(params.resetAtMs / 1000)),
+      },
+    },
+  );
+}
+
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
   const parsed = requestSchema.safeParse({
@@ -174,7 +197,15 @@ export async function GET(req: Request) {
   });
   if (!parsed.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
 
-  return handleVerify(parsed.data.name, parsed.data.state ?? "CA");
+  const ip = getClientIp(req);
+  const limit = 30;
+  const windowMs = 60_000;
+  const rl = ip === "unknown" ? null : checkRateLimit({ key: `verify:${ip}`, limit, windowMs });
+  if (rl && !rl.ok) return rateLimitExceededResponse({ limit, resetAtMs: rl.resetAtMs });
+
+  const res = await handleVerify(parsed.data.name, parsed.data.state ?? "CA");
+  if (rl) setRateLimitHeaders(res, { limit, remaining: rl.remaining, resetAtMs: rl.resetAtMs });
+  return res;
 }
 
 export async function POST(req: Request) {
@@ -182,5 +213,13 @@ export async function POST(req: Request) {
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid request" }, { status: 400 });
 
-  return handleVerify(parsed.data.name, parsed.data.state ?? "CA");
+  const ip = getClientIp(req);
+  const limit = 30;
+  const windowMs = 60_000;
+  const rl = ip === "unknown" ? null : checkRateLimit({ key: `verify:${ip}`, limit, windowMs });
+  if (rl && !rl.ok) return rateLimitExceededResponse({ limit, resetAtMs: rl.resetAtMs });
+
+  const res = await handleVerify(parsed.data.name, parsed.data.state ?? "CA");
+  if (rl) setRateLimitHeaders(res, { limit, remaining: rl.remaining, resetAtMs: rl.resetAtMs });
+  return res;
 }
