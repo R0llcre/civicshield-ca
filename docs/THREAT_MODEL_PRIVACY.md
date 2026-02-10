@@ -27,10 +27,13 @@
   - document identifiers
   - addresses / IDs entered by users
 
+Notes:
+- The Verify UI uses `POST /api/verify/ra` so names are not placed into URL query strings by default.
+- If Sentry is enabled, it is configured to avoid default PII and to strip query strings and request bodies.
+
 ## Residual Risks
 
 - Browser storage compromise (malware, shared devices).
   - Mitigation: vault locked by passphrase; export required for backup.
 - Incorrect roster parsing.
   - Mitigation: evidence links + disclaimers; import-run tracking; parser tests.
-

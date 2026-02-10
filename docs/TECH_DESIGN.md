@@ -27,11 +27,15 @@ See `supabase/migrations/0001_init.sql` for canonical schema:
 - `GET /api/verify/ra?name=...&state=CA`
   - Searches representatives nationally + organizations filtered by state.
   - Returns `results[]` and `data_freshness` (best effort).
+- `POST /api/verify/ra`
+  - Preferred by the UI to avoid putting names in URL query strings.
 - `GET /api/directory/search?county=...&lang=...&service=...`
   - Filters `aid_org` using array containment.
 - `POST /api/partner/org/:orgId`
   - Requires `Authorization: Bearer <supabase access token>`.
   - RLS in Supabase enforces org membership.
+- `GET /api/meta/health`
+  - Basic readiness endpoint (Supabase configured + latest roster sync timestamps).
 
 ## ETL
 
@@ -46,5 +50,5 @@ See `supabase/migrations/0001_init.sql` for canonical schema:
 ## Search
 
 - `pg_trgm` indexes exist on `ra_entry.name` and `ra_entry.organization_name`.
-- Current API uses `ILIKE` as a safe baseline; can be upgraded to similarity-based ranking via SQL/RPC.
-
+- Primary search path uses `public.search_ra_entries(q, state, lim)` (SQL/RPC) to rank results via `pg_trgm` similarity.
+- API falls back to `ILIKE` if the RPC is missing (early setups).

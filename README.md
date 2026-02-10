@@ -31,8 +31,14 @@ Create a `.env.local` (or `.env`) at repo root:
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 
+# Optional: client-side error monitoring
+NEXT_PUBLIC_SENTRY_DSN=
+
 # ETL (server)
 DATABASE_URL=
+
+# Ops scripts (server/admin; keep secret)
+SUPABASE_SERVICE_ROLE_KEY=
 ```
 
 Without Supabase env vars, the web app runs in **demo mode** using sample data.
@@ -61,11 +67,15 @@ DATABASE_URL="postgresql://..." python3 etl/ra_roster_etl.py
 
 ## Supabase
 
-Run the migration in `supabase/migrations/0001_init.sql` in your Supabase project's SQL editor.
+Run the migrations in `supabase/migrations/` (in order) in your Supabase project's SQL editor:
+
+- `0001_init.sql`
+- `0002_aid_org_provenance.sql`
+- `0003_search_ra_entries.sql`
+- `0004_partner_hardening.sql`
 
 Optional demo seed:
 
 - `supabase/seed.sql`
 
 Before any real pilot, replace demo directory data with verified organizations.
-
