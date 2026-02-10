@@ -2,8 +2,11 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import datetime as dt
 import hashlib
+import json
 import os
+import shutil
 import sys
 from dataclasses import asdict
 from pathlib import Path
@@ -92,6 +95,19 @@ def latest_success_sha(conn: psycopg.Connection, dataset: str) -> Optional[str]:
         )
         row = cur.fetchone()
         return row[0] if row else None
+
+
+def fetch_dedupe_keys(conn: psycopg.Connection, dataset: str, sha: str) -> set[str]:
+    with conn.cursor() as cur:
+        cur.execute(
+            """
+            select dedupe_key
+            from public.ra_entry
+            where dataset = %s and source_sha256 = %s
+            """,
+            (dataset, sha),
+        )
+        return {r[0] for r in cur.fetchall()}
 
 
 def insert_run(conn: psycopg.Connection, dataset: str, url: str, sha: str) -> str:
@@ -198,105 +214,217 @@ def main() -> int:
     ap.add_argument("--orgs-url", default=os.getenv("RA_ORGS_URL") or "")
     ap.add_argument("--reps-url", default=os.getenv("RA_REPS_URL") or "")
     ap.add_argument("--dry-run", action="store_true", help="Parse and print stats, do not write to DB")
+    ap.add_argument("--artifacts-dir", default="", help="If set, write PDFs + summary artifacts under this directory")
     ap.add_argument("--output-json", default="", help="If set, write parsed entries to this path (JSONL)")
+    ap.add_argument("--output-summary", default="", help="If set, write a run summary JSON to this path")
     args = ap.parse_args()
 
-    orgs_url, reps_url = discover_sources(args.reports_page)
-    if args.orgs_url:
-        orgs_url = args.orgs_url
-    if args.reps_url:
-        reps_url = args.reps_url
+    artifacts_dir = Path(args.artifacts_dir).resolve() if args.artifacts_dir else None
+    if artifacts_dir:
+        artifacts_dir.mkdir(parents=True, exist_ok=True)
 
-    tmp = ensure_tmp()
+    output_json = Path(args.output_json).resolve() if args.output_json else None
+    output_summary = Path(args.output_summary).resolve() if args.output_summary else None
+    if not output_summary and artifacts_dir:
+        output_summary = artifacts_dir / "summary.json"
 
-    print(f"Fetching orgs PDF: {orgs_url}")
-    orgs_pdf = download(orgs_url)
-    orgs_sha = sha256_bytes(orgs_pdf)
-    orgs_path = tmp / f"orgs_{orgs_sha}.pdf"
-    orgs_path.write_bytes(orgs_pdf)
+    summary: dict = {
+        "ran_at": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "overall_status": "running",
+        "db_connected": False,
+        "datasets": {},
+        "artifacts": {},
+    }
 
-    print(f"Fetching reps PDF: {reps_url}")
-    reps_pdf = download(reps_url)
-    reps_sha = sha256_bytes(reps_pdf)
-    reps_path = tmp / f"reps_{reps_sha}.pdf"
-    reps_path.write_bytes(reps_pdf)
+    try:
+        orgs_url, reps_url = discover_sources(args.reports_page)
+        if args.orgs_url:
+            orgs_url = args.orgs_url
+        if args.reps_url:
+            reps_url = args.reps_url
 
-    orgs_published, org_entries = parse_orgs_by_state_city(
-        str(orgs_path), dataset="orgs_by_state_city", source_url=orgs_url, source_sha256=orgs_sha
-    )
-    reps_published, rep_entries = parse_accredited_reps_roster(
-        str(reps_path), dataset="reps_roster", source_url=reps_url, source_sha256=reps_sha
-    )
+        summary["sources"] = {"orgs_url": orgs_url, "reps_url": reps_url, "reports_page": args.reports_page}
 
-    all_entries = org_entries + rep_entries
-    print(f"Parsed org entries: {len(org_entries)} (published: {orgs_published})")
-    print(f"Parsed rep entries: {len(rep_entries)} (published: {reps_published})")
+        tmp = ensure_tmp()
 
-    if args.output_json:
-        import json
+        print(f"Fetching orgs PDF: {orgs_url}")
+        orgs_pdf = download(orgs_url)
+        orgs_sha = sha256_bytes(orgs_pdf)
+        orgs_path = tmp / f"orgs_{orgs_sha}.pdf"
+        orgs_path.write_bytes(orgs_pdf)
 
-        out = Path(args.output_json)
-        with out.open("w", encoding="utf-8") as f:
-            for e in all_entries:
-                f.write(json.dumps(asdict(e), default=str) + "\\n")
-        print(f"Wrote {len(all_entries)} entries to {out}")
+        print(f"Fetching reps PDF: {reps_url}")
+        reps_pdf = download(reps_url)
+        reps_sha = sha256_bytes(reps_pdf)
+        reps_path = tmp / f"reps_{reps_sha}.pdf"
+        reps_path.write_bytes(reps_pdf)
 
-    if args.dry_run:
-        return 0
+        if artifacts_dir:
+            orgs_copy = artifacts_dir / f"doj_orgs_{orgs_sha}.pdf"
+            reps_copy = artifacts_dir / f"doj_reps_{reps_sha}.pdf"
+            shutil.copyfile(orgs_path, orgs_copy)
+            shutil.copyfile(reps_path, reps_copy)
+            summary["artifacts"]["orgs_pdf"] = str(orgs_copy)
+            summary["artifacts"]["reps_pdf"] = str(reps_copy)
 
-    conn = connect_db()
-    if not conn:
-        print("DATABASE_URL not set. Use --dry-run or configure DATABASE_URL to write to DB.", file=sys.stderr)
-        return 2
+        if args.dry_run:
+            orgs_published, org_entries = parse_orgs_by_state_city(
+                str(orgs_path), dataset="orgs_by_state_city", source_url=orgs_url, source_sha256=orgs_sha
+            )
+            reps_published, rep_entries = parse_accredited_reps_roster(
+                str(reps_path), dataset="reps_roster", source_url=reps_url, source_sha256=reps_sha
+            )
+            print(f"Parsed org entries: {len(org_entries)} (published: {orgs_published})")
+            print(f"Parsed rep entries: {len(rep_entries)} (published: {reps_published})")
 
-    with contextlib.closing(conn):
-        conn.autocommit = False
+            if output_json:
+                output_json.parent.mkdir(parents=True, exist_ok=True)
+                with output_json.open("w", encoding="utf-8") as f:
+                    for e in org_entries + rep_entries:
+                        f.write(json.dumps(asdict(e), default=str) + "\\n")
+                summary["artifacts"]["entries_jsonl"] = str(output_json)
+                print(f"Wrote {len(org_entries) + len(rep_entries)} entries to {output_json}")
 
-        # Skip parsing + writing per dataset if hash unchanged.
-        org_changed = latest_success_sha(conn, "orgs_by_state_city") != orgs_sha
-        reps_changed = latest_success_sha(conn, "reps_roster") != reps_sha
-        if not org_changed and not reps_changed:
-            print("No changes detected (hash unchanged). Skipping.")
+            summary["datasets"]["orgs_by_state_city"] = {
+                "source_url": orgs_url,
+                "source_sha256": orgs_sha,
+                "published_at": str(orgs_published) if orgs_published else None,
+                "parsed_count": len(org_entries),
+                "status": "dry_run",
+            }
+            summary["datasets"]["reps_roster"] = {
+                "source_url": reps_url,
+                "source_sha256": reps_sha,
+                "published_at": str(reps_published) if reps_published else None,
+                "parsed_count": len(rep_entries),
+                "status": "dry_run",
+            }
+            summary["overall_status"] = "dry_run"
             return 0
 
-        try:
-            org_count = 0
-            rep_count = 0
+        conn = connect_db()
+        if not conn:
+            summary["overall_status"] = "failed"
+            summary["error"] = "DATABASE_URL not set"
+            print("DATABASE_URL not set. Use --dry-run or configure DATABASE_URL to write to DB.", file=sys.stderr)
+            return 2
 
-            if org_changed:
-                org_run_id = insert_run(conn, "orgs_by_state_city", orgs_url, orgs_sha)
-                conn.commit()
-                org_rows = [asdict(e) for e in org_entries]
-                org_count = upsert_entries(conn, org_rows)
-                finish_run(conn, org_run_id, "success", org_count, None)
+        summary["db_connected"] = True
+        with contextlib.closing(conn):
+            conn.autocommit = False
+
+            prev_org_sha = latest_success_sha(conn, "orgs_by_state_city")
+            prev_rep_sha = latest_success_sha(conn, "reps_roster")
+            org_changed = prev_org_sha != orgs_sha
+            reps_changed = prev_rep_sha != reps_sha
+
+            summary["datasets"]["orgs_by_state_city"] = {
+                "source_url": orgs_url,
+                "source_sha256": orgs_sha,
+                "prev_success_sha256": prev_org_sha,
+                "changed": org_changed,
+                "status": "skipped" if not org_changed else "running",
+            }
+            summary["datasets"]["reps_roster"] = {
+                "source_url": reps_url,
+                "source_sha256": reps_sha,
+                "prev_success_sha256": prev_rep_sha,
+                "changed": reps_changed,
+                "status": "skipped" if not reps_changed else "running",
+            }
+
+            if not org_changed and not reps_changed:
+                summary["overall_status"] = "skipped_no_change"
+                print("No changes detected (hash unchanged). Skipping.")
+                return 0
+
+            parsed_entries_all = []
+
+            def process_dataset(
+                *,
+                dataset: str,
+                source_url: str,
+                source_sha: str,
+                prev_sha: Optional[str],
+                pdf_path: Path,
+                parse_fn,
+            ):
+                run = summary["datasets"][dataset]
+                run_id = insert_run(conn, dataset, source_url, source_sha)
+                run["run_id"] = run_id
                 conn.commit()
 
-            if reps_changed:
-                rep_run_id = insert_run(conn, "reps_roster", reps_url, reps_sha)
-                conn.commit()
-                rep_rows = [asdict(e) for e in rep_entries]
-                rep_count = upsert_entries(conn, rep_rows)
-                finish_run(conn, rep_run_id, "success", rep_count, None)
-                conn.commit()
-
-            print(f"Upserted orgs={org_count} reps={rep_count}")
-            return 0
-        except Exception as e:
-            conn.rollback()
-            # Best-effort: record failures for the datasets we attempted.
-            for dataset, url, sha, attempted in [
-                ("orgs_by_state_city", orgs_url, orgs_sha, org_changed),
-                ("reps_roster", reps_url, reps_sha, reps_changed),
-            ]:
-                if not attempted:
-                    continue
                 try:
-                    run_id = insert_run(conn, dataset, url, sha)
+                    published, entries = parse_fn(
+                        str(pdf_path), dataset=dataset, source_url=source_url, source_sha256=source_sha
+                    )
+                    run["published_at"] = str(published) if published else None
+                    run["parsed_count"] = len(entries)
+
+                    cur_keys = {e.dedupe_key for e in entries}
+                    prev_keys = fetch_dedupe_keys(conn, dataset, prev_sha) if prev_sha else set()
+                    run["diff"] = {
+                        "added": len(cur_keys - prev_keys),
+                        "removed": len(prev_keys - cur_keys),
+                        "unchanged": len(cur_keys & prev_keys),
+                    }
+
+                    rows = [asdict(e) for e in entries]
+                    upserted = upsert_entries(conn, rows)
+                    run["upserted"] = upserted
+                    finish_run(conn, run_id, "success", upserted, None)
+                    conn.commit()
+                    run["status"] = "success"
+                    return entries
+                except Exception as e:
+                    conn.rollback()
+                    run["status"] = "failed"
+                    run["error_summary"] = str(e)
                     finish_run(conn, run_id, "failed", 0, str(e))
                     conn.commit()
-                except Exception:
-                    conn.rollback()
-            raise
+                    raise
+
+            if org_changed:
+                org_entries = process_dataset(
+                    dataset="orgs_by_state_city",
+                    source_url=orgs_url,
+                    source_sha=orgs_sha,
+                    prev_sha=prev_org_sha,
+                    pdf_path=orgs_path,
+                    parse_fn=parse_orgs_by_state_city,
+                )
+                parsed_entries_all.extend(org_entries)
+
+            if reps_changed:
+                rep_entries = process_dataset(
+                    dataset="reps_roster",
+                    source_url=reps_url,
+                    source_sha=reps_sha,
+                    prev_sha=prev_rep_sha,
+                    pdf_path=reps_path,
+                    parse_fn=parse_accredited_reps_roster,
+                )
+                parsed_entries_all.extend(rep_entries)
+
+            if output_json and parsed_entries_all:
+                output_json.parent.mkdir(parents=True, exist_ok=True)
+                with output_json.open("w", encoding="utf-8") as f:
+                    for e in parsed_entries_all:
+                        f.write(json.dumps(asdict(e), default=str) + "\\n")
+                summary["artifacts"]["entries_jsonl"] = str(output_json)
+                print(f"Wrote {len(parsed_entries_all)} entries to {output_json}")
+
+            summary["overall_status"] = "success"
+            return 0
+    except Exception as e:
+        summary["overall_status"] = "failed"
+        summary["error"] = str(e)
+        raise
+    finally:
+        if output_summary:
+            output_summary.parent.mkdir(parents=True, exist_ok=True)
+            output_summary.write_text(json.dumps(summary, indent=2, sort_keys=True), encoding="utf-8")
+            print(f"Wrote summary to {output_summary}")
 
 
 if __name__ == "__main__":

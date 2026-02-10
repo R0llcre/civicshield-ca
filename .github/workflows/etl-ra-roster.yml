@@ -3,11 +3,16 @@ name: ETL - DOJ R&A Roster
 on:
   workflow_dispatch:
   schedule:
-    # 06:00 America/Los_Angeles ~= 14:00 UTC (07:00 during DST).
+    # GitHub schedules are UTC only. We trigger at both 13:00 and 14:00 UTC, then
+    # guard in-job to run only at 06:00 America/Los_Angeles (covers DST shifts).
+    - cron: "0 13 * * *"
     - cron: "0 14 * * *"
 
 jobs:
   sync:
+    permissions:
+      contents: read
+      issues: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -18,16 +23,107 @@ jobs:
 
       - run: python3 -m pip install -r etl/requirements.txt
 
+      - name: Guard schedule (run only at 06:00 America/Los_Angeles)
+        id: guard
+        if: github.event_name == 'schedule'
+        run: |
+          python3 - <<'PY'
+          import datetime as dt
+          import os
+          from zoneinfo import ZoneInfo
+          now = dt.datetime.now(ZoneInfo("America/Los_Angeles"))
+          should = now.hour == 6
+          print("LA now:", now.isoformat(), "should_run:", should)
+          with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+            f.write(f"should_run={'true' if should else 'false'}\n")
+          PY
+
       - name: Run ETL
+        if: github.event_name != 'schedule' || steps.guard.outputs.should_run == 'true'
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
         run: |
-          python3 etl/ra_roster_etl.py --output-json etl_output.jsonl
+          mkdir -p etl_artifacts
+          python3 etl/ra_roster_etl.py \
+            --artifacts-dir etl_artifacts \
+            --output-summary etl_artifacts/summary.json \
+            --output-json etl_artifacts/entries.jsonl
 
-      - name: Upload parse output (debug)
-        if: always()
+      - name: Upload summary (always)
+        if: always() && (github.event_name != 'schedule' || steps.guard.outputs.should_run == 'true')
         uses: actions/upload-artifact@v4
         with:
-          name: etl_output
-          path: etl_output.jsonl
+          name: etl_summary
+          path: etl_artifacts/summary.json
+          if-no-files-found: error
 
+      - name: Upload failure artifacts (PDFs + parse output)
+        if: failure() && (github.event_name != 'schedule' || steps.guard.outputs.should_run == 'true')
+        uses: actions/upload-artifact@v4
+        with:
+          name: etl_failure_artifacts
+          path: |
+            etl_artifacts/*.pdf
+            etl_artifacts/entries.jsonl
+          if-no-files-found: warn
+
+      - name: Create or update GitHub Issue (on failure)
+        if: failure() && (github.event_name != 'schedule' || steps.guard.outputs.should_run == 'true')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'etl_artifacts/summary.json';
+            let summary = null;
+            try {
+              summary = JSON.parse(fs.readFileSync(path, 'utf8'));
+            } catch (e) {
+              summary = { overall_status: 'failed', error: `Could not read ${path}: ${String(e)}` };
+            }
+
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const title = 'ETL Failure: DOJ R&A Roster';
+
+            const datasets = summary.datasets || {};
+            const lines = [];
+            lines.push(`Workflow run: ${runUrl}`);
+            lines.push('');
+            lines.push('Summary:');
+            lines.push('```json');
+            lines.push(JSON.stringify({ overall_status: summary.overall_status, error: summary.error, datasets }, null, 2));
+            lines.push('```');
+            lines.push('');
+            lines.push('Repro (local):');
+            lines.push('```bash');
+            lines.push('python3 -m venv .venv && source .venv/bin/activate');
+            lines.push('python3 -m pip install -r etl/requirements.txt');
+            lines.push('python3 etl/ra_roster_etl.py --dry-run --artifacts-dir etl_artifacts --output-summary etl_artifacts/summary.json');
+            lines.push('```');
+            lines.push('');
+            lines.push('Artifacts:');
+            lines.push('- `etl_summary` (always) contains `summary.json`');
+            lines.push('- `etl_failure_artifacts` (failure only) contains PDFs + `entries.jsonl`');
+
+            const body = lines.join('\n');
+
+            // Try to find an existing open issue with the same title.
+            const q = `repo:${context.repo.owner}/${context.repo.repo} is:issue is:open in:title \"${title}\"`;
+            const search = await github.rest.search.issuesAndPullRequests({ q, per_page: 5 });
+            const existing = (search.data.items || []).find((it) => it.title === title);
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['etl', 'bug'],
+              });
+            }
