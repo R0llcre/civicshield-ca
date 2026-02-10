@@ -1,0 +1,112 @@
+{
+  "App": {
+    "name": "RegShield CA",
+    "tagline": "Verifica credenciales. Evita fraudes. Encuentra ayuda más rápido."
+  },
+  "Nav": {
+    "verify": "Verificar",
+    "shield": "Escudo",
+    "help": "Ayuda",
+    "partner": "Aliados"
+  },
+  "Home": {
+    "title": "RegShield CA",
+    "subtitle": "Una capa de seguridad para ayuda legal de inmigración: verificación + señales de fraude + referencias más rápidas.",
+    "cards": {
+      "verify": {
+        "title": "Verificación de credenciales",
+        "body": "Busca en los listados oficiales del DOJ EOIR y usa enlaces oficiales para CA State Bar y CA SOS."
+      },
+      "shield": {
+        "title": "Escudo antifraude",
+        "body": "Convierte advertencias en una lista. Crea una bóveda local y cifrada que tú controlas."
+      },
+      "help": {
+        "title": "Acelerador de referencias",
+        "body": "Filtro simple por condado, idioma y estado de admisión."
+      }
+    }
+  },
+  "Common": {
+    "informationOnlyTitle": "Solo información, no asesoría legal",
+    "informationOnlyBody": "RegShield CA ofrece información pública y búsquedas oficiales. No proporciona asesoría legal."
+  },
+  "Verify": {
+    "title": "Verificar",
+    "description": "Comprueba si una persona u organización aparece en listados oficiales. Mostramos evidencia y explicamos.",
+    "nameLabel": "Nombre",
+    "namePlaceholder": "p. ej. \"Diaz, Samantha\" o \"Catholic Charities\"",
+    "stateLabel": "Filtro por estado",
+    "stateHint": "Las organizaciones se filtran por estado. Los representantes se buscan a nivel nacional.",
+    "searchButton": "Buscar en listados",
+    "resultsTitle": "Coincidencias",
+    "noResults": "No se encontraron coincidencias.",
+    "evidence": "Evidencia",
+    "disclaimer": "No confirmamos autorización para representarte en todos los contextos. Verifica siempre en fuentes oficiales.",
+    "officialLinks": {
+      "title": "Enlaces oficiales (verificación manual)",
+      "calbarTitle": "Búsqueda de abogados (CA State Bar)",
+      "calbarBody": "Si alguien dice ser abogado, verifica su estado directamente con el State Bar of California.",
+      "sosTitle": "Búsqueda de consultores (CA SOS)",
+      "sosBody": "Si alguien dice ser consultor de inmigración en California, verifica su registro."
+    }
+  },
+  "Shield": {
+    "title": "Escudo",
+    "description": "Detecta señales de alerta. Guarda evidencia localmente con cifrado. Nada se sube.",
+    "redFlagsTitle": "Señales de alerta",
+    "actionsTitle": "Qué puedes hacer",
+    "actions": {
+      "verify": "Verifica credenciales en listados oficiales",
+      "receipts": "Pide acuerdos y recibos por escrito",
+      "noBlank": "No firmes formularios en blanco ni des información falsa"
+    },
+    "vaultTitle": "Bóveda de evidencia (local + cifrada)",
+    "vaultBody": "Crea o desbloquea una bóveda con una frase. Los archivos se guardan solo en tu navegador."
+  },
+  "Vault": {
+    "newTitle": "Crear una bóveda",
+    "unlockTitle": "Desbloquear bóveda",
+    "passphraseLabel": "Frase",
+    "passphraseHint": "Nunca se envía a un servidor. Si la olvidas, no se puede recuperar.",
+    "createButton": "Crear",
+    "unlockButton": "Desbloquear",
+    "lockButton": "Bloquear",
+    "addFiles": "Agregar archivos",
+    "export": "Exportar bóveda (zip)",
+    "import": "Importar bóveda (zip)",
+    "itemsTitle": "Elementos",
+    "empty": "Aún no hay elementos.",
+    "download": "Descargar",
+    "delete": "Eliminar",
+    "importDialogTitle": "Importar bóveda",
+    "importDialogBody": "Elige un zip exportado e ingresa la frase.",
+    "importConfirm": "Importar",
+    "errors": {
+      "wrongPassphrase": "No se pudo descifrar. Verifica la frase e intenta de nuevo.",
+      "invalidFile": "Archivo de bóveda inválido."
+    }
+  },
+  "Help": {
+    "title": "Ayuda",
+    "description": "Triaje ligero (sin asesoría legal). Filtra por condado, idioma y servicio.",
+    "countyLabel": "Condado",
+    "languageLabel": "Idioma",
+    "serviceLabel": "Servicio",
+    "searchButton": "Buscar organizaciones",
+    "resultsTitle": "Organizaciones",
+    "noResults": "No hay organizaciones con estos filtros."
+  },
+  "Partner": {
+    "title": "Portal de aliados",
+    "description": "Actualiza estado de admisión y disponibilidad.",
+    "missingEnv": "No se configuraron variables de Supabase. Ver docs para habilitar el portal.",
+    "emailLabel": "Correo",
+    "sendLink": "Enviar enlace",
+    "statusTitle": "Tus organizaciones",
+    "save": "Guardar",
+    "saved": "Guardado.",
+    "signOut": "Cerrar sesión"
+  }
+}
+

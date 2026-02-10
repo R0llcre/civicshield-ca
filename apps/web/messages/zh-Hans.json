@@ -1,0 +1,112 @@
+{
+  "App": {
+    "name": "RegShield CA",
+    "tagline": "核验资质，识别诈骗，更快找到援助。"
+  },
+  "Nav": {
+    "verify": "核验",
+    "shield": "防骗",
+    "help": "转介",
+    "partner": "机构"
+  },
+  "Home": {
+    "title": "RegShield CA",
+    "subtitle": "面向加州移民法律援助的安全层：资质核验 + 防骗信号 + 更高效的对接。",
+    "cards": {
+      "verify": {
+        "title": "资质核验",
+        "body": "查询 DOJ EOIR 名录，并提供 CA State Bar 与 CA SOS 的官方核验入口。"
+      },
+      "shield": {
+        "title": "防骗盾牌",
+        "body": "把官方建议变成清单；用本地加密证据库整理材料。"
+      },
+      "help": {
+        "title": "对接加速",
+        "body": "按县/语言/接案状态筛选机构，减少无效联系。"
+      }
+    }
+  },
+  "Common": {
+    "informationOnlyTitle": "仅供信息参考，不构成法律建议",
+    "informationOnlyBody": "RegShield CA 仅提供公开信息与官方名录查询入口，不提供法律建议。"
+  },
+  "Verify": {
+    "title": "核验",
+    "description": "查看某人/机构是否出现在官方名录中，并展示证据链接与解释。",
+    "nameLabel": "姓名/机构名",
+    "namePlaceholder": "例如：\"Diaz, Samantha\" 或 \"Catholic Charities\"",
+    "stateLabel": "州筛选",
+    "stateHint": "机构按州筛选；认证代表默认全国搜索。",
+    "searchButton": "查询名录",
+    "resultsTitle": "匹配结果",
+    "noResults": "未找到匹配。",
+    "evidence": "证据",
+    "disclaimer": "我们不对任何个案提供结论性判断。请始终以官方渠道核验为准。",
+    "officialLinks": {
+      "title": "官方核验入口（手动）",
+      "calbarTitle": "加州律师协会（CA State Bar）查询",
+      "calbarBody": "对方自称律师时，请直接在 CA State Bar 官方网站核验执业状态。",
+      "sosTitle": "加州州务卿（CA SOS）移民顾问查询",
+      "sosBody": "对方自称移民顾问时，请核验其注册与合规信息。"
+    }
+  },
+  "Shield": {
+    "title": "防骗",
+    "description": "尽早识别风险信号；证据材料仅在本地加密保存，不会上传。",
+    "redFlagsTitle": "红旗信号清单",
+    "actionsTitle": "你可以做什么",
+    "actions": {
+      "verify": "使用官方名录核验资质",
+      "receipts": "要求书面协议与收据",
+      "noBlank": "不要签空白表格，不要提供虚假信息"
+    },
+    "vaultTitle": "证据库（本地 + 加密）",
+    "vaultBody": "创建或解锁证据库。文件仅保存在你的浏览器中。"
+  },
+  "Vault": {
+    "newTitle": "创建证据库",
+    "unlockTitle": "解锁证据库",
+    "passphraseLabel": "口令",
+    "passphraseHint": "口令不会上传；遗忘后无法恢复。",
+    "createButton": "创建",
+    "unlockButton": "解锁",
+    "lockButton": "锁定",
+    "addFiles": "添加文件",
+    "export": "导出证据库（zip）",
+    "import": "导入证据库（zip）",
+    "itemsTitle": "条目",
+    "empty": "暂无条目。",
+    "download": "下载",
+    "delete": "删除",
+    "importDialogTitle": "导入证据库",
+    "importDialogBody": "选择导出的 zip 并输入口令。",
+    "importConfirm": "导入",
+    "errors": {
+      "wrongPassphrase": "解密失败，请检查口令。",
+      "invalidFile": "证据库文件无效。"
+    }
+  },
+  "Help": {
+    "title": "转介",
+    "description": "轻量分诊（不提供法律建议）。按县/语言/服务筛选机构。",
+    "countyLabel": "所在县",
+    "languageLabel": "语言",
+    "serviceLabel": "服务类别",
+    "searchButton": "查找机构",
+    "resultsTitle": "机构列表",
+    "noResults": "没有符合条件的机构。"
+  },
+  "Partner": {
+    "title": "机构后台",
+    "description": "更新接案状态与可用性。",
+    "missingEnv": "尚未配置 Supabase 环境变量。请按 docs 启用机构后台。",
+    "emailLabel": "邮箱",
+    "sendLink": "发送登录链接",
+    "statusTitle": "你的机构",
+    "save": "保存",
+    "saved": "已保存。",
+    "signOut": "退出登录"
+  }
+}
+

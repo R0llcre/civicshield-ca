@@ -1,0 +1,112 @@
+{
+  "App": {
+    "name": "RegShield CA",
+    "tagline": "Verify credentials. Avoid scams. Find help faster."
+  },
+  "Nav": {
+    "verify": "Verify",
+    "shield": "Shield",
+    "help": "Help",
+    "partner": "Partner"
+  },
+  "Home": {
+    "title": "RegShield CA",
+    "subtitle": "A California-focused safety layer for immigration legal help: verification + scam signals + faster referrals.",
+    "cards": {
+      "verify": {
+        "title": "Credential verification",
+        "body": "Search DOJ EOIR Recognition & Accreditation rosters and follow official links for CA State Bar and CA SOS."
+      },
+      "shield": {
+        "title": "Scam shield",
+        "body": "Turn warnings into a checklist. Build a local, encrypted evidence vault you control."
+      },
+      "help": {
+        "title": "Referral accelerator",
+        "body": "Simple triage to find organizations by county, language and intake status."
+      }
+    }
+  },
+  "Common": {
+    "informationOnlyTitle": "Information only, not legal advice",
+    "informationOnlyBody": "RegShield CA provides public information and official roster lookups. It does not provide legal advice."
+  },
+  "Verify": {
+    "title": "Verify",
+    "description": "Check whether a person or organization appears on official rosters. We show evidence links and explain what it means.",
+    "nameLabel": "Name",
+    "namePlaceholder": "e.g. \"Diaz, Samantha\" or \"Catholic Charities\"",
+    "stateLabel": "State filter",
+    "stateHint": "Organizations are filtered by state. Accredited representatives are searched nationally.",
+    "searchButton": "Search rosters",
+    "resultsTitle": "Matches",
+    "noResults": "No matches found.",
+    "evidence": "Evidence",
+    "disclaimer": "We do not confirm someone is authorized to represent you in all contexts. Always verify via official sources.",
+    "officialLinks": {
+      "title": "Official verification links (manual check)",
+      "calbarTitle": "CA State Bar attorney search",
+      "calbarBody": "If someone claims to be an attorney, verify their status directly with the State Bar of California.",
+      "sosTitle": "CA SOS immigration consultant search",
+      "sosBody": "If someone claims to be an immigration consultant in California, check registration and compliance."
+    }
+  },
+  "Shield": {
+    "title": "Shield",
+    "description": "Spot red flags early. Save evidence locally with encryption. Nothing is uploaded.",
+    "redFlagsTitle": "Red flags checklist",
+    "actionsTitle": "What you can do",
+    "actions": {
+      "verify": "Verify credentials using official rosters",
+      "receipts": "Ask for written agreements and receipts",
+      "noBlank": "Do not sign blank forms or provide false information"
+    },
+    "vaultTitle": "Evidence vault (local + encrypted)",
+    "vaultBody": "Create or unlock a vault with a passphrase. Files are stored in your browser only."
+  },
+  "Vault": {
+    "newTitle": "Create a vault",
+    "unlockTitle": "Unlock vault",
+    "passphraseLabel": "Passphrase",
+    "passphraseHint": "This is never sent to a server. If you forget it, the vault cannot be recovered.",
+    "createButton": "Create",
+    "unlockButton": "Unlock",
+    "lockButton": "Lock",
+    "addFiles": "Add files",
+    "export": "Export vault (zip)",
+    "import": "Import vault (zip)",
+    "itemsTitle": "Items",
+    "empty": "No items yet.",
+    "download": "Download",
+    "delete": "Delete",
+    "importDialogTitle": "Import vault",
+    "importDialogBody": "Choose a vault zip export and enter its passphrase.",
+    "importConfirm": "Import",
+    "errors": {
+      "wrongPassphrase": "Could not decrypt. Check the passphrase and try again.",
+      "invalidFile": "Invalid vault file."
+    }
+  },
+  "Help": {
+    "title": "Help",
+    "description": "Lightweight triage (no legal advice). Filter by county, language and service.",
+    "countyLabel": "County",
+    "languageLabel": "Language",
+    "serviceLabel": "Service",
+    "searchButton": "Find organizations",
+    "resultsTitle": "Organizations",
+    "noResults": "No organizations match these filters."
+  },
+  "Partner": {
+    "title": "Partner portal",
+    "description": "Update intake status and availability for your organization.",
+    "missingEnv": "Supabase environment variables are not configured. See docs to enable the partner portal.",
+    "emailLabel": "Email",
+    "sendLink": "Send magic link",
+    "statusTitle": "Your organizations",
+    "save": "Save updates",
+    "saved": "Saved.",
+    "signOut": "Sign out"
+  }
+}
+
