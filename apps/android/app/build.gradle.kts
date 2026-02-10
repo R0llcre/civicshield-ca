@@ -6,6 +6,14 @@ plugins {
   kotlin("kapt")
 }
 
+val regshieldStagingBaseUrl: String =
+  (project.findProperty("REGSHIELD_STAGING_BASE_URL") as String?)
+    ?: "https://staging.regshieldca.invalid"
+
+val regshieldProdBaseUrl: String =
+  (project.findProperty("REGSHIELD_PROD_BASE_URL") as String?)
+    ?: "https://regshieldca.invalid"
+
 android {
   namespace = "org.regshield.ca"
   compileSdk = 34
@@ -33,12 +41,11 @@ android {
       dimension = "env"
       applicationIdSuffix = ".staging"
       versionNameSuffix = "-staging"
-      // Placeholder. Override for real staging by changing this constant or using a dedicated build variant.
-      buildConfigField("String", "API_BASE_URL", "\"https://staging.regshieldca.invalid\"")
+      buildConfigField("String", "API_BASE_URL", "\"$regshieldStagingBaseUrl\"")
     }
     create("prod") {
       dimension = "env"
-      buildConfigField("String", "API_BASE_URL", "\"https://regshieldca.invalid\"")
+      buildConfigField("String", "API_BASE_URL", "\"$regshieldProdBaseUrl\"")
     }
   }
 

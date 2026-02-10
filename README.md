@@ -37,6 +37,14 @@ ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
 ./gradlew :app:assembleStagingDebug
 ```
 
+Override the staging API base URL at build time (recommended, avoids editing files):
+
+```bash
+JAVA_HOME=$(/usr/libexec/java_home -v 17) \
+ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
+./gradlew :app:assembleStagingDebug -PREGSHIELD_STAGING_BASE_URL="https://<vercel-staging-host>"
+```
+
 APK output:
 
 - `apps/android/app/build/outputs/apk/staging/debug/app-staging-debug.apk`

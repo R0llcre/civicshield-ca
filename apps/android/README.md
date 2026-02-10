@@ -11,6 +11,11 @@ This is the **public-side** Android app (Verify / Shield + Evidence Vault / Help
 
 `BuildConfig.API_BASE_URL` is defined per flavor in `apps/android/app/build.gradle.kts`.
 
+You can override base URLs at build time:
+
+- `-PREGSHIELD_STAGING_BASE_URL="https://<vercel-staging-host>"`
+- `-PREGSHIELD_PROD_BASE_URL="https://<prod-host>"`
+
 ## Local Dev (Emulator)
 
 1. Start the web app:
@@ -35,6 +40,14 @@ ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
 ./gradlew :app:assembleStagingDebug
 ```
 
+Override staging base URL (recommended):
+
+```bash
+JAVA_HOME=$(/usr/libexec/java_home -v 17) \
+ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
+./gradlew :app:assembleStagingDebug -PREGSHIELD_STAGING_BASE_URL="https://<vercel-staging-host>"
+```
+
 Output:
 
 - `apps/android/app/build/outputs/apk/staging/debug/app-staging-debug.apk`
@@ -50,4 +63,3 @@ The vault ZIP format and crypto are designed to match the Web MVP:
   - `vault_payload.enc`
 
 The export encrypts a single payload to avoid leaking filenames/counts on wrong passphrase.
-
