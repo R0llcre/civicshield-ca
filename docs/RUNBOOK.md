@@ -95,6 +95,19 @@ Alerting (Email via GitHub notifications):
   - `ETL Failure: DOJ R&A Roster`
 - Ensure at least one maintainer is subscribed to repository issue notifications.
 
+## 3.5 Uptime Smoke (optional)
+
+Workflow: `.github/workflows/uptime-smoke.yml`
+
+Secrets (recommended):
+- `STAGING_BASE_URL` (e.g. `https://<vercel-staging-host>`)
+- `PROD_BASE_URL` (optional; workflow skips if unset)
+
+Alerting (Email via GitHub notifications):
+- On failure, the workflow creates or updates issues titled:
+  - `Uptime Failure: Staging API Smoke`
+  - `Uptime Failure: Prod API Smoke`
+
 ## 4. Partner Provisioning (No Admin UI)
 
 The partner portal requires:
