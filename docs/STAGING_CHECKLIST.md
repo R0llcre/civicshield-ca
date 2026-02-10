@@ -55,9 +55,18 @@ ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
 ./gradlew :app:assembleStagingDebug
 ```
 
-Before sharing to pilot users:
-- Update Android staging base URL:
-  - `apps/android/app/build.gradle.kts` (`BuildConfig.API_BASE_URL` for `staging`)
+Before sharing to pilot users (recommended):
+- Build with a real staging base URL (no file edits):
+
+```bash
+JAVA_HOME=$(/usr/libexec/java_home -v 17) \
+ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
+./gradlew :app:assembleStagingDebug -PREGSHIELD_STAGING_BASE_URL="https://<vercel-staging-host>"
+```
+
+Optional (upgradeable internal release):
+- Configure signing secrets in GitHub
+- Run workflow: `.github/workflows/android-internal-release.yml`
 
 APK output:
 - `apps/android/app/build/outputs/apk/staging/debug/app-staging-debug.apk`
@@ -69,4 +78,3 @@ Run:
 ```bash
 node scripts/smoke_api.mjs --base-url "https://<vercel-staging-host>"
 ```
-
