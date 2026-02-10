@@ -1,0 +1,4 @@
+<resources>
+  <style name="Theme.RegShieldCA" parent="Theme.Material3.DayNight.NoActionBar" />
+</resources>
+

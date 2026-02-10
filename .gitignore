@@ -28,3 +28,12 @@ etl/_tmp/
 playwright-report/
 test-results/
 
+# Android / Gradle
+.gradle/
+**/build/
+local.properties
+*.iml
+.idea/
+captures/
+*.jks
+*.keystore

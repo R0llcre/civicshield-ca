@@ -22,6 +22,30 @@ npm run dev
 
 Then open `http://localhost:3000`.
 
+## Quickstart (Android)
+
+Prereqs:
+
+- Android Studio + Android SDK
+- JDK 17 (Gradle/AGP requires 17+)
+
+Build a staging debug APK:
+
+```bash
+JAVA_HOME=$(/usr/libexec/java_home -v 17) \
+ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
+./gradlew :app:assembleStagingDebug
+```
+
+APK output:
+
+- `apps/android/app/build/outputs/apk/staging/debug/app-staging-debug.apk`
+
+Local dev against the web server (Android emulator):
+
+1. Run `npm run dev` (serves `http://localhost:3000`)
+2. Build/install `devDebug` (API base URL is `http://10.0.2.2:3000`)
+
 ## Environment Variables
 
 Create a `.env.local` (or `.env`) at repo root:
