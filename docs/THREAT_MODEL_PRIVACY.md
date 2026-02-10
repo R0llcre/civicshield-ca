@@ -15,6 +15,8 @@
 
 - KDF: PBKDF2(SHA-256), default `210,000` iterations, random 16-byte salt.
 - Encryption: AES-256-GCM with random 12-byte IV.
+- Payload encoding: a single encrypted payload with a 1-byte kind prefix (`0x01` = JSON) to support future formats.
+- Export format intentionally encrypts **one payload** to avoid leaking item counts / filenames on wrong passphrase.
 - The exported zip contains only:
   - `vault_v1.json` (KDF params, no filenames or counts)
   - `vault_payload.enc` (encrypted blob)

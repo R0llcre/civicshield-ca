@@ -35,3 +35,21 @@ test("evidence vault export/import roundtrip (chromium only)", async ({ page }, 
 
   await expect(page.getByText("sample.txt", { exact: true })).toBeVisible();
 });
+
+test("evidence vault can import android fixture zip (chromium only)", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "chromium", "File handling is most reliable in chromium.");
+
+  const passphrase = "android-fixture-passphrase";
+
+  await page.goto("/shield");
+
+  await page.getByRole("button", { name: "Import vault (zip)" }).click();
+  const importDialog = page.getByRole("dialog");
+  await expect(importDialog).toBeVisible();
+
+  await importDialog.locator('input[type="file"]').setInputFiles("e2e/fixtures/vault_android_fixture.zip");
+  await importDialog.getByPlaceholder("••••••••").fill(passphrase);
+  await importDialog.getByRole("button", { name: "Import", exact: true }).click();
+
+  await expect(page.getByText("android-note.txt", { exact: true })).toBeVisible();
+});

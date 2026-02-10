@@ -16,6 +16,7 @@
     "etl:test": "python3 -m pip install -r etl/requirements.txt && python3 -m pytest -q etl/tests",
     "etl:run": "python3 etl/ra_roster_etl.py",
     "partner:provision": "node scripts/provision_partner.mjs",
-    "smoke:api": "node scripts/smoke_api.mjs"
+    "smoke:api": "node scripts/smoke_api.mjs",
+    "fixtures:vault": "node scripts/generate_vault_fixtures.mjs"
   }
 }
