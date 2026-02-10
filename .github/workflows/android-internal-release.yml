@@ -1,0 +1,53 @@
+name: Android - Internal Release (Signed)
+
+on:
+  workflow_dispatch:
+    inputs:
+      staging_base_url:
+        description: "Staging API base URL (e.g. https://<project>.vercel.app)"
+        required: true
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Decode signing keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.REGSHIELD_INTERNAL_KEYSTORE_B64 }}
+        run: |
+          if [ -z "$KEYSTORE_B64" ]; then
+            echo "Missing secret: REGSHIELD_INTERNAL_KEYSTORE_B64" >&2
+            exit 1
+          fi
+          echo "$KEYSTORE_B64" | base64 --decode > regshield-internal.keystore
+
+      - name: Build signed stagingRelease APK
+        env:
+          REGSHIELD_INTERNAL_KEYSTORE_PATH: ${{ github.workspace }}/regshield-internal.keystore
+          REGSHIELD_INTERNAL_KEYSTORE_PASSWORD: ${{ secrets.REGSHIELD_INTERNAL_KEYSTORE_PASSWORD }}
+          REGSHIELD_INTERNAL_KEY_ALIAS: ${{ secrets.REGSHIELD_INTERNAL_KEY_ALIAS }}
+          REGSHIELD_INTERNAL_KEY_PASSWORD: ${{ secrets.REGSHIELD_INTERNAL_KEY_PASSWORD }}
+        run: |
+          DATE="$(TZ=America/Los_Angeles date +%Y.%m.%d)"
+          VERSION_NAME="${DATE}+${GITHUB_RUN_NUMBER}"
+          ./gradlew :app:test :app:assembleStagingRelease \
+            -PREGSHIELD_STAGING_BASE_URL="${{ inputs.staging_base_url }}" \
+            -PREGSHIELD_VERSION_CODE="${GITHUB_RUN_NUMBER}" \
+            -PREGSHIELD_VERSION_NAME="${VERSION_NAME}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-staging-release-apk
+          path: apps/android/app/build/outputs/apk/staging/release/*.apk
+          if-no-files-found: error
+

@@ -52,8 +52,29 @@ ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
 APK output:
 - `apps/android/app/build/outputs/apk/staging/debug/app-staging-debug.apk`
 
-Update the Android `staging` base URL in:
-- `apps/android/app/build.gradle.kts` (`BuildConfig.API_BASE_URL`)
+Override the Android `staging` base URL at build time (recommended, avoids editing files):
+
+```bash
+JAVA_HOME=$(/usr/libexec/java_home -v 17) \
+ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
+./gradlew :app:assembleStagingDebug -PREGSHIELD_STAGING_BASE_URL="https://<vercel-staging-host>"
+```
+
+### Android internal signed release (upgradeable)
+
+For internal distribution where upgrades must install cleanly, use a **stable signing key**.
+
+GitHub Actions workflow:
+- `.github/workflows/android-internal-release.yml`
+
+Required secrets:
+- `REGSHIELD_INTERNAL_KEYSTORE_B64` (base64-encoded keystore file)
+- `REGSHIELD_INTERNAL_KEYSTORE_PASSWORD`
+- `REGSHIELD_INTERNAL_KEY_ALIAS`
+- `REGSHIELD_INTERNAL_KEY_PASSWORD`
+
+The workflow builds a signed `stagingRelease` APK and uploads an artifact:
+- `android-staging-release-apk`
 
 ## 3. GitHub Actions ETL
 

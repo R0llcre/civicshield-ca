@@ -52,6 +52,38 @@ Output:
 
 - `apps/android/app/build/outputs/apk/staging/debug/app-staging-debug.apk`
 
+## Internal Signed Release (Upgradeable)
+
+By default, `release` builds fall back to the debug signing key for local convenience.
+For internal distribution (where upgrades must install cleanly), inject a stable signing key via env:
+
+- `REGSHIELD_INTERNAL_KEYSTORE_PATH`
+- `REGSHIELD_INTERNAL_KEYSTORE_PASSWORD`
+- `REGSHIELD_INTERNAL_KEY_ALIAS`
+- `REGSHIELD_INTERNAL_KEY_PASSWORD`
+
+You can also override the version for internal builds:
+
+- `-PREGSHIELD_VERSION_CODE=123` (must be monotonically increasing per package)
+- `-PREGSHIELD_VERSION_NAME="2026.02.10+123"`
+
+Example (local):
+
+```bash
+REGSHIELD_INTERNAL_KEYSTORE_PATH="/path/to/internal.keystore" \
+REGSHIELD_INTERNAL_KEYSTORE_PASSWORD="..." \
+REGSHIELD_INTERNAL_KEY_ALIAS="..." \
+REGSHIELD_INTERNAL_KEY_PASSWORD="..." \
+JAVA_HOME=$(/usr/libexec/java_home -v 17) \
+ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
+./gradlew :app:assembleStagingRelease \
+  -PREGSHIELD_STAGING_BASE_URL="https://<vercel-staging-host>" \
+  -PREGSHIELD_VERSION_CODE=123 \
+  -PREGSHIELD_VERSION_NAME="2026.02.10+123"
+```
+
+In CI, use `.github/workflows/android-internal-release.yml`.
+
 ## Evidence Vault Compatibility
 
 The vault ZIP format and crypto are designed to match the Web MVP:

@@ -14,6 +14,24 @@ val regshieldProdBaseUrl: String =
   (project.findProperty("REGSHIELD_PROD_BASE_URL") as String?)
     ?: "https://regshieldca.invalid"
 
+val regshieldVersionCode: Int =
+  (project.findProperty("REGSHIELD_VERSION_CODE") as String?)?.toIntOrNull()
+    ?: 1
+
+val regshieldVersionName: String =
+  (project.findProperty("REGSHIELD_VERSION_NAME") as String?)
+    ?: "0.1.0"
+
+val internalKeystorePath = System.getenv("REGSHIELD_INTERNAL_KEYSTORE_PATH")
+val internalKeystorePassword = System.getenv("REGSHIELD_INTERNAL_KEYSTORE_PASSWORD")
+val internalKeyAlias = System.getenv("REGSHIELD_INTERNAL_KEY_ALIAS")
+val internalKeyPassword = System.getenv("REGSHIELD_INTERNAL_KEY_PASSWORD")
+val hasInternalSigning =
+  !internalKeystorePath.isNullOrBlank() &&
+    !internalKeystorePassword.isNullOrBlank() &&
+    !internalKeyAlias.isNullOrBlank() &&
+    !internalKeyPassword.isNullOrBlank()
+
 android {
   namespace = "org.regshield.ca"
   compileSdk = 34
@@ -22,8 +40,8 @@ android {
     applicationId = "org.regshield.ca"
     minSdk = 24
     targetSdk = 34
-    versionCode = 1
-    versionName = "0.1.0"
+    versionCode = regshieldVersionCode
+    versionName = regshieldVersionName
 
     testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     vectorDrawables.useSupportLibrary = true
@@ -49,6 +67,17 @@ android {
     }
   }
 
+  signingConfigs {
+    create("internal") {
+      if (hasInternalSigning) {
+        storeFile = file(internalKeystorePath!!)
+        storePassword = internalKeystorePassword
+        keyAlias = internalKeyAlias
+        keyPassword = internalKeyPassword
+      }
+    }
+  }
+
   buildTypes {
     debug {
       isMinifyEnabled = false
@@ -56,6 +85,10 @@ android {
     release {
       isMinifyEnabled = false
       proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+      // Default to debug signing for local builds. CI/internal releases inject a stable signing key via env.
+      signingConfig =
+        if (hasInternalSigning) signingConfigs.getByName("internal")
+        else signingConfigs.getByName("debug")
     }
   }
 
