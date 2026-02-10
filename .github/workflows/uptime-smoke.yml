@@ -1,0 +1,157 @@
+name: Uptime Smoke (API)
+
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "Override base URL to smoke test (e.g. https://<host>). If empty, uses STAGING_BASE_URL/PROD_BASE_URL secrets."
+        required: false
+        type: string
+  schedule:
+    - cron: "0 * * * *"
+
+jobs:
+  staging:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Resolve base URL
+        id: base
+        env:
+          INPUT_BASE_URL: ${{ inputs.base_url }}
+          SECRET_BASE_URL: ${{ secrets.STAGING_BASE_URL }}
+        run: |
+          BASE_URL="$INPUT_BASE_URL"
+          if [ -z "$BASE_URL" ]; then
+            BASE_URL="$SECRET_BASE_URL"
+          fi
+          if [ -z "$BASE_URL" ]; then
+            echo "No STAGING_BASE_URL configured; skipping."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
+          echo "base_url=$BASE_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test
+        if: steps.base.outputs.should_run == 'true'
+        run: node scripts/smoke_api.mjs --base-url "${{ steps.base.outputs.base_url }}"
+
+      - name: Create or update GitHub Issue (on failure)
+        if: failure() && steps.base.outputs.should_run == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const title = 'Uptime Failure: Staging API Smoke';
+            const body = [
+              `Workflow run: ${runUrl}`,
+              '',
+              'Command:',
+              '```bash',
+              `node scripts/smoke_api.mjs --base-url \"${{ steps.base.outputs.base_url }}\"`,
+              '```',
+              '',
+              'Notes:',
+              '- This workflow is best-effort and relies on public endpoints only.',
+              '- Alerting is via GitHub Issue notifications (email).',
+            ].join('\\n');
+
+            const q = `repo:${context.repo.owner}/${context.repo.repo} is:issue is:open in:title \"${title}\"`;
+            const search = await github.rest.search.issuesAndPullRequests({ q, per_page: 5 });
+            const existing = (search.data.items || []).find((it) => it.title === title);
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['uptime', 'bug'],
+              });
+            }
+
+  prod:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Resolve base URL
+        id: base
+        env:
+          INPUT_BASE_URL: ${{ inputs.base_url }}
+          SECRET_BASE_URL: ${{ secrets.PROD_BASE_URL }}
+        run: |
+          # Only run prod when explicitly configured; avoid noisy failures early.
+          BASE_URL="$SECRET_BASE_URL"
+          if [ -z "$BASE_URL" ]; then
+            echo "No PROD_BASE_URL configured; skipping."
+            echo "should_run=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "should_run=true" >> "$GITHUB_OUTPUT"
+          echo "base_url=$BASE_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke test
+        if: steps.base.outputs.should_run == 'true'
+        run: node scripts/smoke_api.mjs --base-url "${{ steps.base.outputs.base_url }}"
+
+      - name: Create or update GitHub Issue (on failure)
+        if: failure() && steps.base.outputs.should_run == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
+            const title = 'Uptime Failure: Prod API Smoke';
+            const body = [
+              `Workflow run: ${runUrl}`,
+              '',
+              'Command:',
+              '```bash',
+              `node scripts/smoke_api.mjs --base-url \"${{ steps.base.outputs.base_url }}\"`,
+              '```',
+            ].join('\\n');
+
+            const q = `repo:${context.repo.owner}/${context.repo.repo} is:issue is:open in:title \"${title}\"`;
+            const search = await github.rest.search.issuesAndPullRequests({ q, per_page: 5 });
+            const existing = (search.data.items || []).find((it) => it.title === title);
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['uptime', 'bug'],
+              });
+            }
+
