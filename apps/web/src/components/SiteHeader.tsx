@@ -15,6 +15,7 @@ export function SiteHeader() {
   const items = [
     { href: "/verify", label: tNav("verify") },
     { href: "/shield", label: tNav("shield") },
+    { href: "/ask", label: tNav("ask") },
     { href: "/help", label: tNav("help") },
     { href: "/partner", label: tNav("partner") },
   ] as const;

@@ -12,6 +12,7 @@ import org.regshield.ca.api.RaEntry
 import org.regshield.ca.ui.screens.help.HelpContent
 import org.regshield.ca.ui.screens.help.HelpFilters
 import org.regshield.ca.ui.screens.help.HelpUiState
+import org.regshield.ca.ui.screens.ask.AskContent
 import org.regshield.ca.ui.screens.shield.ShieldContent
 import org.regshield.ca.ui.screens.verify.VerifyContent
 import org.regshield.ca.ui.theme.RegShieldTheme
@@ -166,5 +167,30 @@ class AppUiFlowsTest {
 
     composeRule.onNodeWithTag("vault_passphrase_input").assertExists()
     composeRule.onNodeWithTag("vault_unlock_button").assertExists()
+  }
+
+  @Test
+  fun askScreen_rendersInputAndSendAndClear() {
+    composeRule.setContent {
+      RegShieldTheme {
+        AskContent(
+          isCompact = true,
+          consentAccepted = false,
+          messages = emptyList(),
+          sending = false,
+          error = null,
+          draft = "What is an accredited representative?",
+          onDraftChange = {},
+          onClearChat = {},
+          onSend = {},
+          onAction = {},
+          onOpenCitation = {},
+        )
+      }
+    }
+
+    composeRule.onNodeWithTag("ask_input").assertExists()
+    composeRule.onNodeWithTag("ask_send").assertExists()
+    composeRule.onNodeWithTag("ask_clear_chat").assertExists()
   }
 }

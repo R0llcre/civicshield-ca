@@ -39,6 +39,10 @@ For **Azure Postgres** (Full Azure), apply the portable migrations instead:
   - Preferred by the UI to avoid putting names in URL query strings.
 - `GET /api/directory/search?county=...&lang=...&service=...`
   - Filters `aid_org` using array containment.
+- `POST /api/ask`
+  - AI-assisted, information-only Q&A (CA immigration + legal aid + verification guidance).
+  - Proxies to OpenAI Responses API from the server; requires `OPENAI_API_KEY` and optionally `OPENAI_MODEL`.
+  - Rate-limited per IP and returns structured JSON (answer markdown + allowlisted citations + suggested actions).
 - `POST /api/partner/org/:orgId`
   - Requires `Authorization: Bearer <supabase access token>`.
   - RLS in Supabase enforces org membership.

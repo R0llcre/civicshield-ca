@@ -10,6 +10,9 @@ interface RegShieldApi {
   @POST("api/verify/ra")
   suspend fun verifyRa(@Body req: VerifyRequest): Response<VerifyResponse>
 
+  @POST("api/ask")
+  suspend fun ask(@Body req: AskRequest): Response<AskResponse>
+
   @GET("api/directory/search")
   suspend fun searchDirectory(
     @Query("county") county: String?,
@@ -20,4 +23,3 @@ interface RegShieldApi {
   @GET("api/meta/health")
   suspend fun health(): Response<HealthResponse>
 }
-

@@ -2,6 +2,7 @@
   <string name="app_name">RegShield CA</string>
   <string name="nav_verify">Verify</string>
   <string name="nav_shield">Shield</string>
+  <string name="nav_ask">Ask</string>
   <string name="nav_help">Help</string>
 
   <string name="common_any">Any</string>
@@ -97,6 +98,24 @@
   <string name="shield_flag_4_detail">Keep originals and share copies only after verification.</string>
   <string name="shield_flag_5_title">Only communicates off-platform</string>
   <string name="shield_flag_5_detail">Prefer official channels and keep written records.</string>
+
+  <string name="ask_title">Ask (AI Q&amp;A)</string>
+  <string name="ask_subtitle">Information-only Q&amp;A about CA immigration basics, legal aid, and what to verify next.</string>
+  <string name="ask_empty">Ask a question to get started. Your chat stays on this device unless you clear it.</string>
+  <string name="ask_input_label">Your question</string>
+  <string name="ask_input_placeholder">Ask about immigration steps, deadlines, legal aid options, or how to verify credentials...</string>
+  <string name="ask_send">Send</string>
+  <string name="ask_sending">Sending...</string>
+  <string name="ask_clear_chat">Clear chat</string>
+  <string name="ask_sources_title">Official sources</string>
+  <string name="ask_suggested_actions">Suggested next steps</string>
+  <string name="ask_disclaimer_inline">Information only. Not legal advice.</string>
+  <string name="ask_disclaimer_inline_needs_consent">Information only. Not legal advice. Tap Send to confirm before first use.</string>
+
+  <string name="ask_consent_title">Before you ask</string>
+  <string name="ask_consent_body">I understand this is general information, not legal advice, and I should not share sensitive personal information.</string>
+  <string name="ask_consent_cancel">Cancel</string>
+  <string name="ask_consent_agree">I understand</string>
 
   <string name="vault_title">Evidence Vault</string>
   <string name="vault_subtitle">Local-only encrypted storage. Files never upload by default.</string>

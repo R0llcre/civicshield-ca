@@ -119,6 +119,11 @@ DATABASE_URL=
 
 # Ops scripts (server/admin; keep secret)
 SUPABASE_SERVICE_ROLE_KEY=
+
+# AI Q&A (server; keep secret)
+OPENAI_API_KEY=
+# Optional: override model (default gpt-4o-mini)
+OPENAI_MODEL=
 ```
 
 Without Supabase env vars, the web app runs in **demo mode** using sample data.
