@@ -64,6 +64,12 @@ az containerapp update -g "$AZURE_RG" -n "$AZURE_APP" \
     OPENAI_RAG_STRICT=true \
   >/dev/null
 
+REVISION="$(az containerapp show -g "$AZURE_RG" -n "$AZURE_APP" --query properties.latestRevisionName -o tsv)"
+if [[ -n "$REVISION" ]]; then
+  echo "Restarting revision to apply secret changes: $REVISION"
+  az containerapp revision restart -g "$AZURE_RG" -n "$AZURE_APP" --revision "$REVISION" >/dev/null
+fi
+
 echo "Verifying /api/ask..."
 ASK_URL="https://${AZURE_FQDN}/api/ask"
 HTTP_CODE="$(curl -sS -o /tmp/regshield_ask_verify.json -w "%{http_code}" -X POST "$ASK_URL" \
@@ -79,4 +85,3 @@ if [[ "$HTTP_CODE" != "200" ]]; then
 fi
 
 echo "Ask RAG is enabled on staging."
-
