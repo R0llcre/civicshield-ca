@@ -43,6 +43,24 @@ Optional environment overrides:
 - `REGSHIELD_WEB_PORT` (default `3000`)
 - `REGSHIELD_ANDROID_BOOT_TIMEOUT_SEC` (default `240`)
 
+## Azure Staging (Emulator)
+
+If you want to test against the deployed Azure staging API (no local web server needed):
+
+```bash
+npm run android:staging:up
+```
+
+Control commands:
+
+```bash
+npm run android:staging:status
+npm run android:staging:down
+```
+
+Optional overrides:
+- `REGSHIELD_STAGING_BASE_URL` (defaults to the current Azure staging host)
+
 Known failure recovery:
 - AVD not found: run `"$HOME/Library/Android/sdk/emulator/emulator" -list-avds`, then export `REGSHIELD_ANDROID_AVD`
 - JDK 17 missing: install JDK 17 and rerun

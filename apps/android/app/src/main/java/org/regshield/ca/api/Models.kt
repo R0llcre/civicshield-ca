@@ -38,7 +38,8 @@ data class RaEntry(
   @SerialName("pending_renewal") val pendingRenewal: Boolean? = null,
   @SerialName("source_url") val sourceUrl: String? = null,
   @SerialName("source_sha256") val sourceSha256: String? = null,
-  val score: Int? = null,
+  // Server may return an integer (sample mode) or a float (pg_trgm similarity).
+  val score: Double? = null,
   @SerialName("matched_on") val matchedOn: String? = null,
 )
 
@@ -85,4 +86,3 @@ data class HealthRunRow(
   @SerialName("ended_at") val endedAt: String? = null,
   @SerialName("source_sha256") val sourceSha256: String? = null,
 )
-

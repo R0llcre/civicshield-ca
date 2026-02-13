@@ -24,6 +24,12 @@
     "android:dev:clean-assemble": "bash scripts/android_dev_run.sh clean-assemble",
     "android:dev:up": "bash scripts/android_dev_up.sh",
     "android:dev:down": "bash scripts/android_dev_down.sh",
-    "android:dev:status": "bash scripts/android_dev_status.sh"
+    "android:dev:status": "bash scripts/android_dev_status.sh",
+    "android:staging:assemble": "bash scripts/android_staging_run.sh assemble",
+    "android:staging:install": "bash scripts/android_staging_run.sh install",
+    "android:staging:clean-assemble": "bash scripts/android_staging_run.sh clean-assemble",
+    "android:staging:up": "bash scripts/android_staging_up.sh",
+    "android:staging:down": "bash scripts/android_staging_down.sh",
+    "android:staging:status": "bash scripts/android_staging_status.sh"
   }
 }
