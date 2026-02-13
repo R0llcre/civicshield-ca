@@ -40,7 +40,13 @@ class AskViewModel @Inject constructor(
     }
     viewModelScope.launch {
       store.messages.collect { msgs ->
-        _state.update { it.copy(messages = msgs) }
+        val sanitized = sanitizeStoredMessages(msgs)
+        // One-time cleanup: older builds may have stored roles like "User"/"Assistant" which the
+        // server rejects (expects lowercase "user"|"assistant"). Only write when needed.
+        if (sanitized != msgs) {
+          store.setMessages(sanitized)
+        }
+        _state.update { it.copy(messages = sanitized) }
       }
     }
   }
@@ -115,7 +121,12 @@ private fun buildApiMessages(local: List<AskStoredMessage>): List<AskMessage> {
 
   for (m in local.asReversed()) {
     if (picked.size >= maxMessages) break
-    val role = m.role.trim()
+    val role =
+      when (m.role.trim().lowercase()) {
+        "user" -> "user"
+        "assistant" -> "assistant"
+        else -> continue
+      }
     val content = m.content.trim()
     if (role.isBlank() || content.isBlank()) continue
 
@@ -131,6 +142,23 @@ private fun buildApiMessages(local: List<AskStoredMessage>): List<AskMessage> {
   }
 
   return picked.asReversed()
+}
+
+private fun sanitizeStoredMessages(raw: List<AskStoredMessage>): List<AskStoredMessage> {
+  // Keep only valid roles and non-blank content; normalize role casing.
+  val out = ArrayList<AskStoredMessage>(raw.size)
+  for (m in raw) {
+    val role =
+      when (m.role.trim().lowercase()) {
+        "user" -> "user"
+        "assistant" -> "assistant"
+        else -> continue
+      }
+    val content = m.content.trim()
+    if (content.isBlank()) continue
+    out.add(m.copy(role = role, content = content))
+  }
+  return if (out.size <= 50) out else out.takeLast(50)
 }
 
 private fun extractJsonError(raw: String): String? {

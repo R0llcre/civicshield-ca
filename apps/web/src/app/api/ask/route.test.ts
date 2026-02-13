@@ -212,4 +212,49 @@ describe("/api/ask", () => {
 
     vi.unstubAllGlobals();
   });
+
+  it("accepts locale tags and role casing (normalizes to supported values)", async () => {
+    vi.resetModules();
+    process.env.OPENAI_API_KEY = "test-key";
+    process.env.OPENAI_MODEL = "gpt-test";
+    process.env.OPENAI_VECTOR_STORE_ID = "vs_test";
+
+    const modelOut = {
+      answer_markdown: "General information only.",
+      citations: [{ title: "USCIS", url: "https://www.uscis.gov/" }],
+      suggested_actions: [{ type: "open_verify", label: "Open Verify" }],
+      disclaimer: "ignored",
+    };
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (_url: unknown, init: unknown) => {
+        const body = parseJsonBody(init);
+        const tools = body.tools ?? [];
+        expect(tools[0]?.type).toBe("file_search");
+        return new Response(
+          JSON.stringify({
+            output: [
+              { type: "file_search_call", id: "fs_1", status: "completed", results: [] },
+              { type: "message", role: "assistant", content: [{ type: "output_text", text: JSON.stringify(modelOut) }] },
+            ],
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      }),
+    );
+
+    const { POST } = await importRoute();
+    const res = await POST(
+      new Request("http://localhost/api/ask", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ locale: "en-US", messages: [{ role: "User", content: "Hi" }] }),
+      }),
+    );
+
+    expect(res.status).toBe(200);
+
+    vi.unstubAllGlobals();
+  });
 });
