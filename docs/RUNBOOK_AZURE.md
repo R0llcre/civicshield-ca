@@ -87,18 +87,19 @@ After deploy, set required app env vars in the Container App configuration:
 - `DATABASE_URL` (should include `?sslmode=require` for Azure PG)
 - `APP_ENV=stg` (already set by the workflow)
 
-## 3.1 Enable AI Q&A (OpenAI) on staging
+## 3.1 Enable AI Q&A (OpenAI) + RAG on staging
 
 The AI Q&A feature is served by `POST /api/ask` on the same Next.js app.
 
 By default, `/api/ask` returns `501` until the Container App has:
 - `OPENAI_API_KEY` configured (as a secret ref)
-- optional `OPENAI_MODEL` configured (defaults to `gpt-4o-mini`)
+- `OPENAI_VECTOR_STORE_ID` configured (RAG required)
+- optional `OPENAI_MODEL` configured (defaults to `gpt-5-mini`)
 
 Security note:
 - Do **not** paste API keys into chat/PRs/issues. If an API key was ever pasted into chat, **revoke/rotate it** immediately.
 
-To enable OpenAI on Azure staging using the CLI without putting secrets into shell history:
+To enable OpenAI + RAG on Azure staging without putting secrets into shell history:
 
 1. Save your **new** OpenAI API key to a local file (ignored by git):
 
@@ -107,10 +108,16 @@ mkdir -p .tmp
 $EDITOR .tmp/openai_api_key.txt
 ```
 
-2. Run the helper script (it writes the key to an Azure Container App secret and verifies `/api/ask`):
+2. Sync the local KB under `rag/kb/` to an OpenAI Vector Store (writes the id to `.tmp/openai_vector_store_id.txt`):
 
 ```bash
-bash scripts/azure_staging_set_openai_secret.sh
+node scripts/rag_sync_openai_vector_store.mjs
+```
+
+3. Run the helper script (it writes the key to an Azure Container App secret, sets env vars, and verifies `/api/ask`):
+
+```bash
+bash scripts/azure_staging_enable_ask_rag.sh
 ```
 
 ## 4. ETL (DOJ roster) in Full Azure
