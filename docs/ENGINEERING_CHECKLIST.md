@@ -66,6 +66,10 @@ cd "/Users/shenkairan/Documents/RegShield CA"
 bash scripts/azure_staging_enable_ask_rag.sh
 ```
 
+Notes:
+- The script defaults to `OPENAI_MODEL=gpt-4.1` to avoid org-verification gating in staging.
+- Override if needed: `OPENAI_MODEL=gpt-5-mini bash scripts/azure_staging_enable_ask_rag.sh`
+
 3) Smoke test staging:
 
 ```bash
