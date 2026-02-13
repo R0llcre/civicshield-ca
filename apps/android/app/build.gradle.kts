@@ -8,7 +8,7 @@ plugins {
 
 val regshieldStagingBaseUrl: String =
   (project.findProperty("REGSHIELD_STAGING_BASE_URL") as String?)
-    ?: "https://staging.regshieldca.invalid"
+    ?: "https://ca-regshieldca-web-stg.blackhill-0c2251ca.westus2.azurecontainerapps.io"
 
 val regshieldProdBaseUrl: String =
   (project.findProperty("REGSHIELD_PROD_BASE_URL") as String?)
