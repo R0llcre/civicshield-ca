@@ -52,6 +52,9 @@ resource snetAca 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
 resource snetPe 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
   name: 'snet-pe'
   parent: vnet
+  dependsOn: [
+    snetAca
+  ]
   properties: {
     addressPrefix: peSubnetPrefix
     privateEndpointNetworkPolicies: 'Disabled'
@@ -62,6 +65,9 @@ resource snetPe 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
 resource snetRunner 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
   name: 'snet-runner'
   parent: vnet
+  dependsOn: [
+    snetPe
+  ]
   properties: {
     addressPrefix: runnerSubnetPrefix
   }
@@ -70,6 +76,9 @@ resource snetRunner 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
 resource snetPg 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
   name: 'snet-pg'
   parent: vnet
+  dependsOn: [
+    snetRunner
+  ]
   properties: {
     addressPrefix: pgSubnetPrefix
     delegations: [
@@ -88,4 +97,3 @@ output acaSubnetId string = snetAca.id
 output peSubnetId string = snetPe.id
 output runnerSubnetId string = snetRunner.id
 output pgSubnetId string = snetPg.id
-
