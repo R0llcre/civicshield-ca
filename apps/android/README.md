@@ -32,6 +32,19 @@ ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
 ./gradlew :app:installDevDebug
 ```
 
+Equivalent repo scripts:
+
+```bash
+npm run android:dev:assemble
+npm run android:dev:install
+```
+
+Known issue recovery (`*Factory 2.java`, `hilt_aggregated_deps ... 2.java`):
+
+```bash
+npm run android:dev:clean-assemble
+```
+
 ## Staging APK (Internal)
 
 ```bash

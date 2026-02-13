@@ -18,6 +18,9 @@
     "partner:provision": "node scripts/provision_partner.mjs",
     "smoke:api": "node scripts/smoke_api.mjs",
     "preflight:staging": "node scripts/smoke_api.mjs --require-supabase --max-ra-age-hours 48",
-    "fixtures:vault": "node scripts/generate_vault_fixtures.mjs"
+    "fixtures:vault": "node scripts/generate_vault_fixtures.mjs",
+    "android:dev:assemble": "bash scripts/android_dev_run.sh assemble",
+    "android:dev:install": "bash scripts/android_dev_run.sh install",
+    "android:dev:clean-assemble": "bash scripts/android_dev_run.sh clean-assemble"
   }
 }

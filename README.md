@@ -60,6 +60,19 @@ Local dev against the web server (Android emulator):
 1. Run `npm run dev` (serves `http://localhost:3000`)
 2. Build/install `devDebug` (API base URL is `http://10.0.2.2:3000`)
 
+Convenience commands:
+
+```bash
+npm run android:dev:assemble
+npm run android:dev:install
+```
+
+If kapt duplicate-file errors appear (`*Factory 2.java`), use:
+
+```bash
+npm run android:dev:clean-assemble
+```
+
 ## Environment Variables
 
 Create a `.env.local` (or `.env`) at repo root:
