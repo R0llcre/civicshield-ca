@@ -22,6 +22,12 @@ npm run dev
 
 Then open `http://localhost:3000`.
 
+Staging readiness check (after provisioning Supabase + Vercel):
+
+```bash
+STAGING_BASE_URL="https://<vercel-staging-host>" npm run preflight:staging
+```
+
 ## Quickstart (Android)
 
 Prereqs:

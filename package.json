@@ -17,6 +17,7 @@
     "etl:run": "python3 etl/ra_roster_etl.py",
     "partner:provision": "node scripts/provision_partner.mjs",
     "smoke:api": "node scripts/smoke_api.mjs",
+    "preflight:staging": "node scripts/smoke_api.mjs --require-supabase --max-ra-age-hours 48",
     "fixtures:vault": "node scripts/generate_vault_fixtures.mjs"
   }
 }

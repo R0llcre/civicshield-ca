@@ -2,15 +2,43 @@ import process from "node:process";
 
 function usage() {
   // Keep it simple and copy/paste friendly.
-  console.log('Usage: node scripts/smoke_api.mjs --base-url "https://<host>"');
+  console.log(
+    [
+      'Usage: node scripts/smoke_api.mjs --base-url "https://<host>" [--require-supabase] [--max-ra-age-hours 48]',
+      "",
+      "Options:",
+      "  --base-url <url>          Required API base URL",
+      "  --require-supabase        Fail if /api/meta/health reports supabase_configured=false",
+      "  --max-ra-age-hours <int>  Fail if latest successful RA import is older than threshold",
+    ].join("\n"),
+  );
 }
 
 function parseArgs(argv) {
-  const out = { baseUrl: null };
+  const out = {
+    baseUrl: process.env.STAGING_BASE_URL ?? null,
+    requireSupabase: false,
+    maxRaAgeHours: null,
+  };
+
   for (let i = 2; i < argv.length; i++) {
     const a = argv[i];
     if (a === "--base-url") {
       out.baseUrl = argv[i + 1] ?? null;
+      i++;
+      continue;
+    }
+    if (a === "--require-supabase") {
+      out.requireSupabase = true;
+      continue;
+    }
+    if (a === "--max-ra-age-hours") {
+      const raw = argv[i + 1] ?? "";
+      const parsed = Number.parseInt(raw, 10);
+      if (!Number.isFinite(parsed) || parsed <= 0) {
+        throw new Error(`Invalid --max-ra-age-hours value: ${raw}`);
+      }
+      out.maxRaAgeHours = parsed;
       i++;
       continue;
     }
@@ -36,8 +64,24 @@ async function mustJson(res) {
   }
 }
 
+function hoursSince(isoTs) {
+  const thenMs = new Date(isoTs).getTime();
+  if (!Number.isFinite(thenMs)) return Number.POSITIVE_INFINITY;
+  return (Date.now() - thenMs) / (1000 * 60 * 60);
+}
+
+function getMostRecentEndedAt(healthBody) {
+  const ra = healthBody?.ra_import;
+  const orgTs = ra?.orgs_by_state_city?.ended_at ?? null;
+  const repTs = ra?.reps_roster?.ended_at ?? null;
+  if (!orgTs && !repTs) return null;
+  if (!orgTs) return repTs;
+  if (!repTs) return orgTs;
+  return new Date(orgTs) > new Date(repTs) ? orgTs : repTs;
+}
+
 async function main() {
-  const { baseUrl } = parseArgs(process.argv);
+  const { baseUrl, requireSupabase, maxRaAgeHours } = parseArgs(process.argv);
   if (!baseUrl) {
     usage();
     process.exit(2);
@@ -52,7 +96,23 @@ async function main() {
     if (!res.ok) throw new Error(`health ${res.status}`);
     const body = await mustJson(res);
     if (!body.ok) throw new Error("health body.ok != true");
-    return "health ok";
+    if (requireSupabase && !body.supabase_configured) {
+      throw new Error("health supabase_configured=false");
+    }
+
+    if (maxRaAgeHours != null) {
+      const newest = getMostRecentEndedAt(body);
+      if (!newest) throw new Error("health missing ra_import freshness");
+      const ageHours = hoursSince(newest);
+      if (ageHours > maxRaAgeHours) {
+        throw new Error(
+          `ra freshness too old: ${ageHours.toFixed(1)}h > ${maxRaAgeHours}h (latest ended_at=${newest})`,
+        );
+      }
+      return `health ok (ra_age_hours=${ageHours.toFixed(1)})`;
+    }
+
+    return `health ok${body.supabase_configured ? " (supabase=true)" : " (supabase=false)"}`;
   })());
 
   // 2) verify (POST to avoid query in URL)
@@ -94,4 +154,3 @@ async function main() {
 }
 
 await main();
-

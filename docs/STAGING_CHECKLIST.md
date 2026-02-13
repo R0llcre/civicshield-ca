@@ -78,3 +78,9 @@ Run:
 ```bash
 node scripts/smoke_api.mjs --base-url "https://<vercel-staging-host>"
 ```
+
+Pilot-readiness check (requires Supabase + recent RA import):
+
+```bash
+STAGING_BASE_URL="https://<vercel-staging-host>" npm run preflight:staging
+```

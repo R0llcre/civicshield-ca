@@ -33,6 +33,12 @@ In Supabase Auth settings:
 Health check endpoint:
 - `GET /api/meta/health`
 
+Recommended readiness command:
+
+```bash
+STAGING_BASE_URL="https://<vercel-staging-host>" npm run preflight:staging
+```
+
 ## 2.5 Android (Internal APK)
 
 The Android app calls the deployed Web API endpoints:
