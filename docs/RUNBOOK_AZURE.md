@@ -35,6 +35,23 @@ Outputs include:
 
 Use the portable migrations under `db/migrations/` (not the Supabase ones):
 
+0. Allow required extensions (Azure Postgres allow-list)
+
+Azure Database for PostgreSQL Flexible Server requires extensions to be allow-listed
+before they can be created. Our schema uses:
+- `pgcrypto` (UUID generation)
+- `pg_trgm` (similarity search)
+
+Run (once per server):
+
+```bash
+az postgres flexible-server parameter set \
+  -g rg-regshieldca-stg-westus2 \
+  -s <pg-server-name> \
+  -n azure.extensions \
+  -v "pgcrypto,pg_trgm"
+```
+
 1. Connect with `psql` (from a machine with VNet access):
 
 ```bash
