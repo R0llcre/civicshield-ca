@@ -274,6 +274,19 @@ export async function POST(req: Request) {
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
     const configuredError = msg.includes("OPENAI_API_KEY not configured") || msg.includes("OPENAI_VECTOR_STORE_ID not configured");
+    const verifyOrgError =
+      msg.includes("must be verified to use the model") ||
+      msg.includes("Verify Organization") ||
+      msg.includes("platform.openai.com/settings/organization");
+    if (verifyOrgError) {
+      return NextResponse.json(
+        {
+          error:
+            "AI model access requires OpenAI organization verification. Verify your organization in OpenAI settings, then retry in ~15 minutes.",
+        },
+        { status: 503 },
+      );
+    }
     return NextResponse.json(
       { error: configuredError ? "AI Q&A is not configured on this server." : "AI request failed. Please try again." },
       { status: configuredError ? 501 : 502 },

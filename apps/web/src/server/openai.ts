@@ -83,7 +83,7 @@ export async function askOpenAI(params: {
     `Respond in locale "${locale}".`,
     "",
     "Return ONLY valid JSON matching the provided JSON schema. Do not wrap in markdown code fences.",
-  ].join("\\n");
+  ].join("\n");
 
   const tools: Array<Record<string, unknown>> = [];
   const include: string[] = [];
