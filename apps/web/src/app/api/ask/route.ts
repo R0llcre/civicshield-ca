@@ -102,7 +102,14 @@ const OUTPUT_SCHEMA: Record<string, unknown> = {
             enum: ["open_verify", "open_help", "open_official_url"],
           },
           label: { type: "string" },
-          payload: { type: "object", additionalProperties: true },
+          payload: {
+            type: "object",
+            additionalProperties: false,
+            required: ["url"],
+            properties: {
+              url: { type: "string" },
+            },
+          },
         },
       },
     },
