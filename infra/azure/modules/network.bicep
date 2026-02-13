@@ -21,6 +21,8 @@ param runnerSubnetPrefix string = '10.10.3.0/24'
 @description('Postgres Flexible Server delegated subnet (private access).')
 param pgSubnetPrefix string = '10.10.4.0/24'
 
+// Important: VNet PUT operations can behave like "full state" updates.
+// Defining subnets inline prevents accidental subnet deletions on redeploy.
 resource vnet 'Microsoft.Network/virtualNetworks@2023-09-01' = {
   name: vnetName
   location: location
@@ -30,62 +32,48 @@ resource vnet 'Microsoft.Network/virtualNetworks@2023-09-01' = {
         vnetAddressPrefix
       ]
     }
-  }
-}
-
-resource snetAca 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
-  name: 'snet-aca'
-  parent: vnet
-  properties: {
-    addressPrefix: acaSubnetPrefix
-    delegations: [
+    subnets: [
       {
-        name: 'aca'
+        name: 'snet-aca'
         properties: {
-          serviceName: 'Microsoft.App/environments'
+          addressPrefix: acaSubnetPrefix
+          delegations: [
+            {
+              name: 'aca'
+              properties: {
+                serviceName: 'Microsoft.App/environments'
+              }
+            }
+          ]
         }
       }
-    ]
-  }
-}
-
-resource snetPe 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
-  name: 'snet-pe'
-  parent: vnet
-  dependsOn: [
-    snetAca
-  ]
-  properties: {
-    addressPrefix: peSubnetPrefix
-    privateEndpointNetworkPolicies: 'Disabled'
-    privateLinkServiceNetworkPolicies: 'Disabled'
-  }
-}
-
-resource snetRunner 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
-  name: 'snet-runner'
-  parent: vnet
-  dependsOn: [
-    snetPe
-  ]
-  properties: {
-    addressPrefix: runnerSubnetPrefix
-  }
-}
-
-resource snetPg 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
-  name: 'snet-pg'
-  parent: vnet
-  dependsOn: [
-    snetRunner
-  ]
-  properties: {
-    addressPrefix: pgSubnetPrefix
-    delegations: [
       {
-        name: 'postgres'
+        name: 'snet-pe'
         properties: {
-          serviceName: 'Microsoft.DBforPostgreSQL/flexibleServers'
+          addressPrefix: peSubnetPrefix
+          privateEndpointNetworkPolicies: 'Disabled'
+          privateLinkServiceNetworkPolicies: 'Disabled'
+        }
+      }
+      {
+        name: 'snet-runner'
+        properties: {
+          addressPrefix: runnerSubnetPrefix
+        }
+      }
+      {
+        name: 'snet-pg'
+        properties: {
+          addressPrefix: pgSubnetPrefix
+          privateEndpointNetworkPolicies: 'Disabled'
+          delegations: [
+            {
+              name: 'postgres'
+              properties: {
+                serviceName: 'Microsoft.DBforPostgreSQL/flexibleServers'
+              }
+            }
+          ]
         }
       }
     ]
@@ -93,7 +81,8 @@ resource snetPg 'Microsoft.Network/virtualNetworks/subnets@2023-09-01' = {
 }
 
 output vnetId string = vnet.id
-output acaSubnetId string = snetAca.id
-output peSubnetId string = snetPe.id
-output runnerSubnetId string = snetRunner.id
-output pgSubnetId string = snetPg.id
+output acaSubnetId string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet.name, 'snet-aca')
+output peSubnetId string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet.name, 'snet-pe')
+output runnerSubnetId string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet.name, 'snet-runner')
+output pgSubnetId string = resourceId('Microsoft.Network/virtualNetworks/subnets', vnet.name, 'snet-pg')
+
