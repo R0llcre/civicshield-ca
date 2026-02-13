@@ -227,8 +227,14 @@ export async function POST(req: Request) {
 
   const parsed = requestSchema.safeParse(body);
   if (!parsed.success) {
+    const issues = parsed.error.issues ?? [];
+    const tooLong = issues.some((i) => String(i.message).toLowerCase().includes("too long"));
     return NextResponse.json(
-      { error: "Invalid request" },
+      {
+        error: tooLong
+          ? "Your question or chat history is too long. Please shorten it or clear chat and try again."
+          : "Invalid request",
+      },
       { status: 400 },
     );
   }
