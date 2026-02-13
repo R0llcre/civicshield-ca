@@ -90,7 +90,8 @@ resource app 'Microsoft.App/containerApps@2023-05-01' = {
             }
           ]
           resources: {
-            cpu: 1
+            // Bicep numeric literals are integers; use json() to emit a decimal for ACA.
+            cpu: json('0.5')
             memory: '1Gi'
           }
         }
