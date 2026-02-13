@@ -359,6 +359,25 @@ def main() -> int:
                         str(pdf_path), dataset=dataset, source_url=source_url, source_sha256=source_sha
                     )
                     run["published_at"] = str(published) if published else None
+                    raw_count = len(entries)
+
+                    # Defensive de-dupe: Postgres INSERT ... ON CONFLICT can't handle
+                    # multiple rows in the same statement that hit the same unique key.
+                    # The PDFs occasionally contain duplicates, and the parser can also
+                    # emit repeats across page boundaries.
+                    deduped = []
+                    seen_keys: set[str] = set()
+                    for e in entries:
+                        if e.dedupe_key in seen_keys:
+                            continue
+                        seen_keys.add(e.dedupe_key)
+                        deduped.append(e)
+
+                    if len(deduped) != raw_count:
+                        run["parsed_count_raw"] = raw_count
+                        run["deduped_duplicates"] = raw_count - len(deduped)
+
+                    entries = deduped
                     run["parsed_count"] = len(entries)
 
                     cur_keys = {e.dedupe_key for e in entries}
