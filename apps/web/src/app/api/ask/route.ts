@@ -95,7 +95,8 @@ const OUTPUT_SCHEMA: Record<string, unknown> = {
       items: {
         type: "object",
         additionalProperties: false,
-        required: ["type", "label"],
+        // OpenAI Structured Outputs (strict=true) requires `required` to list every key in `properties`.
+        required: ["type", "label", "payload"],
         properties: {
           type: {
             type: "string",
