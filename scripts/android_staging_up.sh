@@ -274,10 +274,9 @@ echo "Launching app on emulator..."
 "$ADB_CMD" -s "$EMU_SERIAL" shell monkey -p org.regshield.ca.staging -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 || true
 
 echo ""
-echo "RegShield Android staging environment is ready."
+echo "CivicShield Android staging environment is ready."
 echo "AVD: $REGSHIELD_ANDROID_AVD"
 echo "Emulator serial: $EMU_SERIAL ($([[ "$EMU_STARTED_BY_SCRIPT" == "yes" ]] && echo "started by script" || echo "reused"))"
 echo "API base: $REGSHIELD_STAGING_BASE_URL"
 echo "Emulator log: $EMU_LOG_FILE"
 echo "Stop managed emulator: npm run android:staging:down"
-
