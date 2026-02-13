@@ -81,6 +81,11 @@ function sleep(ms) {
   return new Promise((r) => setTimeout(r, ms));
 }
 
+function sanitizeId(raw) {
+  // Handle both real newlines and the accidental literal "\\n" sequence.
+  return String(raw ?? "").replace(/\\n/g, "").trim();
+}
+
 function openAiErrorMessage(data) {
   if (!data || typeof data !== "object") return null;
   const err = data.error;
@@ -143,18 +148,18 @@ async function bundleKb() {
   }
 
   const parts = [];
-  parts.push(`# RegShield CA Knowledge Base Bundle\\n`);
-  parts.push(`Generated at: ${new Date().toISOString()}\\n`);
+  parts.push(`# RegShield CA Knowledge Base Bundle\n`);
+  parts.push(`Generated at: ${new Date().toISOString()}\n`);
 
   const allUrls = new Set();
 
   for (const f of files) {
     const full = path.join(KB_DIR, f);
     const content = await fs.readFile(full, "utf8");
-    parts.push(`\\n---\\n\\n`);
-    parts.push(`## Source file: ${f}\\n\\n`);
+    parts.push(`\n---\n\n`);
+    parts.push(`## Source file: ${f}\n\n`);
     parts.push(content.trim());
-    parts.push("\\n");
+    parts.push("\n");
 
     for (const m of content.matchAll(/https?:\/\/[^\s)\]]+/g)) {
       allUrls.add(m[0]);
@@ -177,8 +182,15 @@ async function bundleKb() {
 
 async function ensureVectorStoreId(apiKey) {
   if (await fileExists(VECTOR_STORE_ID_FILE)) {
-    const id = await readTrimmed(VECTOR_STORE_ID_FILE);
-    if (id) return id;
+    const raw = await readTrimmed(VECTOR_STORE_ID_FILE);
+    const id = sanitizeId(raw);
+    if (id) {
+      // Repair legacy files that accidentally contained a literal "\\n".
+      if (raw !== id) {
+        await fs.writeFile(VECTOR_STORE_ID_FILE, `${id}\n`, "utf8");
+      }
+      return id;
+    }
   }
 
   console.log("Creating vector store...");
@@ -197,7 +209,7 @@ async function ensureVectorStoreId(apiKey) {
   const id = String(vs.id ?? "").trim();
   if (!id) throw new Error("Vector store create response missing id");
 
-  await fs.writeFile(VECTOR_STORE_ID_FILE, `${id}\\n`, "utf8");
+  await fs.writeFile(VECTOR_STORE_ID_FILE, `${id}\n`, "utf8");
   console.log(`Vector store created: ${id}`);
   return id;
 }
@@ -228,7 +240,7 @@ async function uploadBundleFile(apiKey) {
 
 async function detachAndDeletePrevious(apiKey, vectorStoreId) {
   if (!(await fileExists(LAST_FILE_ID_FILE))) return;
-  const oldId = await readTrimmed(LAST_FILE_ID_FILE);
+  const oldId = sanitizeId(await readTrimmed(LAST_FILE_ID_FILE));
   if (!oldId) return;
 
   // Best-effort cleanup; ignore errors.
@@ -263,7 +275,7 @@ async function attachToVectorStore(apiKey, vectorStoreId, fileId) {
     await sleep(2000);
   }
 
-  await fs.writeFile(LAST_FILE_ID_FILE, `${fileId}\\n`, "utf8");
+  await fs.writeFile(LAST_FILE_ID_FILE, `${fileId}\n`, "utf8");
   console.log("Vector store ingestion completed.");
 }
 
