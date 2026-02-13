@@ -33,6 +33,6 @@ jobs:
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/0002_aid_org_provenance.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/0003_search_ra_entries.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/0004_partner_security.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/0005_search_ra_entries_relevance_score.sql
 
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/seed/staging_demo.sql
-

@@ -27,7 +27,7 @@
   <string name="verify_possible_match">Possible match</string>
   <string name="verify_results_title">Matches</string>
   <string name="verify_results_for">Matches for %1$s (%2$s)</string>
-  <string name="verify_results_hint">Sorted by similarity</string>
+  <string name="verify_results_hint">Sorted by relevance</string>
   <string name="verify_action_call">Call</string>
   <string name="verify_action_website">Website</string>
   <string name="verify_entry_representative">Representative</string>

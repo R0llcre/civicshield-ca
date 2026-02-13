@@ -137,7 +137,8 @@ fun CivicCard(
   content: @Composable ColumnScope.() -> Unit,
 ) {
   Card(
-    modifier = modifier,
+    // Default to full-width cards for consistent scanning on mobile; callers can override via modifier.
+    modifier = Modifier.fillMaxWidth().then(modifier),
     colors = CardDefaults.cardColors(
       containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
     ),

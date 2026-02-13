@@ -534,7 +534,19 @@ private fun VerifyResultCard(
       }
     }
 
-    val orgLine = listOfNotNull(result.organizationName, result.city, result.state).joinToString(" • ")
+    val showUsForRepresentative =
+      !(
+        result.entryType?.trim()?.lowercase() == "representative" &&
+          result.state?.trim()?.uppercase() == "US" &&
+          result.city.isNullOrBlank()
+      )
+    val orgLine =
+      buildList<String> {
+        if (!result.organizationName.isNullOrBlank()) add(result.organizationName)
+        if (!result.city.isNullOrBlank()) add(result.city)
+        val st = result.state
+        if (!st.isNullOrBlank() && (showUsForRepresentative || st.trim().uppercase() != "US")) add(st)
+      }.joinToString(" • ")
     if (orgLine.isNotBlank()) {
       Text(text = orgLine, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
