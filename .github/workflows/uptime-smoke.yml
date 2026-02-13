@@ -47,7 +47,7 @@ jobs:
 
       - name: Create or update GitHub Issue (on failure)
         if: failure() && steps.base.outputs.should_run == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
@@ -120,7 +120,7 @@ jobs:
 
       - name: Create or update GitHub Issue (on failure)
         if: failure() && steps.base.outputs.should_run == 'true'
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           script: |
             const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`;
