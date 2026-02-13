@@ -8,6 +8,7 @@ class ShieldSummaryTest {
   fun buildShieldSummary_includesSelectionsAndDisclaimer() {
     val summary =
       buildShieldSummary(
+        appName = "CivicShield",
         selectedFlags = listOf("Asks for payment by gift card or crypto"),
         steps = listOf(
           "Verify identities and licenses" to true,
@@ -24,4 +25,3 @@ class ShieldSummaryTest {
     assertThat(summary).contains("Information only. This is not legal advice.")
   }
 }
-

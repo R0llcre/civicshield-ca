@@ -1,12 +1,13 @@
 package org.regshield.ca.ui.screens.shield
 
 fun buildShieldSummary(
+  appName: String,
   selectedFlags: List<String>,
   steps: List<Pair<String, Boolean>>,
   disclaimer: String,
 ): String {
   val sb = StringBuilder()
-  sb.appendLine("RegShield CA - Scam shield summary")
+  sb.appendLine("$appName - Scam shield summary")
   sb.appendLine()
 
   sb.appendLine("Red flags selected (${selectedFlags.size}):")
@@ -29,4 +30,3 @@ fun buildShieldSummary(
   sb.appendLine(disclaimer)
   return sb.toString().trimEnd()
 }
-

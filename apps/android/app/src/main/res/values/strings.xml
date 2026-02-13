@@ -1,5 +1,5 @@
 <resources>
-  <string name="app_name">RegShield CA</string>
+  <string name="app_name">CivicShield</string>
   <string name="nav_verify">Verify</string>
   <string name="nav_shield">Shield</string>
   <string name="nav_ask">Ask</string>

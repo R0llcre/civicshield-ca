@@ -9,6 +9,7 @@ async function importRoute() {
 type RequestBody = {
   model?: unknown;
   temperature?: unknown;
+  reasoning?: unknown;
   tool_choice?: unknown;
   tools?: Array<Record<string, unknown>>;
   include?: unknown;
@@ -85,6 +86,7 @@ describe("/api/ask", () => {
         const body = parseJsonBody(init);
         expect(body.model).toBe("gpt-test");
         expect(body.temperature).toBeUndefined();
+        expect(body.reasoning).toBeUndefined();
         expect(body.tool_choice).toBe("required");
         const tools = body.tools ?? [];
         expect(Array.isArray(tools)).toBe(true);

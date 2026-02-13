@@ -184,8 +184,8 @@ fun VerifyContent(
   onOpenCalBar: () -> Unit,
   onOpenSos: () -> Unit,
 ) {
-  val topPadding = contentPadding.calculateTopPadding()
-  val bottomPadding = contentPadding.calculateBottomPadding()
+  val chromeTopPadding = contentPadding.calculateTopPadding()
+  val chromeBottomPadding = contentPadding.calculateBottomPadding()
   val errorText =
     when {
       errorResId != null -> stringResource(errorResId)
@@ -198,13 +198,14 @@ fun VerifyContent(
     modifier =
       Modifier
         .fillMaxSize()
+        .padding(top = chromeTopPadding)
         .imePadding(),
     contentPadding =
       PaddingValues(
         start = 16.dp,
         end = 16.dp,
-        top = topPadding,
-        bottom = bottomPadding,
+        top = 0.dp,
+        bottom = chromeBottomPadding,
       ),
     verticalArrangement = Arrangement.spacedBy(12.dp),
   ) {

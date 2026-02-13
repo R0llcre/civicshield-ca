@@ -69,6 +69,7 @@ export async function askOpenAI(params: {
 }): Promise<AskModelOutput> {
   const { OPENAI_API_KEY, OPENAI_MODEL } = getServerEnv();
   if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not configured");
+  const isGpt5Family = OPENAI_MODEL.startsWith("gpt-5");
 
   const locale = params.locale;
   const allowedDomains = params.allowedDomains ?? [];
@@ -114,26 +115,27 @@ export async function askOpenAI(params: {
     include.push("web_search_call.action.sources");
   }
 
-  const payload = {
+  const text: Record<string, unknown> = {
+    ...(isGpt5Family ? { verbosity: "low" } : {}),
+    format: {
+      type: "json_schema",
+      name: "regshield_ask_v1",
+      schema: params.schema,
+      strict: true,
+    },
+  };
+
+  const payload: Record<string, unknown> = {
     model: OPENAI_MODEL,
     instructions,
     input: params.messages.map((m) => ({ role: m.role, content: m.content })),
-    // GPT-5 family: do not send temperature/top_p/logprobs. Use reasoning + verbosity instead.
-    reasoning: { effort: "low" },
+    ...(isGpt5Family ? { reasoning: { effort: "low" } } : {}),
     store: false,
     tool_choice: "required",
     tools,
     include,
     max_output_tokens: 900,
-    text: {
-      verbosity: "low",
-      format: {
-        type: "json_schema",
-        name: "regshield_ask_v1",
-        schema: params.schema,
-        strict: true,
-      },
-    },
+    text,
   };
 
   const res = await fetch("https://api.openai.com/v1/responses", {

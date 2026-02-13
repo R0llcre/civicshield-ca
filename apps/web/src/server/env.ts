@@ -52,7 +52,7 @@ export function getServerEnv() {
   cached = parsed.success
     ? {
         ...parsed.data,
-        OPENAI_MODEL: parsed.data.OPENAI_MODEL ?? "gpt-5-mini",
+        OPENAI_MODEL: parsed.data.OPENAI_MODEL ?? "gpt-4.1",
         OPENAI_ENABLE_WEB_SEARCH: parseBool(parsed.data.OPENAI_ENABLE_WEB_SEARCH, true),
         OPENAI_WEB_SEARCH_EXTERNAL: parseBool(parsed.data.OPENAI_WEB_SEARCH_EXTERNAL, false),
         OPENAI_RAG_STRICT: parseBool(parsed.data.OPENAI_RAG_STRICT, true),
@@ -61,7 +61,7 @@ export function getServerEnv() {
         DATABASE_URL: undefined,
         APP_ENV: undefined,
         OPENAI_API_KEY: undefined,
-        OPENAI_MODEL: "gpt-5-mini",
+        OPENAI_MODEL: "gpt-4.1",
         OPENAI_VECTOR_STORE_ID: undefined,
         OPENAI_ENABLE_WEB_SEARCH: true,
         OPENAI_WEB_SEARCH_EXTERNAL: false,

@@ -1,11 +1,14 @@
 package org.regshield.ca.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,10 +34,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.regshield.ca.R
 import org.regshield.ca.ui.theme.LocalCivicAccent
 
 data class ChromeNavItem(
@@ -96,10 +104,8 @@ fun AppChrome(
 @Composable
 private fun CompactTopBar(modifier: Modifier = Modifier) {
   val accent = LocalCivicAccent.current
-  Surface(
-    modifier = modifier.widthIn(max = 360.dp),
-    shape = RoundedCornerShape(999.dp),
-    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.84f),
+  GlassPillSurface(
+    modifier = modifier.widthIn(max = 340.dp),
     tonalElevation = 2.dp,
     shadowElevation = 1.dp,
   ) {
@@ -116,7 +122,7 @@ private fun CompactTopBar(modifier: Modifier = Modifier) {
             .background(accent.accent),
       )
       Text(
-        text = "RegShield CA",
+        text = stringResource(R.string.app_name),
         style = MaterialTheme.typography.labelLarge,
         fontWeight = FontWeight.Bold,
         color = MaterialTheme.colorScheme.onSurface,
@@ -138,10 +144,8 @@ private fun FloatingBottomBar(
   val fontScale = LocalDensity.current.fontScale
   val barHeight = if (isCompact) 72.dp else 60.dp
 
-  Surface(
+  GlassPillSurface(
     modifier = modifier.widthIn(max = 440.dp),
-    shape = RoundedCornerShape(999.dp),
-    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
     tonalElevation = 5.dp,
     shadowElevation = 10.dp,
   ) {
@@ -210,6 +214,65 @@ private fun FloatingBottomBar(
           }
         }
       }
+    }
+  }
+}
+
+@Composable
+private fun GlassPillSurface(
+  modifier: Modifier = Modifier,
+  tonalElevation: androidx.compose.ui.unit.Dp = 0.dp,
+  shadowElevation: androidx.compose.ui.unit.Dp = 0.dp,
+  content: @Composable () -> Unit,
+) {
+  val accent = LocalCivicAccent.current
+  val scheme = MaterialTheme.colorScheme
+  val isDark = isSystemInDarkTheme()
+
+  val surfaceAlpha = if (isDark) 0.72f else 0.86f
+  val highlightAlphaTop = if (isDark) 0.16f else 0.28f
+  val highlightAlphaBottom = if (isDark) 0.06f else 0.12f
+  val washAlpha = if (isDark) 0.10f else 0.12f
+
+  val borderBrush =
+    Brush.linearGradient(
+      colors =
+        listOf(
+          Color.White.copy(alpha = highlightAlphaTop),
+          Color.White.copy(alpha = highlightAlphaBottom),
+          Color.Transparent,
+        ),
+      start = Offset.Zero,
+      end = Offset(420f, 180f),
+    )
+
+  val washBrush =
+    Brush.linearGradient(
+      colors =
+        listOf(
+          accent.accent.copy(alpha = washAlpha),
+          Color.Transparent,
+        ),
+      start = Offset.Zero,
+      end = Offset(520f, 320f),
+    )
+
+  Surface(
+    modifier = modifier,
+    shape = RoundedCornerShape(999.dp),
+    color = scheme.surface.copy(alpha = surfaceAlpha),
+    contentColor = scheme.onSurface,
+    tonalElevation = tonalElevation,
+    shadowElevation = shadowElevation,
+  ) {
+    Box(
+      modifier =
+        Modifier
+          .clip(RoundedCornerShape(999.dp))
+          .border(BorderStroke(1.dp, borderBrush), RoundedCornerShape(999.dp))
+          .background(washBrush),
+    ) {
+      content()
     }
   }
 }

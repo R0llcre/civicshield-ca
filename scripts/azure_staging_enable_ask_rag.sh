@@ -7,7 +7,7 @@ cd "$ROOT_DIR"
 AZURE_RG_DEFAULT="rg-regshieldca-stg-westus2"
 AZURE_APP_DEFAULT="ca-regshieldca-web-stg"
 AZURE_FQDN_DEFAULT="ca-regshieldca-web-stg.blackhill-0c2251ca.westus2.azurecontainerapps.io"
-OPENAI_MODEL_DEFAULT="gpt-5-mini"
+OPENAI_MODEL_DEFAULT="gpt-4.1"
 
 AZURE_RG="${AZURE_RG:-$AZURE_RG_DEFAULT}"
 AZURE_APP="${AZURE_APP:-$AZURE_APP_DEFAULT}"
