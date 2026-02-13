@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.40.2.10011",
-      "templateHash": "14635691906127336787"
+      "templateHash": "3007486105991276341"
     }
   },
   "parameters": {
@@ -132,7 +132,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.40.2.10011",
-              "templateHash": "14988272654832971950"
+              "templateHash": "1828988251447893531"
             }
           },
           "parameters": {
@@ -195,70 +195,53 @@
                   "addressPrefixes": [
                     "[parameters('vnetAddressPrefix')]"
                   ]
-                }
+                },
+                "subnets": [
+                  {
+                    "name": "snet-aca",
+                    "properties": {
+                      "addressPrefix": "[parameters('acaSubnetPrefix')]",
+                      "delegations": [
+                        {
+                          "name": "aca",
+                          "properties": {
+                            "serviceName": "Microsoft.App/environments"
+                          }
+                        }
+                      ]
+                    }
+                  },
+                  {
+                    "name": "snet-pe",
+                    "properties": {
+                      "addressPrefix": "[parameters('peSubnetPrefix')]",
+                      "privateEndpointNetworkPolicies": "Disabled",
+                      "privateLinkServiceNetworkPolicies": "Disabled"
+                    }
+                  },
+                  {
+                    "name": "snet-runner",
+                    "properties": {
+                      "addressPrefix": "[parameters('runnerSubnetPrefix')]"
+                    }
+                  },
+                  {
+                    "name": "snet-pg",
+                    "properties": {
+                      "addressPrefix": "[parameters('pgSubnetPrefix')]",
+                      "privateEndpointNetworkPolicies": "Disabled",
+                      "delegations": [
+                        {
+                          "name": "postgres",
+                          "properties": {
+                            "serviceName": "Microsoft.DBforPostgreSQL/flexibleServers"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
               }
-            },
-            {
-              "type": "Microsoft.Network/virtualNetworks/subnets",
-              "apiVersion": "2023-09-01",
-              "name": "[format('{0}/{1}', parameters('vnetName'), 'snet-aca')]",
-              "properties": {
-                "addressPrefix": "[parameters('acaSubnetPrefix')]",
-                "delegations": [
-                  {
-                    "name": "aca",
-                    "properties": {
-                      "serviceName": "Microsoft.App/environments"
-                    }
-                  }
-                ]
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
-              ]
-            },
-            {
-              "type": "Microsoft.Network/virtualNetworks/subnets",
-              "apiVersion": "2023-09-01",
-              "name": "[format('{0}/{1}', parameters('vnetName'), 'snet-pe')]",
-              "properties": {
-                "addressPrefix": "[parameters('peSubnetPrefix')]",
-                "privateEndpointNetworkPolicies": "Disabled",
-                "privateLinkServiceNetworkPolicies": "Disabled"
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
-              ]
-            },
-            {
-              "type": "Microsoft.Network/virtualNetworks/subnets",
-              "apiVersion": "2023-09-01",
-              "name": "[format('{0}/{1}', parameters('vnetName'), 'snet-runner')]",
-              "properties": {
-                "addressPrefix": "[parameters('runnerSubnetPrefix')]"
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
-              ]
-            },
-            {
-              "type": "Microsoft.Network/virtualNetworks/subnets",
-              "apiVersion": "2023-09-01",
-              "name": "[format('{0}/{1}', parameters('vnetName'), 'snet-pg')]",
-              "properties": {
-                "addressPrefix": "[parameters('pgSubnetPrefix')]",
-                "delegations": [
-                  {
-                    "name": "postgres",
-                    "properties": {
-                      "serviceName": "Microsoft.DBforPostgreSQL/flexibleServers"
-                    }
-                  }
-                ]
-              },
-              "dependsOn": [
-                "[resourceId('Microsoft.Network/virtualNetworks', parameters('vnetName'))]"
-              ]
             }
           ],
           "outputs": {
@@ -956,7 +939,7 @@
             "_generator": {
               "name": "bicep",
               "version": "0.40.2.10011",
-              "templateHash": "4255892613976504616"
+              "templateHash": "3598066126428052177"
             }
           },
           "parameters": {
@@ -1085,7 +1068,7 @@
                         }
                       ],
                       "resources": {
-                        "cpu": 1,
+                        "cpu": "[json('0.5')]",
                         "memory": "1Gi"
                       }
                     }

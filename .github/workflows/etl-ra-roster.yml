@@ -9,14 +9,13 @@ on:
     - cron: "0 14 * * *"
 
 jobs:
-  sync_self_hosted:
-    if: secrets.ETL_USE_SELF_HOSTED == 'true' && secrets.ETL_SELF_HOSTED_LABEL != ''
+  sync:
     permissions:
       contents: read
       issues: write
     runs-on:
       - self-hosted
-      - ${{ secrets.ETL_SELF_HOSTED_LABEL }}
+      - regshieldca-stg
     steps:
       - uses: actions/checkout@v4
 
