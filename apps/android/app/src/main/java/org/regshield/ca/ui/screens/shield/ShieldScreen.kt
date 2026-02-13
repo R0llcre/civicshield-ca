@@ -1,5 +1,9 @@
 package org.regshield.ca.ui.screens.shield
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +17,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CheckboxDefaults
@@ -21,22 +27,29 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import org.regshield.ca.R
 import org.regshield.ca.ui.components.CivicPrimaryButton
+import org.regshield.ca.ui.components.CivicLinkButton
+import org.regshield.ca.ui.components.CivicListItem
+import org.regshield.ca.ui.components.CivicTonalButton
 import org.regshield.ca.ui.components.CivicCard
 import org.regshield.ca.ui.components.HeroPanel
+import org.regshield.ca.ui.components.InfoBadge
 import org.regshield.ca.ui.components.SplitColumns
 import org.regshield.ca.ui.theme.LocalCivicAccent
+import androidx.hilt.navigation.compose.hiltViewModel
 
 private data class Flag(val id: String, val title: Int, val detail: Int)
+private data class PlanStep(val id: String, val text: Int)
 
 private val FLAGS = listOf(
   Flag("pay", R.string.shield_flag_1_title, R.string.shield_flag_1_detail),
@@ -46,19 +59,52 @@ private val FLAGS = listOf(
   Flag("offsite", R.string.shield_flag_5_title, R.string.shield_flag_5_detail),
 )
 
+private val STEPS = listOf(
+  PlanStep("verify", R.string.shield_step_verify),
+  PlanStep("receipts", R.string.shield_step_receipts),
+  PlanStep("no_blank", R.string.shield_step_no_blank),
+)
+
 @Composable
 fun ShieldScreen(
   isCompact: Boolean,
   contentPadding: PaddingValues = PaddingValues(0.dp),
   onOpenVault: () -> Unit,
+  onGoVerify: () -> Unit,
+  onGoHelp: () -> Unit,
+  vm: ShieldViewModel = hiltViewModel(),
 ) {
-  val checked = remember { mutableStateMapOf<String, Boolean>() }
+  val ctx = LocalContext.current
+  val st by vm.state.collectAsState()
+
+  val selectedFlagsText =
+    FLAGS
+      .filter { st.selectedFlagIds.contains(it.id) }
+      .map { ctx.getString(it.title) }
+  val stepsText =
+    STEPS.map { step ->
+      ctx.getString(step.text) to st.completedStepIds.contains(step.id)
+    }
+  val summaryText =
+    buildShieldSummary(
+      selectedFlags = selectedFlagsText,
+      steps = stepsText,
+      disclaimer = ctx.getString(R.string.shield_info_only),
+    )
+
   ShieldContent(
     isCompact = isCompact,
     contentPadding = contentPadding,
-    checked = checked,
-    onToggle = { id, value -> checked[id] = value },
+    selectedFlagIds = st.selectedFlagIds,
+    completedStepIds = st.completedStepIds,
+    onToggleFlag = { id, value -> vm.setFlagSelected(id, value) },
+    onToggleStep = { id, value -> vm.setStepCompleted(id, value) },
+    onClearAll = vm::clearAll,
+    onCopySummary = { copyToClipboard(ctx, summaryText) },
+    onShareSummary = { shareText(ctx, summaryText) },
     onOpenVault = onOpenVault,
+    onGoVerify = onGoVerify,
+    onGoHelp = onGoHelp,
   )
 }
 
@@ -66,11 +112,25 @@ fun ShieldScreen(
 fun ShieldContent(
   isCompact: Boolean,
   contentPadding: PaddingValues = PaddingValues(0.dp),
-  checked: Map<String, Boolean>,
-  onToggle: (String, Boolean) -> Unit,
+  selectedFlagIds: Set<String>,
+  completedStepIds: Set<String>,
+  onToggleFlag: (String, Boolean) -> Unit,
+  onToggleStep: (String, Boolean) -> Unit,
+  onClearAll: () -> Unit,
+  onCopySummary: () -> Unit,
+  onShareSummary: () -> Unit,
   onOpenVault: () -> Unit,
+  onGoVerify: () -> Unit,
+  onGoHelp: () -> Unit,
 ) {
-  val checkedCount = checked.values.count { it }
+  val checkedCount = selectedFlagIds.size
+  val stepsDone = completedStepIds.size
+  val riskRes =
+    when {
+      checkedCount == 0 -> R.string.shield_risk_low
+      checkedCount <= 2 -> R.string.shield_risk_medium
+      else -> R.string.shield_risk_high
+    }
   val topPadding = contentPadding.calculateTopPadding()
   val bottomPadding = contentPadding.calculateBottomPadding()
 
@@ -92,48 +152,232 @@ fun ShieldContent(
       HeroPanel(
         title = stringResource(R.string.shield_title),
         subtitle = stringResource(R.string.shield_subtitle),
-        badge = "${stringResource(R.string.nav_shield)} · $checkedCount",
+        badge =
+          stringResource(
+            R.string.shield_badge,
+            checkedCount,
+            FLAGS.size,
+            stepsDone,
+            STEPS.size,
+            stringResource(riskRes),
+          ),
       )
     }
 
     item {
-      SplitColumns(
-        isCompact = isCompact,
-        modifier = Modifier.fillMaxWidth(),
-        left = {
-          CivicCard {
-            Text(text = stringResource(R.string.shield_red_flags), style = MaterialTheme.typography.titleMedium)
-            for ((index, flag) in FLAGS.withIndex()) {
-              ShieldFlagTile(
-                title = stringResource(flag.title),
-                detail = stringResource(flag.detail),
-                checked = checked[flag.id] == true,
-                testTag = "shield_flag_$index",
-                onChange = { onToggle(flag.id, it) },
-              )
-            }
-          }
-        },
-        right = {
-          CivicCard {
-            Text(text = stringResource(R.string.shield_action_plan), style = MaterialTheme.typography.titleMedium)
-            ActionStep(number = 1, text = stringResource(R.string.shield_step_verify))
-            ActionStep(number = 2, text = stringResource(R.string.shield_step_receipts))
-            ActionStep(number = 3, text = stringResource(R.string.shield_step_no_blank))
-            CivicPrimaryButton(
-              text = stringResource(R.string.shield_open_vault),
-              icon = Icons.Default.Shield,
-              onClick = onOpenVault,
-              modifier =
-                Modifier
-                  .fillMaxWidth()
-                  .testTag("shield_open_vault"),
+      if (isCompact) {
+        RedFlagsCard(
+          selectedFlagIds = selectedFlagIds,
+          completedStepIds = completedStepIds,
+          onToggleFlag = onToggleFlag,
+          onClearAll = onClearAll,
+        )
+      } else {
+        SplitColumns(
+          isCompact = false,
+          modifier = Modifier.fillMaxWidth(),
+          left = {
+            RedFlagsCard(
+              selectedFlagIds = selectedFlagIds,
+              completedStepIds = completedStepIds,
+              onToggleFlag = onToggleFlag,
+              onClearAll = onClearAll,
             )
-          }
-        },
+          },
+          right = {
+            ActionPlanCard(
+              completedStepIds = completedStepIds,
+              onToggleStep = onToggleStep,
+              onCopySummary = onCopySummary,
+              onShareSummary = onShareSummary,
+            )
+          },
+        )
+      }
+    }
+
+    if (isCompact) {
+      item {
+        ActionPlanCard(
+          completedStepIds = completedStepIds,
+          onToggleStep = onToggleStep,
+          onCopySummary = onCopySummary,
+          onShareSummary = onShareSummary,
+        )
+      }
+    }
+
+    item {
+      EvidenceVaultCard(onOpenVault = onOpenVault)
+    }
+
+    item {
+      QuickNextActionsCard(onGoVerify = onGoVerify, onGoHelp = onGoHelp)
+    }
+
+    item {
+      CivicCard {
+        Text(
+          text = stringResource(R.string.shield_info_only),
+          style = MaterialTheme.typography.bodySmall,
+          color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+      }
+    }
+  }
+}
+
+@Composable
+private fun RedFlagsCard(
+  selectedFlagIds: Set<String>,
+  completedStepIds: Set<String>,
+  onToggleFlag: (String, Boolean) -> Unit,
+  onClearAll: () -> Unit,
+) {
+  val canClear = selectedFlagIds.isNotEmpty() || completedStepIds.isNotEmpty()
+  CivicCard {
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(10.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text(
+        text = stringResource(R.string.shield_red_flags),
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.weight(1f),
+      )
+      CivicLinkButton(
+        text = stringResource(R.string.shield_clear_all),
+        onClick = onClearAll,
+        enabled = canClear,
+        modifier = Modifier.testTag("shield_clear_all"),
+      )
+    }
+    for ((index, flag) in FLAGS.withIndex()) {
+      ShieldFlagTile(
+        title = stringResource(flag.title),
+        detail = stringResource(flag.detail),
+        checked = selectedFlagIds.contains(flag.id),
+        testTag = "shield_flag_$index",
+        onChange = { onToggleFlag(flag.id, it) },
       )
     }
   }
+}
+
+@Composable
+private fun ActionPlanCard(
+  completedStepIds: Set<String>,
+  onToggleStep: (String, Boolean) -> Unit,
+  onCopySummary: () -> Unit,
+  onShareSummary: () -> Unit,
+) {
+  val done = completedStepIds.size
+  CivicCard {
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(10.dp),
+      verticalAlignment = Alignment.CenterVertically,
+    ) {
+      Text(
+        text = stringResource(R.string.shield_action_plan),
+        style = MaterialTheme.typography.titleMedium,
+        modifier = Modifier.weight(1f),
+      )
+      InfoBadge(text = stringResource(R.string.shield_plan_progress, done, STEPS.size))
+    }
+
+    for ((index, step) in STEPS.withIndex()) {
+      PlanStepTile(
+        number = index + 1,
+        text = stringResource(step.text),
+        checked = completedStepIds.contains(step.id),
+        testTag = "shield_step_$index",
+        onChange = { onToggleStep(step.id, it) },
+      )
+    }
+
+    Row(
+      modifier = Modifier.fillMaxWidth(),
+      horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+      CivicTonalButton(
+        text = stringResource(R.string.shield_copy_summary),
+        icon = Icons.Default.ContentCopy,
+        onClick = onCopySummary,
+        modifier =
+          Modifier
+            .weight(1f)
+            .testTag("shield_copy_summary"),
+      )
+      CivicTonalButton(
+        text = stringResource(R.string.shield_share_summary),
+        icon = Icons.Default.Share,
+        onClick = onShareSummary,
+        modifier =
+          Modifier
+            .weight(1f)
+            .testTag("shield_share_summary"),
+      )
+    }
+  }
+}
+
+@Composable
+private fun EvidenceVaultCard(
+  onOpenVault: () -> Unit,
+) {
+  CivicCard {
+    Text(text = stringResource(R.string.shield_vault_title), style = MaterialTheme.typography.titleMedium)
+    Text(
+      text = stringResource(R.string.shield_vault_body),
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+    CivicPrimaryButton(
+      text = stringResource(R.string.shield_open_vault),
+      icon = Icons.Default.Shield,
+      onClick = onOpenVault,
+      modifier =
+        Modifier
+          .fillMaxWidth()
+          .testTag("shield_open_vault"),
+    )
+  }
+}
+
+@Composable
+private fun QuickNextActionsCard(
+  onGoVerify: () -> Unit,
+  onGoHelp: () -> Unit,
+) {
+  CivicCard {
+    Text(text = stringResource(R.string.shield_next_actions_title), style = MaterialTheme.typography.titleMedium)
+
+    CivicListItem(
+      title = stringResource(R.string.shield_next_verify_title),
+      subtitle = stringResource(R.string.shield_next_verify_body),
+      onClick = onGoVerify,
+    )
+    CivicListItem(
+      title = stringResource(R.string.shield_next_help_title),
+      subtitle = stringResource(R.string.shield_next_help_body),
+      onClick = onGoHelp,
+    )
+  }
+}
+
+private fun copyToClipboard(ctx: Context, text: String) {
+  val cm = ctx.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+  cm.setPrimaryClip(ClipData.newPlainText("RegShield Shield Summary", text))
+}
+
+private fun shareText(ctx: Context, text: String) {
+  val intent =
+    Intent(Intent.ACTION_SEND)
+      .setType("text/plain")
+      .putExtra(Intent.EXTRA_TEXT, text)
+  ctx.startActivity(Intent.createChooser(intent, "Share"))
 }
 
 @Composable
@@ -193,12 +437,36 @@ private fun ShieldFlagTile(
 }
 
 @Composable
-private fun ActionStep(number: Int, text: String) {
+private fun PlanStepTile(
+  number: Int,
+  text: String,
+  checked: Boolean,
+  testTag: String,
+  onChange: (Boolean) -> Unit,
+) {
   val accent = LocalCivicAccent.current
+  val bg =
+    if (checked) {
+      accent.accentContainer.copy(alpha = 0.7f)
+    } else {
+      MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+    }
+  val border =
+    if (checked) {
+      accent.accent.copy(alpha = 0.45f)
+    } else {
+      MaterialTheme.colorScheme.outline.copy(alpha = 0.18f)
+    }
+
   Surface(
+    modifier =
+      Modifier
+        .fillMaxWidth()
+        .testTag(testTag)
+        .clickable { onChange(!checked) },
     shape = MaterialTheme.shapes.extraLarge,
-    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)),
+    color = bg,
+    border = BorderStroke(width = 1.dp, color = border),
   ) {
     Row(
       modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
@@ -217,7 +485,16 @@ private fun ActionStep(number: Int, text: String) {
           Text(text = number.toString(), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
         }
       }
-      Text(text = text, style = MaterialTheme.typography.bodyMedium)
+      Text(text = text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
+      Checkbox(
+        checked = checked,
+        onCheckedChange = onChange,
+        colors =
+          CheckboxDefaults.colors(
+            checkedColor = accent.accent,
+            checkmarkColor = accent.onAccent,
+          ),
+      )
     }
   }
 }

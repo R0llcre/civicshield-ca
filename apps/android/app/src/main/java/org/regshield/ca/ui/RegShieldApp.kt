@@ -94,6 +94,14 @@ fun RegShieldApp() {
     ChromeNavItem(Routes.HELP, stringResource(R.string.nav_help), R.drawable.ic_help),
   )
 
+  fun navigateBottom(route: String) {
+    navController.navigate(route) {
+      launchSingleTop = true
+      popUpTo(Routes.VERIFY) { saveState = true }
+      restoreState = true
+    }
+  }
+
   CompositionLocalProvider(LocalCivicAccent provides accentColors) {
     androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
       CivicBackground(modifier = Modifier.fillMaxSize())
@@ -107,11 +115,7 @@ fun RegShieldApp() {
             destination?.hierarchy?.any { it.route == route } == true ||
               (rawRoute == Routes.VAULT && route == Routes.SHIELD)
           if (!alreadySelected) {
-            navController.navigate(route) {
-              launchSingleTop = true
-              popUpTo(Routes.VERIFY) { saveState = true }
-              restoreState = true
-            }
+            navigateBottom(route)
           }
         },
       ) { contentPadding ->
@@ -136,6 +140,8 @@ fun RegShieldApp() {
               isCompact = isCompact,
               contentPadding = contentPadding,
               onOpenVault = { navController.navigate(Routes.VAULT) },
+              onGoVerify = { navigateBottom(Routes.VERIFY) },
+              onGoHelp = { navigateBottom(Routes.HELP) },
             )
           }
           composable(Routes.HELP) {

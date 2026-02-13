@@ -1,7 +1,6 @@
 package org.regshield.ca.ui
 
 import androidx.activity.ComponentActivity
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
@@ -33,21 +32,27 @@ class AppUiFlowsTest {
           isCompact = true,
           name = "Diaz",
           stateCode = "CA",
+          hasSearched = true,
+          queryName = "Diaz",
+          queryState = "CA",
           loading = false,
-          error = null,
+          errorResId = null,
+          errorMessage = null,
           dataFreshnessEndedAt = "2026-02-13T06:00:00Z",
           results = listOf(
             RaEntry(
               name = "Diaz, Samantha",
               entryType = "representative",
               sourceUrl = "https://example.org/roster",
-              score = 92,
+              score = 0.92,
+              matchedOn = "name",
             ),
           ),
           onNameChange = {},
           onStateChange = {},
           onSearch = { searched = true },
-          onOpenSource = {},
+          onOpenUrl = {},
+          onCallPhone = {},
           onOpenCalBar = {},
           onOpenSos = {},
         )
@@ -57,6 +62,7 @@ class AppUiFlowsTest {
     composeRule.onNodeWithTag("verify_name_input").assertExists()
     composeRule.onNodeWithTag("verify_search_button").performClick()
     composeRule.onNodeWithTag("verify_result_item_0").assertExists()
+    composeRule.onNodeWithTag("verify_match_chip_0").assertExists()
     assertTrue(searched)
   }
 
@@ -97,21 +103,30 @@ class AppUiFlowsTest {
 
   @Test
   fun shieldScreen_checkboxRowAndVaultActionExist() {
-    val checked = mutableStateMapOf<String, Boolean>()
-
     composeRule.setContent {
       RegShieldTheme {
         ShieldContent(
           isCompact = true,
-          checked = checked,
-          onToggle = { id, value -> checked[id] = value },
+          selectedFlagIds = setOf("pay"),
+          completedStepIds = setOf("verify"),
+          onToggleFlag = { _, _ -> },
+          onToggleStep = { _, _ -> },
+          onClearAll = {},
+          onCopySummary = {},
+          onShareSummary = {},
           onOpenVault = {},
+          onGoVerify = {},
+          onGoHelp = {},
         )
       }
     }
 
     composeRule.onNodeWithTag("shield_flag_0").assertExists()
     composeRule.onNodeWithTag("shield_open_vault").assertExists()
+    composeRule.onNodeWithTag("shield_copy_summary").assertExists()
+    composeRule.onNodeWithTag("shield_share_summary").assertExists()
+    composeRule.onNodeWithTag("shield_clear_all").assertExists()
+    composeRule.onNodeWithTag("shield_step_0").assertExists()
   }
 
   @Test
