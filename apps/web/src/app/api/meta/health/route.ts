@@ -5,7 +5,21 @@ import { getServerEnv } from "@/server/env";
 import { queryRows } from "@/server/db";
 
 export async function GET() {
-  const { DATABASE_URL } = getServerEnv();
+  const {
+    DATABASE_URL,
+    OPENAI_API_KEY,
+    OPENAI_VECTOR_STORE_ID,
+    OPENAI_ENABLE_WEB_SEARCH,
+    OPENAI_WEB_SEARCH_EXTERNAL,
+    OPENAI_RAG_STRICT,
+  } = getServerEnv();
+  const askConfig = {
+    ask_configured: Boolean(OPENAI_API_KEY),
+    rag_configured: Boolean(OPENAI_VECTOR_STORE_ID),
+    web_search_enabled: Boolean(OPENAI_ENABLE_WEB_SEARCH),
+    web_search_external: Boolean(OPENAI_WEB_SEARCH_EXTERNAL),
+    rag_strict: Boolean(OPENAI_RAG_STRICT),
+  };
 
   if (DATABASE_URL) {
     try {
@@ -23,6 +37,7 @@ export async function GET() {
         mode: "postgres",
         db_configured: true,
         supabase_configured: false,
+        ...askConfig,
         ra_import: {
           orgs_by_state_city: orgRun,
           reps_roster: repRun,
@@ -33,6 +48,7 @@ export async function GET() {
         ok: false,
         mode: "postgres",
         db_configured: true,
+        ...askConfig,
         db_error: e instanceof Error ? e.message : String(e),
       });
     }
@@ -47,6 +63,7 @@ export async function GET() {
       mode: "sample",
       supabase_configured: false,
       db_configured: false,
+      ...askConfig,
       ra_import: null,
     });
   }
@@ -77,6 +94,7 @@ export async function GET() {
     mode: "supabase",
     supabase_configured: true,
     db_configured: false,
+    ...askConfig,
     ra_import: {
       orgs_by_state_city: orgRun.error ? null : orgRun.data,
       reps_roster: repRun.error ? null : repRun.data,

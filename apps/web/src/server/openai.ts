@@ -24,13 +24,15 @@ function openAiErrorMessage(data: unknown): string | null {
   return typeof msg === "string" ? msg : null;
 }
 
-function extractOutputText(data: unknown): string | null {
-  if (!data || typeof data !== "object") return null;
+function extractOutput(data: unknown): { text: string | null; output: unknown[] | null } {
+  if (!data || typeof data !== "object") return { text: null, output: null };
   const anyData = data as Record<string, unknown>;
-  if (typeof anyData.output_text === "string") return anyData.output_text;
+  const output = Array.isArray(anyData.output) ? (anyData.output as unknown[]) : null;
+  if (typeof anyData.output_text === "string") {
+    return { text: anyData.output_text, output };
+  }
 
-  const output = anyData.output;
-  if (!Array.isArray(output)) return null;
+  if (!output) return { text: null, output: null };
   for (const item of output) {
     if (!item || typeof item !== "object") continue;
     const it = item as Record<string, unknown>;
@@ -41,38 +43,90 @@ function extractOutputText(data: unknown): string | null {
       .filter((c) => c && typeof c === "object" && (c as Record<string, unknown>).type === "output_text")
       .map((c) => (c as Record<string, unknown>).text)
       .filter((t): t is string => typeof t === "string");
-    if (texts.length) return texts.join("");
+    if (texts.length) return { text: texts.join(""), output };
   }
-  return null;
+  return { text: null, output };
+}
+
+function outputHasType(output: unknown[] | null, type: string): boolean {
+  if (!output) return false;
+  for (const item of output) {
+    if (!item || typeof item !== "object") continue;
+    const it = item as Record<string, unknown>;
+    if (it.type === type) return true;
+  }
+  return false;
 }
 
 export async function askOpenAI(params: {
   locale: "en" | "es" | "zh-Hans";
   messages: AskChatMessage[];
   schema: Record<string, unknown>;
+  mode: "file_search" | "web_search";
+  vectorStoreId?: string;
+  allowedDomains?: string[];
+  webSearchExternal?: boolean;
 }): Promise<AskModelOutput> {
   const { OPENAI_API_KEY, OPENAI_MODEL } = getServerEnv();
   if (!OPENAI_API_KEY) throw new Error("OPENAI_API_KEY not configured");
 
   const locale = params.locale;
+  const allowedDomains = params.allowedDomains ?? [];
   const instructions = [
     "You are RegShield CA, an informational assistant for California (CA) and U.S. immigration topics.",
     "Do NOT provide legal advice. Do NOT make promises or guarantees. Encourage consulting a qualified attorney or accredited representative.",
     "Do NOT ask for or request sensitive personal data (e.g., A-number, passport/ID numbers, full address). If the user includes sensitive data, tell them to remove it.",
     "Be practical and action-oriented: provide plain-language explanations and steps someone can take today.",
     "Prefer official sources and legal aid directories. If you are unsure, say so and suggest official verification steps.",
+    "You MUST ground answers in retrieved sources. If you cannot find authoritative sources, say so and provide safe next steps (verify credentials, find legal aid, consult qualified professionals).",
+    "Only include citations that are from official or legal-aid domains.",
     `Respond in locale "${locale}".`,
     "",
     "Return ONLY valid JSON matching the provided JSON schema. Do not wrap in markdown code fences.",
   ].join("\\n");
 
+  const tools: Array<Record<string, unknown>> = [];
+  const include: string[] = [];
+  if (params.mode === "file_search") {
+    if (!params.vectorStoreId) throw new Error("OPENAI_VECTOR_STORE_ID not configured");
+    tools.push({
+      type: "file_search",
+      vector_store_ids: [params.vectorStoreId],
+      max_num_results: 6,
+    });
+    include.push("file_search_call.results");
+  } else {
+    tools.push({
+      type: "web_search",
+      // Keep the search constrained to official/legal-aid domains.
+      filters: { allowed_domains: allowedDomains },
+      // Cache-only by default; enable external access only when explicitly configured.
+      external_web_access: Boolean(params.webSearchExternal),
+      // Keep context bounded; we only need a handful of authoritative sources.
+      search_context_size: "low",
+      user_location: {
+        type: "approximate",
+        country: "US",
+        region: "California",
+        timezone: "America/Los_Angeles",
+      },
+    });
+    include.push("web_search_call.action.sources");
+  }
+
   const payload = {
     model: OPENAI_MODEL,
     instructions,
     input: params.messages.map((m) => ({ role: m.role, content: m.content })),
-    temperature: 0.2,
+    // GPT-5 family: do not send temperature/top_p/logprobs. Use reasoning + verbosity instead.
+    reasoning: { effort: "low" },
     store: false,
+    tool_choice: "required",
+    tools,
+    include,
+    max_output_tokens: 900,
     text: {
+      verbosity: "low",
       format: {
         type: "json_schema",
         name: "regshield_ask_v1",
@@ -99,9 +153,15 @@ export async function askOpenAI(params: {
     throw new Error(`OpenAI request failed: ${msg}`);
   }
 
-  const text = extractOutputText(data);
-  if (!text) throw new Error("OpenAI response missing output text");
+  const extracted = extractOutput(data);
+  if (!extracted || !extracted.text) throw new Error("OpenAI response missing output text");
 
-  const parsed = JSON.parse(text) as AskModelOutput;
+  // Sanity check: ensure the required tool call was actually used.
+  const requiredType = params.mode === "file_search" ? "file_search_call" : "web_search_call";
+  if (!outputHasType(extracted.output, requiredType)) {
+    throw new Error(`OpenAI did not produce expected tool call: ${requiredType}`);
+  }
+
+  const parsed = JSON.parse(extracted.text) as AskModelOutput;
   return parsed;
 }

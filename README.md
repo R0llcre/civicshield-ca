@@ -122,8 +122,15 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 # AI Q&A (server; keep secret)
 OPENAI_API_KEY=
-# Optional: override model (default gpt-4o-mini)
+# Optional: override model (default gpt-5-mini)
 OPENAI_MODEL=
+# Ask RAG (required for /api/ask)
+OPENAI_VECTOR_STORE_ID=
+# Optional: authoritative web search fallback (default true, cache-only)
+OPENAI_ENABLE_WEB_SEARCH=true
+OPENAI_WEB_SEARCH_EXTERNAL=false
+# Optional: strict mode (default true: refuse if no authoritative citations)
+OPENAI_RAG_STRICT=true
 ```
 
 Without Supabase env vars, the web app runs in **demo mode** using sample data.

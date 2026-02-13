@@ -138,9 +138,53 @@ function sanitizeOutput(out: AskModelOutput): AskModelOutput {
   };
 }
 
+function strictNoSources(locale: "en" | "es" | "zh-Hans"): AskModelOutput {
+  const body =
+    locale === "es"
+      ? [
+          "No pude encontrar fuentes autorizadas para responder con confianza.",
+          "",
+          "**Pasos seguros:**",
+          "- Verifica credenciales con fuentes oficiales (DOJ/EOIR, State Bar, CA SOS).",
+          "- Busca ayuda legal a traves de organizaciones verificadas y directorios oficiales.",
+          "- Si tienes una fecha limite, consulta con un abogado calificado o un representante acreditado.",
+        ].join("\n")
+      : locale === "zh-Hans"
+        ? [
+            "我没有找到足够权威的来源来给出可靠回答。",
+            "",
+            "**更安全的下一步：**",
+            "- 通过官方渠道核验资质（DOJ/EOIR 名录、加州律师协会、加州 SOS）。",
+            "- 通过可信法律援助机构/官方目录寻求帮助。",
+            "- 如果你有截止日期或开庭日期，请尽快咨询合格律师或认可机构/认证代表。",
+          ].join("\n")
+        : [
+            "I couldn't find authoritative sources to answer confidently.",
+            "",
+            "**Safer next steps:**",
+            "- Verify credentials using official sources (DOJ/EOIR, CA State Bar, CA SOS).",
+            "- Find legal aid through verified organizations and official directories.",
+            "- If you have a deadline, consult a qualified attorney or accredited representative.",
+          ].join("\n");
+
+  const labelVerify = locale === "es" ? "Open Verify" : locale === "zh-Hans" ? "打开核验" : "Open Verify";
+  const labelHelp = locale === "es" ? "Open Help" : locale === "zh-Hans" ? "打开求助" : "Open Help";
+
+  return {
+    answer_markdown: body,
+    citations: [],
+    suggested_actions: [
+      { type: "open_verify", label: labelVerify },
+      { type: "open_help", label: labelHelp },
+    ],
+    disclaimer: DISCLAIMER,
+  };
+}
+
 export async function POST(req: Request) {
-  const { OPENAI_API_KEY } = getServerEnv();
-  if (!OPENAI_API_KEY) {
+  const { OPENAI_API_KEY, OPENAI_VECTOR_STORE_ID, OPENAI_ENABLE_WEB_SEARCH, OPENAI_WEB_SEARCH_EXTERNAL, OPENAI_RAG_STRICT } =
+    getServerEnv();
+  if (!OPENAI_API_KEY || !OPENAI_VECTOR_STORE_ID) {
     return NextResponse.json(
       { error: "AI Q&A is not configured on this server." },
       { status: 501 },
@@ -191,8 +235,27 @@ export async function POST(req: Request) {
       locale: parsed.data.locale,
       messages,
       schema: OUTPUT_SCHEMA,
+      mode: "file_search",
+      vectorStoreId: OPENAI_VECTOR_STORE_ID,
     });
     const out = sanitizeOutput(raw);
+    if (OPENAI_RAG_STRICT && out.citations.length === 0) {
+      if (OPENAI_ENABLE_WEB_SEARCH) {
+        const rawWeb = await askOpenAI({
+          locale: parsed.data.locale,
+          messages,
+          schema: OUTPUT_SCHEMA,
+          mode: "web_search",
+          allowedDomains: [...ALLOWED_CITATION_DOMAINS],
+          webSearchExternal: OPENAI_WEB_SEARCH_EXTERNAL,
+        });
+        const outWeb = sanitizeOutput(rawWeb);
+        if (outWeb.citations.length > 0 && outWeb.answer_markdown) {
+          return NextResponse.json(outWeb);
+        }
+      }
+      return NextResponse.json(strictNoSources(parsed.data.locale));
+    }
     if (!out.answer_markdown) {
       return NextResponse.json(
         { error: "No answer generated. Please rephrase and try again." },
@@ -202,7 +265,7 @@ export async function POST(req: Request) {
     return NextResponse.json(out);
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
-    const configuredError = msg.includes("OPENAI_API_KEY not configured");
+    const configuredError = msg.includes("OPENAI_API_KEY not configured") || msg.includes("OPENAI_VECTOR_STORE_ID not configured");
     return NextResponse.json(
       { error: configuredError ? "AI Q&A is not configured on this server." : "AI request failed. Please try again." },
       { status: configuredError ? 501 : 502 },
