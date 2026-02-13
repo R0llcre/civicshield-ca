@@ -23,6 +23,7 @@ __pycache__/
 
 # ETL artifacts
 etl/_tmp/
+.tmp/
 
 # Playwright
 playwright-report/

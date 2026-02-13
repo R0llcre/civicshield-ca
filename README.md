@@ -57,21 +57,39 @@ APK output:
 
 Local dev against the web server (Android emulator):
 
-1. Run `npm run dev` (serves `http://localhost:3000`)
-2. Build/install `devDebug` (API base URL is `http://10.0.2.2:3000`)
+1. One command startup:
 
-Convenience commands:
+```bash
+npm run android:dev:up
+```
+
+This command will:
+- ensure JDK 17
+- start/reuse Android emulator
+- start/reuse local web (`npm run dev`)
+- build + install `devDebug`
+- launch `org.regshield.ca.dev`
+
+Useful follow-up commands:
+
+```bash
+npm run android:dev:status
+npm run android:dev:down
+```
+
+Fallback build commands:
 
 ```bash
 npm run android:dev:assemble
 npm run android:dev:install
-```
-
-If kapt duplicate-file errors appear (`*Factory 2.java`), use:
-
-```bash
 npm run android:dev:clean-assemble
 ```
+
+Common failures and fixes:
+- AVD not found: set `REGSHIELD_ANDROID_AVD=<your_avd_name>` and rerun `android:dev:up`
+- JDK not 17: install JDK 17 (Temurin recommended), then rerun
+- SDK tools missing (`adb`/`emulator`): install Android SDK Platform-Tools + Emulator
+- Emulator boot timeout: retry and inspect log path printed by `android:dev:up`
 
 ## Environment Variables
 

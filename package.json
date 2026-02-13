@@ -21,6 +21,9 @@
     "fixtures:vault": "node scripts/generate_vault_fixtures.mjs",
     "android:dev:assemble": "bash scripts/android_dev_run.sh assemble",
     "android:dev:install": "bash scripts/android_dev_run.sh install",
-    "android:dev:clean-assemble": "bash scripts/android_dev_run.sh clean-assemble"
+    "android:dev:clean-assemble": "bash scripts/android_dev_run.sh clean-assemble",
+    "android:dev:up": "bash scripts/android_dev_up.sh",
+    "android:dev:down": "bash scripts/android_dev_down.sh",
+    "android:dev:status": "bash scripts/android_dev_status.sh"
   }
 }

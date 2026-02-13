@@ -18,32 +18,35 @@ You can override base URLs at build time:
 
 ## Local Dev (Emulator)
 
-1. Start the web app:
+One command startup:
 
 ```bash
-npm run dev
+npm run android:dev:up
 ```
 
-2. Build/install the Android `devDebug` variant (emulator uses `10.0.2.2` to reach host `localhost`):
+This command will:
+- ensure JDK 17
+- start/reuse emulator (default AVD: `Pixel_3a_API_34_extension_level_7_arm64-v8a`)
+- start/reuse local web server (`npm run dev`)
+- install and launch `devDebug`
+
+Control commands:
 
 ```bash
-JAVA_HOME=$(/usr/libexec/java_home -v 17) \
-ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
-./gradlew :app:installDevDebug
+npm run android:dev:status
+npm run android:dev:down
 ```
 
-Equivalent repo scripts:
+Optional environment overrides:
+- `REGSHIELD_ANDROID_AVD` (default `Pixel_3a_API_34_extension_level_7_arm64-v8a`)
+- `REGSHIELD_WEB_PORT` (default `3000`)
+- `REGSHIELD_ANDROID_BOOT_TIMEOUT_SEC` (default `240`)
 
-```bash
-npm run android:dev:assemble
-npm run android:dev:install
-```
-
-Known issue recovery (`*Factory 2.java`, `hilt_aggregated_deps ... 2.java`):
-
-```bash
-npm run android:dev:clean-assemble
-```
+Known failure recovery:
+- AVD not found: run `"$HOME/Library/Android/sdk/emulator/emulator" -list-avds`, then export `REGSHIELD_ANDROID_AVD`
+- JDK 17 missing: install JDK 17 and rerun
+- SDK tools missing: install Android SDK Platform-Tools + Emulator
+- kapt duplicate generated files (`*Factory 2.java`): run `npm run android:dev:clean-assemble`
 
 ## Staging APK (Internal)
 
