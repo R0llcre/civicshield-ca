@@ -5,7 +5,7 @@
     "_generator": {
       "name": "bicep",
       "version": "0.40.2.10011",
-      "templateHash": "3007486105991276341"
+      "templateHash": "17391999330230296782"
     }
   },
   "parameters": {
@@ -88,6 +88,13 @@
       "defaultValue": "",
       "metadata": {
         "description": "Runner VM SSH public key (only used when deployRunner=true)."
+      }
+    },
+    "runnerVmSize": {
+      "type": "string",
+      "defaultValue": "Standard_B2s",
+      "metadata": {
+        "description": "Runner VM size (only used when deployRunner=true)."
       }
     }
   },
@@ -1141,6 +1148,9 @@
           },
           "sshPublicKey": {
             "value": "[parameters('runnerSshPublicKey')]"
+          },
+          "vmSize": {
+            "value": "[parameters('runnerVmSize')]"
           }
         },
         "template": {

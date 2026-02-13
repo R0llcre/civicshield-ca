@@ -17,5 +17,7 @@ param pgDatabaseName = 'regshield'
 param containerImage = 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
 param containerPort = 3000
 
-param deployRunner = false
+param deployRunner = true
 
+// ETL + migrations run on the self-hosted runner; B1s is too small in practice.
+param runnerVmSize = 'Standard_B2s'

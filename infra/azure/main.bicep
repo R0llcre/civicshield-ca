@@ -37,6 +37,9 @@ param runnerAdminUsername string = 'azureuser'
 @description('Runner VM SSH public key (only used when deployRunner=true).')
 param runnerSshPublicKey string = ''
 
+@description('Runner VM size (only used when deployRunner=true).')
+param runnerVmSize string = 'Standard_B2s'
+
 // Keep the suffix stable within the RG, but short enough for KV/Storage naming constraints.
 var suffix = toLower(substring(uniqueString(resourceGroup().id), 0, 4))
 
@@ -130,6 +133,7 @@ module runner './modules/runner_vm.bicep' = if (deployRunner) {
     subnetId: network.outputs.runnerSubnetId
     adminUsername: runnerAdminUsername
     sshPublicKey: runnerSshPublicKey
+    vmSize: runnerVmSize
   }
 }
 
