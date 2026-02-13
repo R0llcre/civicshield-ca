@@ -87,7 +87,32 @@ list_avds() {
 }
 
 find_online_emulator_serial() {
-  "$ADB_CMD" devices | awk '/^emulator-[0-9]+\s+device$/ {print $1; exit}'
+  "$ADB_CMD" devices | awk '/^emulator-[0-9]+[[:space:]]+device$/ {print $1; exit}'
+}
+
+find_online_emulator_serial_with_retry() {
+  local timeout_sec="${1:-10}"
+  local deadline=$((SECONDS + timeout_sec))
+  local serial=""
+  while ((SECONDS < deadline)); do
+    serial="$(find_online_emulator_serial)"
+    if [[ -n "$serial" ]]; then
+      printf "%s" "$serial"
+      return 0
+    fi
+    sleep 2
+  done
+  return 1
+}
+
+is_target_avd_process_running() {
+  if pgrep -f "qemu-system-aarch64.*-avd ${REGSHIELD_ANDROID_AVD}" >/dev/null 2>&1; then
+    return 0
+  fi
+  if pgrep -f "emulator.*-avd ${REGSHIELD_ANDROID_AVD}" >/dev/null 2>&1; then
+    return 0
+  fi
+  return 1
 }
 
 web_ready() {
@@ -128,6 +153,7 @@ wait_for_web_ready() {
 
 ensure_java17
 resolve_android_tools
+"$ADB_CMD" start-server >/dev/null 2>&1 || true
 
 AVD_LIST="$(list_avds)"
 if ! printf "%s\n" "$AVD_LIST" | grep -Fxq "$REGSHIELD_ANDROID_AVD"; then
@@ -139,10 +165,18 @@ if ! printf "%s\n" "$AVD_LIST" | grep -Fxq "$REGSHIELD_ANDROID_AVD"; then
 fi
 
 EMU_STARTED_BY_SCRIPT="no"
-EMU_SERIAL="$(find_online_emulator_serial)"
+EMU_SERIAL="$(find_online_emulator_serial_with_retry 12 || true)"
+if [[ -z "$EMU_SERIAL" ]]; then
+  if is_target_avd_process_running; then
+    echo "Detected running process for AVD ${REGSHIELD_ANDROID_AVD}; waiting for adb registration..."
+    EMU_SERIAL="$(find_online_emulator_serial_with_retry 30 || true)"
+  fi
+fi
+
 if [[ -z "$EMU_SERIAL" ]]; then
   echo "Starting emulator: $REGSHIELD_ANDROID_AVD"
   nohup "$EMULATOR_CMD" -avd "$REGSHIELD_ANDROID_AVD" >"$EMU_LOG_FILE" 2>&1 &
+  EMULATOR_PID="$!"
   touch "$EMU_STARTED_BY_SCRIPT_FILE"
   EMU_STARTED_BY_SCRIPT="yes"
 
@@ -151,6 +185,28 @@ if [[ -z "$EMU_SERIAL" ]]; then
     EMU_SERIAL="$(find_online_emulator_serial)"
     if [[ -n "$EMU_SERIAL" ]]; then
       break
+    fi
+
+    # If the emulator process exited, first try to reuse any already-online emulator.
+    if ! kill -0 "$EMULATOR_PID" >/dev/null 2>&1; then
+      EMU_SERIAL="$(find_online_emulator_serial_with_retry 10 || true)"
+      if [[ -n "$EMU_SERIAL" ]]; then
+        echo "Detected existing online emulator; reusing $EMU_SERIAL."
+        rm -f "$EMU_STARTED_BY_SCRIPT_FILE"
+        EMU_STARTED_BY_SCRIPT="no"
+        break
+      fi
+      if grep -q "Running multiple emulators with the same AVD" "$EMU_LOG_FILE"; then
+        rm -f "$EMU_STARTED_BY_SCRIPT_FILE"
+        echo "Another emulator is already using AVD ${REGSHIELD_ANDROID_AVD}, but adb did not expose a device." >&2
+        echo "Open Android Studio Device Manager and boot the same AVD, then rerun." >&2
+        echo "See emulator logs: $EMU_LOG_FILE" >&2
+        exit 1
+      fi
+      rm -f "$EMU_STARTED_BY_SCRIPT_FILE"
+      echo "Emulator process exited before registering in adb." >&2
+      echo "See emulator logs: $EMU_LOG_FILE" >&2
+      exit 1
     fi
     sleep 2
   done
