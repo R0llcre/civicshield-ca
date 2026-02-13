@@ -38,11 +38,25 @@ function payloadUrl(payload: unknown): string | null {
 
 const requestSchema = z
   .object({
-    locale: z.enum(["en", "es", "zh-Hans"]),
+    locale: z
+      .string()
+      .transform((v, ctx) => {
+        const raw = v.trim();
+        const s = raw.toLowerCase();
+        if (s === "en" || s.startsWith("en-")) return "en";
+        if (s === "es" || s.startsWith("es-")) return "es";
+        if (s === "zh-hans" || s.startsWith("zh-") || s === "zh") return "zh-Hans";
+        ctx.addIssue({ code: "custom", message: "Invalid locale" });
+        return z.NEVER;
+      })
+      .pipe(z.enum(["en", "es", "zh-Hans"])),
     messages: z
       .array(
         z.object({
-          role: z.enum(["user", "assistant"]),
+          role: z
+            .string()
+            .transform((v) => v.trim().toLowerCase())
+            .pipe(z.enum(["user", "assistant"])),
           content: z.string().min(1),
         }),
       )
