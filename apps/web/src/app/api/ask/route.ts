@@ -40,8 +40,9 @@ const requestSchema = z
   .object({
     locale: z
       .string()
+      .optional()
       .transform((v, ctx) => {
-        const raw = v.trim();
+        const raw = (v ?? "en").trim();
         const s = raw.toLowerCase();
         if (s === "en" || s.startsWith("en-")) return "en";
         if (s === "es" || s.startsWith("es-")) return "es";

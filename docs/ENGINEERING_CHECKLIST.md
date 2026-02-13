@@ -78,6 +78,12 @@ curl -fsS -X POST \
   "https://ca-regshieldca-web-stg.blackhill-0c2251ca.westus2.azurecontainerapps.io/api/ask" \
   -H "content-type: application/json" \
   -d '{"locale":"en","messages":[{"role":"user","content":"How do I verify an accredited representative in California?"}]}'
+
+# Backward-compat: some clients may omit locale (default values not encoded).
+curl -fsS -X POST \
+  "https://ca-regshieldca-web-stg.blackhill-0c2251ca.westus2.azurecontainerapps.io/api/ask" \
+  -H "content-type: application/json" \
+  -d '{"messages":[{"role":"user","content":"How do I verify an accredited representative in California?"}]}'
 ```
 
 Expected:

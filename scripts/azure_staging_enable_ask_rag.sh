@@ -84,4 +84,17 @@ if [[ "$HTTP_CODE" != "200" ]]; then
   exit 1
 fi
 
+echo "Verifying /api/ask (compat: missing locale)..."
+HTTP_CODE2="$(curl -sS -o /tmp/regshield_ask_verify2.json -w "%{http_code}" -X POST "$ASK_URL" \
+  -H 'content-type: application/json' \
+  -d '{"messages":[{"role":"user","content":"How do I verify an accredited representative in California?"}]}' || true)"
+
+if [[ "$HTTP_CODE2" != "200" ]]; then
+  echo "Ask compat check failed: HTTP $HTTP_CODE2" >&2
+  echo "Response body (first 400 bytes):" >&2
+  head -c 400 /tmp/regshield_ask_verify2.json >&2 || true
+  echo "" >&2
+  exit 1
+fi
+
 echo "Ask RAG is enabled on staging."

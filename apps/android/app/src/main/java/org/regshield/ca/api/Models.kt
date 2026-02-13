@@ -89,8 +89,8 @@ data class HealthRunRow(
 
 @Serializable
 data class AskRequest(
-  val locale: String = "en",
-  val messages: List<AskMessage> = emptyList(),
+  val locale: String,
+  val messages: List<AskMessage>,
 )
 
 @Serializable
