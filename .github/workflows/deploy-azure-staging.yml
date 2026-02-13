@@ -1,0 +1,66 @@
+name: Deploy - Azure (Staging)
+
+on:
+  workflow_dispatch:
+    inputs:
+      resource_group:
+        description: "Azure resource group (e.g. rg-regshieldca-stg-westus2)"
+        required: true
+        type: string
+      container_app_name:
+        description: "Azure Container App name (e.g. ca-regshieldca-web-stg)"
+        required: true
+        type: string
+      acr_name:
+        description: "Azure Container Registry name (e.g. acrregshieldcastgxxxx)"
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Azure login (OIDC)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Build & push image (ACR build)
+        env:
+          ACR_NAME: ${{ inputs.acr_name }}
+          IMAGE: regshieldca/web:${{ github.sha }}
+        run: |
+          az acr build \
+            --registry "$ACR_NAME" \
+            --image "$IMAGE" \
+            --file apps/web/Dockerfile \
+            .
+
+      - name: Deploy Container App revision
+        env:
+          RG: ${{ inputs.resource_group }}
+          APP: ${{ inputs.container_app_name }}
+          ACR_NAME: ${{ inputs.acr_name }}
+          IMAGE_REPO: regshieldca/web
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          LOGIN_SERVER="$(az acr show --name "$ACR_NAME" --query loginServer -o tsv)"
+          IMAGE="${LOGIN_SERVER}/${IMAGE_REPO}:${IMAGE_TAG}"
+
+          az containerapp update \
+            --resource-group "$RG" \
+            --name "$APP" \
+            --image "$IMAGE" \
+            --set-env-vars APP_ENV=stg
+
+          FQDN="$(az containerapp show --resource-group "$RG" --name "$APP" --query properties.configuration.ingress.fqdn -o tsv)"
+          echo "Deployed: https://${FQDN}"
+

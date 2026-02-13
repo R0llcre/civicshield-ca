@@ -5,7 +5,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STATE_DIR="$ROOT_DIR/.tmp/regshield-dev"
 mkdir -p "$STATE_DIR"
 
-REGSHIELD_ANDROID_AVD="${REGSHIELD_ANDROID_AVD:-Pixel_3a_API_34_extension_level_7_arm64-v8a}"
+REGSHIELD_ANDROID_AVD_DEFAULT="Pixel_8_Pro_API_34"
+REGSHIELD_ANDROID_AVD="${REGSHIELD_ANDROID_AVD:-$REGSHIELD_ANDROID_AVD_DEFAULT}"
 REGSHIELD_WEB_PORT="${REGSHIELD_WEB_PORT:-3000}"
 REGSHIELD_ANDROID_BOOT_TIMEOUT_SEC="${REGSHIELD_ANDROID_BOOT_TIMEOUT_SEC:-240}"
 REGSHIELD_WEB_READY_TIMEOUT_SEC="${REGSHIELD_WEB_READY_TIMEOUT_SEC:-60}"
@@ -86,16 +87,37 @@ list_avds() {
   "$EMULATOR_CMD" -list-avds 2>/dev/null || true
 }
 
-find_online_emulator_serial() {
-  "$ADB_CMD" devices | awk '/^emulator-[0-9]+[[:space:]]+device$/ {print $1; exit}'
+list_online_emulator_serials() {
+  "$ADB_CMD" devices | awk '/^emulator-[0-9]+[[:space:]]+device$/ {print $1}'
 }
 
-find_online_emulator_serial_with_retry() {
-  local timeout_sec="${1:-10}"
+get_avd_name_for_serial() {
+  local serial="$1"
+  "$ADB_CMD" -s "$serial" emu avd name 2>/dev/null | tr -d '\r' | awk 'NF && $0 != "OK" {print; exit}'
+}
+
+find_online_serial_for_avd() {
+  local target_avd="$1"
+  local serial=""
+  while read -r serial; do
+    [[ -z "$serial" ]] && continue
+    local avd_name
+    avd_name="$(get_avd_name_for_serial "$serial" || true)"
+    if [[ "$avd_name" == "$target_avd" ]]; then
+      printf "%s" "$serial"
+      return 0
+    fi
+  done < <(list_online_emulator_serials)
+  return 1
+}
+
+find_online_serial_for_avd_with_retry() {
+  local target_avd="$1"
+  local timeout_sec="${2:-10}"
   local deadline=$((SECONDS + timeout_sec))
   local serial=""
   while ((SECONDS < deadline)); do
-    serial="$(find_online_emulator_serial)"
+    serial="$(find_online_serial_for_avd "$target_avd" || true)"
     if [[ -n "$serial" ]]; then
       printf "%s" "$serial"
       return 0
@@ -151,13 +173,43 @@ wait_for_web_ready() {
   return 1
 }
 
+assert_target_device_ready() {
+  local serial="$1"
+  if ! "$ADB_CMD" -s "$serial" get-state >/dev/null 2>&1; then
+    echo "Target emulator serial is not online: $serial" >&2
+    echo "See emulator logs: $EMU_LOG_FILE" >&2
+    return 1
+  fi
+
+  local avd_name
+  avd_name="$(get_avd_name_for_serial "$serial" || true)"
+  if [[ -z "$avd_name" || "$avd_name" != "$REGSHIELD_ANDROID_AVD" ]]; then
+    echo "Connected emulator does not match target AVD." >&2
+    echo "Expected: $REGSHIELD_ANDROID_AVD" >&2
+    echo "Actual: ${avd_name:-unknown}" >&2
+    return 1
+  fi
+}
+
 ensure_java17
 resolve_android_tools
 "$ADB_CMD" start-server >/dev/null 2>&1 || true
 
 AVD_LIST="$(list_avds)"
 if ! printf "%s\n" "$AVD_LIST" | grep -Fxq "$REGSHIELD_ANDROID_AVD"; then
+  if [[ "$REGSHIELD_ANDROID_AVD" == "$REGSHIELD_ANDROID_AVD_DEFAULT" ]]; then
+    MATCHED_AVD="$(printf "%s\n" "$AVD_LIST" | awk '/^Pixel_8_Pro.*API_34$/ {print; exit}')"
+    if [[ -n "$MATCHED_AVD" ]]; then
+      REGSHIELD_ANDROID_AVD="$MATCHED_AVD"
+      echo "Using matched full-screen AVD: $REGSHIELD_ANDROID_AVD"
+    fi
+  fi
+fi
+
+if ! printf "%s\n" "$AVD_LIST" | grep -Fxq "$REGSHIELD_ANDROID_AVD"; then
   echo "Configured AVD not found: $REGSHIELD_ANDROID_AVD" >&2
+  echo "Recommended full-screen AVD: Pixel_8_Pro_API_34 (or any Pixel_8_Pro*API_34)." >&2
+  echo "Create one in Android Studio Device Manager and retry." >&2
   echo "Available AVDs:" >&2
   printf "%s\n" "$AVD_LIST" >&2
   echo "Set REGSHIELD_ANDROID_AVD to one of the above and retry." >&2
@@ -165,12 +217,11 @@ if ! printf "%s\n" "$AVD_LIST" | grep -Fxq "$REGSHIELD_ANDROID_AVD"; then
 fi
 
 EMU_STARTED_BY_SCRIPT="no"
-EMU_SERIAL="$(find_online_emulator_serial_with_retry 12 || true)"
-if [[ -z "$EMU_SERIAL" ]]; then
-  if is_target_avd_process_running; then
-    echo "Detected running process for AVD ${REGSHIELD_ANDROID_AVD}; waiting for adb registration..."
-    EMU_SERIAL="$(find_online_emulator_serial_with_retry 30 || true)"
-  fi
+EMU_SERIAL="$(find_online_serial_for_avd_with_retry "$REGSHIELD_ANDROID_AVD" 12 || true)"
+
+if [[ -z "$EMU_SERIAL" ]] && is_target_avd_process_running; then
+  echo "Detected running process for AVD ${REGSHIELD_ANDROID_AVD}; waiting for adb registration..."
+  EMU_SERIAL="$(find_online_serial_for_avd_with_retry "$REGSHIELD_ANDROID_AVD" 30 || true)"
 fi
 
 if [[ -z "$EMU_SERIAL" ]]; then
@@ -182,16 +233,16 @@ if [[ -z "$EMU_SERIAL" ]]; then
 
   local_deadline=$((SECONDS + REGSHIELD_ANDROID_BOOT_TIMEOUT_SEC))
   while ((SECONDS < local_deadline)); do
-    EMU_SERIAL="$(find_online_emulator_serial)"
+    EMU_SERIAL="$(find_online_serial_for_avd "$REGSHIELD_ANDROID_AVD" || true)"
     if [[ -n "$EMU_SERIAL" ]]; then
       break
     fi
 
-    # If the emulator process exited, first try to reuse any already-online emulator.
+    # If the emulator process exited, try to reuse an already-online instance of the target AVD.
     if ! kill -0 "$EMULATOR_PID" >/dev/null 2>&1; then
-      EMU_SERIAL="$(find_online_emulator_serial_with_retry 10 || true)"
+      EMU_SERIAL="$(find_online_serial_for_avd_with_retry "$REGSHIELD_ANDROID_AVD" 10 || true)"
       if [[ -n "$EMU_SERIAL" ]]; then
-        echo "Detected existing online emulator; reusing $EMU_SERIAL."
+        echo "Detected existing online target AVD; reusing $EMU_SERIAL."
         rm -f "$EMU_STARTED_BY_SCRIPT_FILE"
         EMU_STARTED_BY_SCRIPT="no"
         break
@@ -223,6 +274,7 @@ else
   rm -f "$EMU_STARTED_BY_SCRIPT_FILE"
 fi
 echo "$EMU_SERIAL" >"$EMU_SERIAL_FILE"
+assert_target_device_ready "$EMU_SERIAL"
 
 WEB_STARTED_BY_SCRIPT="no"
 if web_ready; then
@@ -238,7 +290,7 @@ else
 fi
 
 echo "Installing devDebug app..."
-bash "$ROOT_DIR/scripts/android_dev_run.sh" install
+ANDROID_SERIAL="$EMU_SERIAL" bash "$ROOT_DIR/scripts/android_dev_run.sh" install
 
 echo "Launching app on emulator..."
 "$ADB_CMD" -s "$EMU_SERIAL" shell monkey -p org.regshield.ca.dev -c android.intent.category.LAUNCHER 1 >/dev/null 2>&1 || true

@@ -26,9 +26,10 @@ npm run android:dev:up
 
 This command will:
 - ensure JDK 17
-- start/reuse emulator (default AVD: `Pixel_3a_API_34_extension_level_7_arm64-v8a`)
+- start/reuse emulator (default AVD strategy: `Pixel_8_Pro_API_34`, fallback match `Pixel_8_Pro*API_34`)
 - start/reuse local web server (`npm run dev`)
 - install and launch `devDebug`
+- verify target-device install by AVD serial (prevents accidental install to the wrong emulator)
 
 Control commands:
 
@@ -38,7 +39,7 @@ npm run android:dev:down
 ```
 
 Optional environment overrides:
-- `REGSHIELD_ANDROID_AVD` (default `Pixel_3a_API_34_extension_level_7_arm64-v8a`)
+- `REGSHIELD_ANDROID_AVD` (default `Pixel_8_Pro_API_34`; can be any available AVD)
 - `REGSHIELD_WEB_PORT` (default `3000`)
 - `REGSHIELD_ANDROID_BOOT_TIMEOUT_SEC` (default `240`)
 
@@ -47,6 +48,16 @@ Known failure recovery:
 - JDK 17 missing: install JDK 17 and rerun
 - SDK tools missing: install Android SDK Platform-Tools + Emulator
 - kapt duplicate generated files (`*Factory 2.java`): run `npm run android:dev:clean-assemble`
+
+Recommended full-screen test device:
+- Pixel 8 Pro (API 34), gesture navigation enabled
+- Also validate one smaller phone profile (for example Pixel 3a) for density regression
+
+Fullscreen UI acceptance checklist:
+- no oversized top whitespace on Verify/Shield/Help/Vault first screen
+- floating bottom capsule does not overlap gesture bar
+- last list card can scroll above bottom navigation with visible spacing
+- portrait/landscape both keep icons and labels fully visible
 
 ## Staging APK (Internal)
 

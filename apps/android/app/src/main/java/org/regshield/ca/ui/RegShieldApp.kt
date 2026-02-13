@@ -1,25 +1,37 @@
 package org.regshield.ca.ui
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
+import android.app.Activity
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.material3.MaterialTheme
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import org.regshield.ca.R
+import org.regshield.ca.ui.components.AppChrome
+import org.regshield.ca.ui.components.ChromeNavItem
+import org.regshield.ca.ui.components.CivicBackground
 import org.regshield.ca.ui.screens.help.HelpScreen
 import org.regshield.ca.ui.screens.shield.ShieldScreen
 import org.regshield.ca.ui.screens.verify.VerifyScreen
 import org.regshield.ca.vault.VaultScreen
+import org.regshield.ca.ui.theme.CivicAccentColors
+import org.regshield.ca.ui.theme.LocalCivicAccent
 
 private object Routes {
   const val VERIFY = "verify"
@@ -28,61 +40,119 @@ private object Routes {
   const val VAULT = "vault"
 }
 
-private data class BottomItem(
-  val route: String,
-  val label: String,
-  val iconRes: Int,
-)
-
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 @Composable
 fun RegShieldApp() {
   val navController = rememberNavController()
   val backStackEntry by navController.currentBackStackEntryAsState()
   val destination = backStackEntry?.destination
+  val context = LocalContext.current
+  val activity = context as? Activity
+  val widthSizeClass = activity?.let { calculateWindowSizeClass(activity = it).widthSizeClass }
+  val isCompact = widthSizeClass == null || widthSizeClass == WindowWidthSizeClass.Compact
+
+  val rawRoute = destination?.route
+  val selectedBottomRoute = if (rawRoute == Routes.VAULT) Routes.SHIELD else rawRoute
+  val showBottomBar = rawRoute != Routes.VAULT
+
+  val scheme = MaterialTheme.colorScheme
+  val accentColors =
+    when (rawRoute) {
+      Routes.VERIFY, null ->
+        CivicAccentColors(
+          accent = scheme.primary,
+          onAccent = scheme.onPrimary,
+          accentContainer = scheme.primaryContainer,
+          onAccentContainer = scheme.onPrimaryContainer,
+        )
+      Routes.SHIELD, Routes.VAULT ->
+        CivicAccentColors(
+          accent = scheme.secondary,
+          onAccent = scheme.onSecondary,
+          accentContainer = scheme.secondaryContainer,
+          onAccentContainer = scheme.onSecondaryContainer,
+        )
+      Routes.HELP ->
+        CivicAccentColors(
+          accent = scheme.tertiary,
+          onAccent = scheme.onTertiary,
+          accentContainer = scheme.tertiaryContainer,
+          onAccentContainer = scheme.onTertiaryContainer,
+        )
+      else ->
+        CivicAccentColors(
+          accent = scheme.primary,
+          onAccent = scheme.onPrimary,
+          accentContainer = scheme.primaryContainer,
+          onAccentContainer = scheme.onPrimaryContainer,
+        )
+    }
 
   val bottomItems = listOf(
-    BottomItem(Routes.VERIFY, "Verify", R.drawable.ic_verify),
-    BottomItem(Routes.SHIELD, "Shield", R.drawable.ic_shield),
-    BottomItem(Routes.HELP, "Help", R.drawable.ic_help),
+    ChromeNavItem(Routes.VERIFY, stringResource(R.string.nav_verify), R.drawable.ic_verify),
+    ChromeNavItem(Routes.SHIELD, stringResource(R.string.nav_shield), R.drawable.ic_shield),
+    ChromeNavItem(Routes.HELP, stringResource(R.string.nav_help), R.drawable.ic_help),
   )
 
-  val showBottom = when (destination?.route) {
-    Routes.VERIFY, Routes.SHIELD, Routes.HELP, Routes.VAULT -> true
-    else -> true
-  }
-
-  Scaffold(
-    bottomBar = {
-      if (!showBottom) return@Scaffold
-      BottomAppBar {
-        bottomItems.forEach { item ->
-          val selected = destination?.hierarchy?.any { it.route == item.route } == true ||
-            (destination?.route == Routes.VAULT && item.route == Routes.SHIELD)
-          NavigationBarItem(
-            selected = selected,
-            onClick = {
-              navController.navigate(item.route) {
-                launchSingleTop = true
-                popUpTo(Routes.VERIFY) { saveState = true }
-                restoreState = true
-              }
-            },
-            icon = { Icon(painterResource(item.iconRes), contentDescription = item.label) },
-            label = { Text(item.label) },
-          )
+  CompositionLocalProvider(LocalCivicAccent provides accentColors) {
+    androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
+      CivicBackground(modifier = Modifier.fillMaxSize())
+      AppChrome(
+        isCompact = isCompact,
+        currentRoute = selectedBottomRoute,
+        items = bottomItems,
+        showBottomBar = showBottomBar,
+        onNavigate = { route ->
+          val alreadySelected =
+            destination?.hierarchy?.any { it.route == route } == true ||
+              (rawRoute == Routes.VAULT && route == Routes.SHIELD)
+          if (!alreadySelected) {
+            navController.navigate(route) {
+              launchSingleTop = true
+              popUpTo(Routes.VERIFY) { saveState = true }
+              restoreState = true
+            }
+          }
+        },
+      ) { contentPadding ->
+        NavHost(
+          navController = navController,
+          startDestination = Routes.VERIFY,
+          modifier =
+            Modifier
+              .fillMaxSize()
+              .windowInsetsPadding(
+                WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
+              ),
+        ) {
+          composable(Routes.VERIFY) {
+            VerifyScreen(
+              isCompact = isCompact,
+              contentPadding = contentPadding,
+            )
+          }
+          composable(Routes.SHIELD) {
+            ShieldScreen(
+              isCompact = isCompact,
+              contentPadding = contentPadding,
+              onOpenVault = { navController.navigate(Routes.VAULT) },
+            )
+          }
+          composable(Routes.HELP) {
+            HelpScreen(
+              isCompact = isCompact,
+              contentPadding = contentPadding,
+            )
+          }
+          composable(Routes.VAULT) {
+            VaultScreen(
+              isCompact = isCompact,
+              contentPadding = contentPadding,
+              onClose = { navController.popBackStack() },
+            )
+          }
         }
       }
-    },
-  ) { padding ->
-    NavHost(
-      navController = navController,
-      startDestination = Routes.VERIFY,
-      modifier = Modifier.padding(padding),
-    ) {
-      composable(Routes.VERIFY) { VerifyScreen() }
-      composable(Routes.SHIELD) { ShieldScreen(onOpenVault = { navController.navigate(Routes.VAULT) }) }
-      composable(Routes.HELP) { HelpScreen() }
-      composable(Routes.VAULT) { VaultScreen(onClose = { navController.popBackStack() }) }
     }
   }
 }

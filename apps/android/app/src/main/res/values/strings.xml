@@ -1,4 +1,94 @@
 <resources>
   <string name="app_name">RegShield CA</string>
-</resources>
+  <string name="nav_verify">Verify</string>
+  <string name="nav_shield">Shield</string>
+  <string name="nav_help">Help</string>
 
+  <string name="common_any">Any</string>
+  <string name="common_search">Search</string>
+  <string name="common_close">Close</string>
+  <string name="common_open_source">Open official source</string>
+  <string name="common_no_source">No source link available</string>
+  <string name="common_status_open">Open</string>
+  <string name="common_status_waitlist">Waitlist</string>
+  <string name="common_status_closed">Closed</string>
+  <string name="common_last_verified">Last verified: %1$s</string>
+
+  <string name="verify_title">Verify credentials</string>
+  <string name="verify_subtitle">Check if a person or organization appears in official rosters and review the evidence links.</string>
+  <string name="verify_name_label">Name</string>
+  <string name="verify_name_placeholder">e.g. Diaz, Samantha</string>
+  <string name="verify_state_label">State filter</string>
+  <string name="verify_search_button">Search rosters</string>
+  <string name="verify_roster_updated">Roster updated: %1$s</string>
+  <string name="verify_no_results">No results yet. Search by name to see matches.</string>
+  <string name="verify_possible_match">Possible match</string>
+  <string name="verify_score">Match score: %1$s</string>
+  <string name="verify_matched_on">Matched on: %1$s</string>
+  <string name="verify_official_links">Official manual checks</string>
+  <string name="verify_official_links_hint">Always verify with official registries before taking action.</string>
+  <string name="verify_calbar_title">California State Bar</string>
+  <string name="verify_calbar_body">If someone claims to be an attorney, confirm their active status here.</string>
+  <string name="verify_sos_title">California SOS Consultant Search</string>
+  <string name="verify_sos_body">If someone claims to be an immigration consultant, confirm registration here.</string>
+  <string name="verify_disclaimer">Information only. This is not legal advice.</string>
+
+  <string name="help_title">Find legal aid faster</string>
+  <string name="help_subtitle">Filter organizations by county, language, and service, then check intake status.</string>
+  <string name="help_county_label">County</string>
+  <string name="help_language_label">Language</string>
+  <string name="help_service_label">Service</string>
+  <string name="help_search_button">Find organizations</string>
+  <string name="help_no_results">No organizations match these filters.</string>
+  <string name="help_empty">Use filters and search to see results.</string>
+  <string name="help_services">Services: %1$s</string>
+  <string name="help_languages">Languages: %1$s</string>
+  <string name="help_counties">Counties: %1$s</string>
+  <string name="help_eta">Estimated callback: %1$d day(s)</string>
+  <string name="help_next_clinic">Next clinic: %1$s</string>
+
+  <string name="shield_title">Scam shield</string>
+  <string name="shield_subtitle">Spot red flags early and document evidence safely on-device.</string>
+  <string name="shield_red_flags">Red flags checklist</string>
+  <string name="shield_action_plan">Action plan</string>
+  <string name="shield_open_vault">Open Evidence Vault</string>
+  <string name="shield_info_only">Information only, not legal advice.</string>
+  <string name="shield_step_verify">Verify identities and licenses using official registries.</string>
+  <string name="shield_step_receipts">Request written agreements and itemized receipts.</string>
+  <string name="shield_step_no_blank">Never sign blank forms or share originals without verification.</string>
+  <string name="shield_flag_1_title">Asks for payment by gift card or crypto</string>
+  <string name="shield_flag_1_detail">Legitimate legal services rarely require these payment methods.</string>
+  <string name="shield_flag_2_title">Pressures you to act immediately</string>
+  <string name="shield_flag_2_detail">Scams create urgency to prevent verification.</string>
+  <string name="shield_flag_3_title">Refuses to share license or registration details</string>
+  <string name="shield_flag_3_detail">Legitimate providers should be verifiable via official directories.</string>
+  <string name="shield_flag_4_title">Requests sensitive originals before trust is established</string>
+  <string name="shield_flag_4_detail">Keep originals and share copies only after verification.</string>
+  <string name="shield_flag_5_title">Only communicates off-platform</string>
+  <string name="shield_flag_5_detail">Prefer official channels and keep written records.</string>
+
+  <string name="vault_title">Evidence Vault</string>
+  <string name="vault_subtitle">Local-only encrypted storage. Files never upload by default.</string>
+  <string name="vault_badge_locked">Locked</string>
+  <string name="vault_badge_unlocked">Unlocked</string>
+  <string name="vault_passphrase_label">Passphrase</string>
+  <string name="vault_tip">Tip: keep your passphrase safe. If you forget it, we cannot recover your vault.</string>
+  <string name="vault_unlock">Unlock</string>
+  <string name="vault_create_new">Create new</string>
+  <string name="vault_import_zip">Import zip</string>
+  <string name="vault_add_files">Add files</string>
+  <string name="vault_export_zip">Export zip</string>
+  <string name="vault_lock">Lock</string>
+  <string name="vault_delete">Delete</string>
+  <string name="vault_no_files">No files yet. Add files to build an evidence package.</string>
+
+  <string name="verify_error_enter_name">Please enter a name.</string>
+  <string name="vault_error_enter_passphrase">Enter a passphrase.</string>
+  <string name="vault_error_enter_passphrase_import">Enter the passphrase for this vault export.</string>
+  <string name="vault_error_unlock_first">Unlock the vault first.</string>
+  <string name="vault_error_unlock_failed">Unable to unlock (wrong passphrase or corrupted vault).</string>
+  <string name="vault_error_create_failed">Failed to create vault</string>
+  <string name="vault_error_add_failed">Failed to add files</string>
+  <string name="vault_error_delete_failed">Failed to delete item</string>
+  <string name="vault_error_import_failed">Import failed (wrong passphrase or invalid file).</string>
+</resources>

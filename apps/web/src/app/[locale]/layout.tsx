@@ -26,9 +26,11 @@ export default async function LocaleLayout({
 
   return (
     <NextIntlClientProvider messages={messages}>
-      <div className="min-h-dvh">
+      <div className="relative min-h-dvh">
         <SiteHeader />
-        <main className="mx-auto max-w-5xl px-4 py-10 sm:px-6">{children}</main>
+        <main className="mx-auto w-full max-w-6xl px-4 pb-16 pt-8 sm:px-6 lg:px-8 lg:pt-10">
+          {children}
+        </main>
         <SiteFooter />
       </div>
     </NextIntlClientProvider>

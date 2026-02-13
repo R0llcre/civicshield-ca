@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 STATE_DIR="$ROOT_DIR/.tmp/regshield-dev"
 
-REGSHIELD_ANDROID_AVD="${REGSHIELD_ANDROID_AVD:-Pixel_3a_API_34_extension_level_7_arm64-v8a}"
+REGSHIELD_ANDROID_AVD="${REGSHIELD_ANDROID_AVD:-Pixel_8_Pro_API_34}"
 REGSHIELD_WEB_PORT="${REGSHIELD_WEB_PORT:-3000}"
 WEB_URL="http://127.0.0.1:${REGSHIELD_WEB_PORT}"
 

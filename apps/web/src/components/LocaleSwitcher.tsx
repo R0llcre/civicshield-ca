@@ -25,8 +25,8 @@ export function LocaleSwitcher() {
     <DropdownMenu.Root>
       <DropdownMenu.Trigger
         className={cn(
-          "inline-flex items-center gap-2 rounded-xl bg-white/60 px-3 py-2 text-sm font-semibold",
-          "ring-1 ring-[color:var(--color-surface-border)] hover:bg-white/80",
+          "inline-flex h-10 items-center gap-2 rounded-2xl border border-[color:var(--color-surface-border)]",
+          "bg-white/75 px-3 text-sm font-semibold shadow-[var(--shadow-sm)] hover:bg-white",
         )}
         aria-label={t("switchLanguage")}
       >
@@ -38,8 +38,8 @@ export function LocaleSwitcher() {
           align="end"
           sideOffset={8}
           className={cn(
-            "min-w-40 rounded-2xl bg-white/90 p-1 shadow-lg",
-            "ring-1 ring-[color:var(--color-surface-border)] backdrop-blur",
+            "min-w-40 rounded-2xl border border-[color:var(--color-surface-border)] bg-white/95 p-1.5 shadow-[var(--shadow-md)]",
+            "backdrop-blur",
           )}
         >
           {routing.locales.map((l) => {
@@ -48,8 +48,8 @@ export function LocaleSwitcher() {
               <DropdownMenu.Item
                 key={l}
                 className={cn(
-                  "flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm",
-                  "outline-none hover:bg-black/5",
+                  "flex cursor-pointer items-center justify-between gap-3 rounded-xl px-3 py-2 text-sm font-semibold",
+                  "outline-none hover:bg-[color:var(--color-accent-soft)]",
                 )}
                 onSelect={() => router.replace(pathname, { locale: l })}
               >

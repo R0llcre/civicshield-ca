@@ -1,96 +1,223 @@
 package org.regshield.ca.ui.screens.shield
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.CheckboxDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.regshield.ca.R
+import org.regshield.ca.ui.components.CivicPrimaryButton
+import org.regshield.ca.ui.components.CivicCard
+import org.regshield.ca.ui.components.HeroPanel
+import org.regshield.ca.ui.components.SplitColumns
+import org.regshield.ca.ui.theme.LocalCivicAccent
 
-private data class Flag(val id: String, val title: String, val detail: String)
+private data class Flag(val id: String, val title: Int, val detail: Int)
 
 private val FLAGS = listOf(
-  Flag("pay", "Asks for payment by gift card or crypto", "Legitimate legal services rarely require these payment methods."),
-  Flag("rush", "Pressures you to act immediately", "Scams often create urgency to stop you from verifying details."),
-  Flag("no_bar", "Refuses to share license/registration details", "A legitimate provider should be verifiable via official directories."),
-  Flag("docs", "Asks you to send originals or sensitive documents", "Avoid sending originals; keep copies and verify before sharing."),
-  Flag("offsite", "Only communicates off-platform", "Prefer official channels and keep written records."),
+  Flag("pay", R.string.shield_flag_1_title, R.string.shield_flag_1_detail),
+  Flag("rush", R.string.shield_flag_2_title, R.string.shield_flag_2_detail),
+  Flag("no_bar", R.string.shield_flag_3_title, R.string.shield_flag_3_detail),
+  Flag("docs", R.string.shield_flag_4_title, R.string.shield_flag_4_detail),
+  Flag("offsite", R.string.shield_flag_5_title, R.string.shield_flag_5_detail),
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ShieldScreen(
+  isCompact: Boolean,
+  contentPadding: PaddingValues = PaddingValues(0.dp),
   onOpenVault: () -> Unit,
 ) {
   val checked = remember { mutableStateMapOf<String, Boolean>() }
+  ShieldContent(
+    isCompact = isCompact,
+    contentPadding = contentPadding,
+    checked = checked,
+    onToggle = { id, value -> checked[id] = value },
+    onOpenVault = onOpenVault,
+  )
+}
 
-  Column(modifier = Modifier.fillMaxSize()) {
-    TopAppBar(
-      title = { Text("Shield") },
-      scrollBehavior = androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState()),
-    )
+@Composable
+fun ShieldContent(
+  isCompact: Boolean,
+  contentPadding: PaddingValues = PaddingValues(0.dp),
+  checked: Map<String, Boolean>,
+  onToggle: (String, Boolean) -> Unit,
+  onOpenVault: () -> Unit,
+) {
+  val checkedCount = checked.values.count { it }
+  val topPadding = contentPadding.calculateTopPadding()
+  val bottomPadding = contentPadding.calculateBottomPadding()
 
-    Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-      Text("Red flags checklist", fontWeight = FontWeight.SemiBold)
-      Text("This is informational and not legal advice.")
-
-      Button(onClick = onOpenVault) { Text("Evidence Vault (local only)") }
+  LazyColumn(
+    modifier =
+      Modifier
+        .fillMaxSize()
+        .imePadding(),
+    contentPadding =
+      PaddingValues(
+        start = 16.dp,
+        end = 16.dp,
+        top = topPadding,
+        bottom = bottomPadding,
+      ),
+    verticalArrangement = Arrangement.spacedBy(12.dp),
+  ) {
+    item {
+      HeroPanel(
+        title = stringResource(R.string.shield_title),
+        subtitle = stringResource(R.string.shield_subtitle),
+        badge = "${stringResource(R.string.nav_shield)} · $checkedCount",
+      )
     }
 
-    HorizontalDivider()
-
-    LazyColumn(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-      items(FLAGS) { f ->
-        val isChecked = checked[f.id] == true
-        Card(modifier = Modifier.fillMaxWidth()) {
-          Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-              Checkbox(
-                checked = isChecked,
-                onCheckedChange = { checked[f.id] = it },
+    item {
+      SplitColumns(
+        isCompact = isCompact,
+        modifier = Modifier.fillMaxWidth(),
+        left = {
+          CivicCard {
+            Text(text = stringResource(R.string.shield_red_flags), style = MaterialTheme.typography.titleMedium)
+            for ((index, flag) in FLAGS.withIndex()) {
+              ShieldFlagTile(
+                title = stringResource(flag.title),
+                detail = stringResource(flag.detail),
+                checked = checked[flag.id] == true,
+                testTag = "shield_flag_$index",
+                onChange = { onToggle(flag.id, it) },
               )
-              Column(modifier = Modifier.padding(start = 8.dp)) {
-                Text(f.title, fontWeight = FontWeight.SemiBold)
-                Text(f.detail)
-              }
             }
           }
+        },
+        right = {
+          CivicCard {
+            Text(text = stringResource(R.string.shield_action_plan), style = MaterialTheme.typography.titleMedium)
+            ActionStep(number = 1, text = stringResource(R.string.shield_step_verify))
+            ActionStep(number = 2, text = stringResource(R.string.shield_step_receipts))
+            ActionStep(number = 3, text = stringResource(R.string.shield_step_no_blank))
+            CivicPrimaryButton(
+              text = stringResource(R.string.shield_open_vault),
+              icon = Icons.Default.Shield,
+              onClick = onOpenVault,
+              modifier =
+                Modifier
+                  .fillMaxWidth()
+                  .testTag("shield_open_vault"),
+            )
+          }
+        },
+      )
+    }
+  }
+}
+
+@Composable
+private fun ShieldFlagTile(
+  title: String,
+  detail: String,
+  checked: Boolean,
+  testTag: String,
+  onChange: (Boolean) -> Unit,
+) {
+  val accent = LocalCivicAccent.current
+  val bg =
+    if (checked) {
+      accent.accentContainer.copy(alpha = 0.7f)
+    } else {
+      MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
+    }
+  val border =
+    if (checked) {
+      accent.accent.copy(alpha = 0.55f)
+    } else {
+      MaterialTheme.colorScheme.outline.copy(alpha = 0.18f)
+    }
+
+  Surface(
+    modifier =
+      Modifier
+        .fillMaxWidth()
+        .testTag(testTag)
+        .clickable { onChange(!checked) },
+    shape = MaterialTheme.shapes.extraLarge,
+    color = bg,
+    border = BorderStroke(width = 1.dp, color = border),
+  ) {
+    Row(
+      modifier = Modifier.padding(12.dp),
+      verticalAlignment = Alignment.Top,
+      horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+      Checkbox(
+        checked = checked,
+        onCheckedChange = onChange,
+        colors =
+          CheckboxDefaults.colors(
+            checkedColor = accent.accent,
+            checkmarkColor = accent.onAccent,
+          ),
+      )
+      Box(modifier = Modifier.weight(1f)) {
+        androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+          Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+          Text(text = detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
       }
+    }
+  }
+}
 
-      item {
-        Spacer(Modifier.height(8.dp))
-        Text("If something feels wrong, stop and verify the person or organization via official sources before paying or sharing documents.")
+@Composable
+private fun ActionStep(number: Int, text: String) {
+  val accent = LocalCivicAccent.current
+  Surface(
+    shape = MaterialTheme.shapes.extraLarge,
+    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)),
+  ) {
+    Row(
+      modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+      verticalAlignment = Alignment.CenterVertically,
+      horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+      Surface(
+        shape = androidx.compose.foundation.shape.CircleShape,
+        color = accent.accentContainer,
+        contentColor = accent.onAccentContainer,
+      ) {
+        Box(
+          modifier = Modifier.size(26.dp),
+          contentAlignment = Alignment.Center,
+        ) {
+          Text(text = number.toString(), style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.Bold)
+        }
       }
+      Text(text = text, style = MaterialTheme.typography.bodyMedium)
     }
   }
 }

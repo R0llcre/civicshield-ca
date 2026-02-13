@@ -3,40 +3,42 @@ package org.regshield.ca.ui.screens.help
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import org.regshield.ca.R
 import org.regshield.ca.api.AidOrg
+import org.regshield.ca.ui.components.CivicDropdownField
+import org.regshield.ca.ui.components.CivicLinkButton
+import org.regshield.ca.ui.components.CivicPrimaryButton
+import org.regshield.ca.ui.components.CivicCard
+import org.regshield.ca.ui.components.HeroPanel
+import org.regshield.ca.ui.components.SplitColumns
+import org.regshield.ca.ui.components.StatusChip
 
 private val COUNTY_OPTIONS = listOf(
   "",
@@ -53,168 +55,225 @@ private val COUNTY_OPTIONS = listOf(
   "Ventura",
 )
 
-private val LANGUAGE_OPTIONS = listOf(
-  "",
-  "English",
-  "Spanish",
-  "Chinese",
-  "Korean",
-  "Vietnamese",
-)
+private val LANGUAGE_OPTIONS = listOf("", "English", "Spanish", "Chinese", "Korean", "Vietnamese", "Tagalog")
+private val SERVICE_OPTIONS = listOf("", "Asylum", "Family", "VAWA", "Work authorization", "Naturalization", "Removal defense")
 
-private val SERVICE_OPTIONS = listOf(
-  "",
-  "Asylum",
-  "Family",
-  "VAWA",
-  "Work authorization",
-  "Naturalization",
-  "Removal defense",
-)
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HelpScreen(
+  isCompact: Boolean,
+  contentPadding: PaddingValues = PaddingValues(0.dp),
   vm: HelpViewModel = hiltViewModel(),
 ) {
   val ctx = LocalContext.current
   val st by vm.state.collectAsState()
 
-  Column(modifier = Modifier.fillMaxSize()) {
-    TopAppBar(
-      title = { Text("Help") },
-      scrollBehavior = androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState()),
-    )
-
-    Column(
-      modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-      Dropdown(
-        label = "County",
-        options = COUNTY_OPTIONS,
-        value = st.filters.county,
-        onSelect = { vm.setCounty(it) },
-      )
-      Dropdown(
-        label = "Language",
-        options = LANGUAGE_OPTIONS,
-        value = st.filters.language,
-        onSelect = { vm.setLanguage(it) },
-      )
-      Dropdown(
-        label = "Service",
-        options = SERVICE_OPTIONS,
-        value = st.filters.service,
-        onSelect = { vm.setService(it) },
-      )
-
-      Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        Button(onClick = { vm.search() }) { Text("Search") }
-      }
-
-      if (st.loading) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center) {
-          CircularProgressIndicator()
-        }
-      }
-      st.error?.let { Text(it, fontWeight = FontWeight.SemiBold) }
-    }
-
-    HorizontalDivider()
-
-    LazyColumn(
-      modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp),
-      verticalArrangement = Arrangement.spacedBy(12.dp),
-    ) {
-      items(st.results) { org ->
-        OrgCard(
-          org = org,
-          onOpen = {
-            val url = org.website ?: org.sourceUrl ?: return@OrgCard
-            ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
-          },
-        )
-      }
-      if (!st.loading && st.results.isEmpty()) {
-        item {
-          Spacer(Modifier.height(8.dp))
-          Text("Search to find organizations. This directory is informational and may change.")
-        }
-      }
-    }
-  }
+  HelpContent(
+    isCompact = isCompact,
+    contentPadding = contentPadding,
+    state = st,
+    onCounty = vm::setCounty,
+    onLanguage = vm::setLanguage,
+    onService = vm::setService,
+    onSearch = vm::search,
+    onOpenOrgLink = { org ->
+      val url = org.website ?: org.sourceUrl ?: return@HelpContent
+      ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    },
+  )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun Dropdown(
-  label: String,
-  options: List<String>,
-  value: String,
-  onSelect: (String) -> Unit,
+fun HelpContent(
+  isCompact: Boolean,
+  contentPadding: PaddingValues = PaddingValues(0.dp),
+  state: HelpUiState,
+  onCounty: (String) -> Unit,
+  onLanguage: (String) -> Unit,
+  onService: (String) -> Unit,
+  onSearch: () -> Unit,
+  onOpenOrgLink: (AidOrg) -> Unit,
 ) {
-  var expanded by remember { mutableStateOf(false) }
-  val display = if (value.isBlank()) "Any" else value
+  val topPadding = contentPadding.calculateTopPadding()
+  val bottomPadding = contentPadding.calculateBottomPadding()
 
-  Box(modifier = Modifier.fillMaxWidth()) {
-    OutlinedTextField(
-      value = display,
-      onValueChange = {},
-      readOnly = true,
-      label = { Text(label) },
-      modifier = Modifier
-        .fillMaxWidth()
-        .clickable { expanded = true },
-    )
-    DropdownMenu(
-      expanded = expanded,
-      onDismissRequest = { expanded = false },
-    ) {
-      options.forEach { opt ->
-        val text = if (opt.isBlank()) "Any" else opt
-        DropdownMenuItem(
-          text = { Text(text) },
-          onClick = {
-            onSelect(opt)
-            expanded = false
-          },
-        )
+  LazyColumn(
+    modifier =
+      Modifier
+        .fillMaxSize()
+        .imePadding(),
+    contentPadding =
+      PaddingValues(
+        start = 16.dp,
+        end = 16.dp,
+        top = topPadding,
+        bottom = bottomPadding,
+      ),
+    verticalArrangement = Arrangement.spacedBy(12.dp),
+  ) {
+    item {
+      HeroPanel(
+        title = stringResource(R.string.help_title),
+        subtitle = stringResource(R.string.help_subtitle),
+        badge = stringResource(R.string.nav_help),
+      )
+    }
+
+    item {
+      SplitColumns(
+        isCompact = isCompact,
+        modifier = Modifier.fillMaxWidth(),
+        left = {
+          HelpFiltersCard(
+            state = state,
+            onCounty = onCounty,
+            onLanguage = onLanguage,
+            onService = onService,
+            onSearch = onSearch,
+          )
+        },
+        right = {
+          CivicCard {
+            Text(text = stringResource(R.string.help_empty), style = MaterialTheme.typography.bodyMedium)
+            Text(
+              text = stringResource(R.string.verify_disclaimer),
+              style = MaterialTheme.typography.bodySmall,
+              color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+          }
+        },
+      )
+    }
+
+    if (state.loading) {
+      item {
+        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+          CircularProgressIndicator(modifier = Modifier.testTag("help_loading"))
+        }
       }
+    }
+
+    if (!state.error.isNullOrBlank()) {
+      item {
+        CivicCard {
+          Text(
+            text = state.error.orEmpty(),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error,
+            modifier = Modifier.testTag("help_error_text"),
+          )
+        }
+      }
+    }
+
+    if (!state.loading && state.results.isEmpty()) {
+      item {
+        CivicCard {
+          Text(text = stringResource(R.string.help_no_results), style = MaterialTheme.typography.bodyMedium)
+        }
+      }
+    }
+
+    itemsIndexed(state.results) { index, org ->
+      HelpOrgCard(
+        org = org,
+        modifier = Modifier.testTag("help_result_item_$index"),
+        onOpen = { onOpenOrgLink(org) },
+      )
     }
   }
 }
 
 @Composable
-private fun OrgCard(
+private fun HelpFiltersCard(
+  state: HelpUiState,
+  onCounty: (String) -> Unit,
+  onLanguage: (String) -> Unit,
+  onService: (String) -> Unit,
+  onSearch: () -> Unit,
+) {
+  CivicCard {
+    val anyLabel = stringResource(R.string.common_any)
+    CivicDropdownField(
+      label = stringResource(R.string.help_county_label),
+      options = COUNTY_OPTIONS,
+      value = state.filters.county,
+      onSelect = onCounty,
+      placeholder = anyLabel,
+      testTag = "help_county_filter",
+    )
+    CivicDropdownField(
+      label = stringResource(R.string.help_language_label),
+      options = LANGUAGE_OPTIONS,
+      value = state.filters.language,
+      onSelect = onLanguage,
+      placeholder = anyLabel,
+      testTag = "help_language_filter",
+    )
+    CivicDropdownField(
+      label = stringResource(R.string.help_service_label),
+      options = SERVICE_OPTIONS,
+      value = state.filters.service,
+      onSelect = onService,
+      placeholder = anyLabel,
+      testTag = "help_service_filter",
+    )
+
+    CivicPrimaryButton(
+      text = stringResource(R.string.help_search_button),
+      icon = Icons.Default.Search,
+      onClick = onSearch,
+      modifier =
+        Modifier
+          .fillMaxWidth()
+          .testTag("help_search_button"),
+    )
+  }
+}
+
+@Composable
+private fun HelpOrgCard(
   org: AidOrg,
+  modifier: Modifier = Modifier,
   onOpen: () -> Unit,
 ) {
-  Card(
-    modifier = Modifier
-      .fillMaxWidth()
-      .clickable(enabled = !org.website.isNullOrBlank() || !org.sourceUrl.isNullOrBlank()) { onOpen() },
+  CivicCard(
+    modifier = modifier.then(Modifier.clickable(enabled = !org.website.isNullOrBlank() || !org.sourceUrl.isNullOrBlank()) { onOpen() }),
   ) {
-    Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-      Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-        Text(org.name, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
-        Text(org.intakeStatus)
-      }
+    Text(text = org.name, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+    StatusChip(
+      status = when (org.intakeStatus.lowercase()) {
+        "open" -> stringResource(R.string.common_status_open)
+        "waitlist" -> stringResource(R.string.common_status_waitlist)
+        "closed" -> stringResource(R.string.common_status_closed)
+        else -> org.intakeStatus
+      },
+      modifier = Modifier.testTag("help_status_chip"),
+    )
 
-      val meta = listOfNotNull(
-        org.counties.firstOrNull(),
-        org.languages.take(2).takeIf { it.isNotEmpty() }?.joinToString(", "),
-      ).joinToString(" • ")
-      if (meta.isNotBlank()) Text(meta)
+    val counties = org.counties.joinToString(", ")
+    if (counties.isNotBlank()) Text(text = stringResource(R.string.help_counties, counties), style = MaterialTheme.typography.bodySmall)
+    val languages = org.languages.joinToString(", ")
+    if (languages.isNotBlank()) Text(text = stringResource(R.string.help_languages, languages), style = MaterialTheme.typography.bodySmall)
+    val services = org.services.joinToString(", ")
+    if (services.isNotBlank()) Text(text = stringResource(R.string.help_services, services), style = MaterialTheme.typography.bodySmall)
+    org.etaCallbackDays?.let { Text(text = stringResource(R.string.help_eta, it), style = MaterialTheme.typography.bodySmall) }
+    org.nextClinicAt?.let { Text(text = stringResource(R.string.help_next_clinic, it), style = MaterialTheme.typography.bodySmall) }
+    org.verifiedAt?.let { Text(text = stringResource(R.string.common_last_verified, it), style = MaterialTheme.typography.bodySmall) }
 
-      org.phone?.let { Text(it) }
-      org.verifiedAt?.let { Text("Last verified: $it") }
-
-      if (!org.sourceUrl.isNullOrBlank()) Text("Source available")
+    HorizontalDivider()
+    if (!org.sourceUrl.isNullOrBlank() || !org.website.isNullOrBlank()) {
+      CivicLinkButton(
+        text = stringResource(R.string.common_open_source),
+        icon = Icons.AutoMirrored.Filled.OpenInNew,
+        onClick = onOpen,
+        modifier = Modifier.align(Alignment.End),
+      )
+    } else {
+      Text(
+        text = stringResource(R.string.common_no_source),
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+      )
     }
   }
 }

@@ -191,8 +191,8 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
   }
 
   async function doImport() {
-      const file = importFileRef.current?.files?.[0];
-      if (!file) return;
+    const file = importFileRef.current?.files?.[0];
+    if (!file) return;
     setBusy(true);
     setError(null);
     try {
@@ -219,10 +219,16 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
   return (
     <div className="space-y-4">
       {state.kind === "locked" ? (
-        <div className="space-y-3">
-          <div className="text-sm font-semibold">{state.hasVault ? labels.unlockTitle : labels.newTitle}</div>
+        <div className="space-y-4">
+          <div className="soft-section rounded-2xl p-4">
+            <div className="text-sm font-bold">{state.hasVault ? labels.unlockTitle : labels.newTitle}</div>
+            <div className="mt-1 text-xs text-[color:var(--color-muted)]">{labels.passphraseHint}</div>
+          </div>
+
           <label className="space-y-2">
-            <div className="text-xs font-semibold text-[color:var(--color-muted)]">{labels.passphraseLabel}</div>
+            <div className="text-xs font-semibold uppercase tracking-[0.07em] text-[color:var(--color-muted)]">
+              {labels.passphraseLabel}
+            </div>
             <Input
               type="password"
               value={passphrase}
@@ -230,17 +236,16 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
               placeholder="••••••••"
               autoComplete="current-password"
             />
-            <div className="text-xs text-[color:var(--color-muted-2)]">{labels.passphraseHint}</div>
           </label>
 
           <div className="flex flex-wrap gap-2">
             {state.hasVault ? (
-              <Button onClick={() => unlock(false)} disabled={busy || !passphrase}>
+              <Button onClick={() => unlock(false)} disabled={busy || !passphrase} size="lg">
                 <Lock className="h-4 w-4" />
                 {labels.unlockButton}
               </Button>
             ) : (
-              <Button onClick={() => unlock(true)} disabled={busy || !passphrase}>
+              <Button onClick={() => unlock(true)} disabled={busy || !passphrase} size="lg" tone="teal">
                 <Lock className="h-4 w-4" />
                 {labels.createButton}
               </Button>
@@ -248,20 +253,20 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
 
             <Dialog.Root open={importOpen} onOpenChange={setImportOpen}>
               <Dialog.Trigger asChild>
-                <Button variant="secondary" disabled={busy}>
+                <Button variant="secondary" disabled={busy} size="lg">
                   <FileUp className="h-4 w-4" />
                   {labels.import}
                 </Button>
               </Dialog.Trigger>
               <Dialog.Portal>
-                <Dialog.Overlay className="fixed inset-0 bg-black/30" />
+                <Dialog.Overlay className="fixed inset-0 bg-slate-900/35 backdrop-blur-sm" />
                 <Dialog.Content
                   className={cn(
                     "fixed left-1/2 top-1/2 w-[min(92vw,480px)] -translate-x-1/2 -translate-y-1/2",
-                    "rounded-3xl bg-white p-5 shadow-xl ring-1 ring-black/10",
+                    "rounded-3xl border border-[color:var(--color-surface-border)] bg-white p-5 shadow-[var(--shadow-lg)]",
                   )}
                 >
-                  <Dialog.Title className="font-[family-name:var(--font-display)] text-lg font-semibold">
+                  <Dialog.Title className="font-[family-name:var(--font-display)] text-lg font-bold">
                     {labels.importDialogTitle}
                   </Dialog.Title>
                   <Dialog.Description className="mt-1 text-sm text-[color:var(--color-muted)]">
@@ -270,14 +275,20 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
 
                   <div className="mt-4 space-y-3">
                     <label className="block space-y-2">
-                      <div className="text-xs font-semibold text-[color:var(--color-muted)]">
+                      <div className="text-xs font-semibold uppercase tracking-[0.07em] text-[color:var(--color-muted)]">
                         {labels.import}
                       </div>
-                      <input ref={importFileRef} type="file" accept=".zip" aria-label={labels.import} />
+                      <input
+                        ref={importFileRef}
+                        type="file"
+                        accept=".zip"
+                        aria-label={labels.import}
+                        className="w-full rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface-strong)] px-3 py-2 text-sm"
+                      />
                     </label>
 
                     <label className="block space-y-2">
-                      <div className="text-xs font-semibold text-[color:var(--color-muted)]">
+                      <div className="text-xs font-semibold uppercase tracking-[0.07em] text-[color:var(--color-muted)]">
                         {labels.passphraseLabel}
                       </div>
                       <Input
@@ -290,11 +301,11 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
                     </label>
                     <div className="flex justify-end gap-2">
                       <Dialog.Close asChild>
-                        <Button variant="ghost" disabled={busy}>
+                        <Button variant="ghost" disabled={busy} size="sm">
                           {labels.cancel}
                         </Button>
                       </Dialog.Close>
-                      <Button onClick={doImport} disabled={busy || !passphrase}>
+                      <Button onClick={doImport} disabled={busy || !passphrase} size="sm">
                         {labels.importConfirm}
                       </Button>
                     </div>
@@ -307,20 +318,20 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
       ) : (
         <div className="space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <div className="text-sm font-semibold">{labels.itemsTitle}</div>
+            <div className="text-sm font-bold">{labels.itemsTitle}</div>
             <div className="flex flex-wrap gap-2">
-              <Button variant="secondary" onClick={exportZip} disabled={busy}>
+              <Button variant="secondary" onClick={exportZip} disabled={busy} size="sm">
                 <FileDown className="h-4 w-4" />
                 {labels.export}
               </Button>
-              <Button variant="ghost" onClick={lockVault} disabled={busy}>
+              <Button variant="ghost" onClick={lockVault} disabled={busy} size="sm">
                 <Lock className="h-4 w-4" />
                 {labels.lockButton}
               </Button>
             </div>
           </div>
 
-          <div className="rounded-2xl bg-white/60 p-4 ring-1 ring-[color:var(--color-surface-border)]">
+          <div className="soft-section rounded-2xl p-4">
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="text-sm font-semibold">{labels.addFiles}</div>
               <div>
@@ -329,6 +340,7 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
                   type="file"
                   multiple
                   aria-label={labels.addFiles}
+                  className="w-full max-w-[250px] rounded-2xl border border-[color:var(--color-surface-border)] bg-[color:var(--color-surface-strong)] px-3 py-2 text-sm"
                   onChange={(e) => {
                     if (e.target.files) addFiles(e.target.files);
                   }}
@@ -338,13 +350,15 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
           </div>
 
           {error ? (
-            <div className="rounded-xl bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-red-200">
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </div>
           ) : null}
 
           {state.meta.length === 0 ? (
-            <div className="text-sm text-[color:var(--color-muted)]">{labels.empty}</div>
+            <div className="rounded-2xl border border-[color:var(--color-surface-border)] bg-white/60 px-4 py-3 text-sm text-[color:var(--color-muted)]">
+              {labels.empty}
+            </div>
           ) : (
             <ul className="space-y-2">
               {state.meta
@@ -353,21 +367,21 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
                 .map((m) => (
                   <li
                     key={m.id}
-                    className="rounded-2xl bg-white/60 p-4 ring-1 ring-[color:var(--color-surface-border)]"
+                    className="rounded-2xl border border-[color:var(--color-surface-border)] bg-white/80 p-4 shadow-[var(--shadow-sm)]"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
-                        <div className="text-sm font-semibold">{m.originalName}</div>
+                        <div className="text-sm font-bold">{m.originalName}</div>
                         <div className="mt-1 text-xs text-[color:var(--color-muted)]">
                           {new Date(m.createdAt).toLocaleString()} · {Math.round(m.size / 1024)} KB
                         </div>
                       </div>
                       <div className="flex items-center gap-2">
-                        <Button variant="secondary" onClick={() => downloadItem(m.id)} disabled={busy}>
+                        <Button variant="secondary" onClick={() => downloadItem(m.id)} disabled={busy} size="sm">
                           <Download className="h-4 w-4" />
                           {labels.download}
                         </Button>
-                        <Button variant="ghost" onClick={() => deleteItem(m.id)} disabled={busy}>
+                        <Button variant="ghost" onClick={() => deleteItem(m.id)} disabled={busy} size="sm">
                           <Trash2 className="h-4 w-4" />
                           {labels.delete}
                         </Button>

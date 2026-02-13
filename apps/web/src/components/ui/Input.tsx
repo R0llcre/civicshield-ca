@@ -11,14 +11,13 @@ export function Input({
   return (
     <input
       className={cn(
-        "w-full rounded-xl bg-white/70 px-3 py-2 text-sm",
-        "ring-1 ring-[color:var(--color-surface-border)]",
+        "h-11 w-full rounded-2xl border bg-[color:var(--color-surface-strong)] px-3.5 text-sm text-[color:var(--color-foreground)]",
+        "border-[color:var(--color-surface-border)] shadow-[var(--shadow-sm)]",
         "placeholder:text-[color:var(--color-muted-2)]",
-        "focus:outline-none focus:ring-2 focus:ring-[color:var(--color-focus)]",
+        "focus:border-[color:var(--color-focus)] focus:outline-none focus:ring-2 focus:ring-[color:var(--color-focus)]/35",
         className,
       )}
       {...props}
     />
   );
 }
-

@@ -1,0 +1,155 @@
+package org.regshield.ca.ui
+
+import androidx.activity.ComponentActivity
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
+import org.junit.Assert.assertTrue
+import org.junit.Rule
+import org.junit.Test
+import org.regshield.ca.api.AidOrg
+import org.regshield.ca.api.RaEntry
+import org.regshield.ca.ui.screens.help.HelpContent
+import org.regshield.ca.ui.screens.help.HelpFilters
+import org.regshield.ca.ui.screens.help.HelpUiState
+import org.regshield.ca.ui.screens.shield.ShieldContent
+import org.regshield.ca.ui.screens.verify.VerifyContent
+import org.regshield.ca.ui.theme.RegShieldTheme
+import org.regshield.ca.vault.VaultItemMeta
+import org.regshield.ca.vault.VaultUiState
+import org.regshield.ca.vault.VaultContent
+
+class AppUiFlowsTest {
+  @get:Rule
+  val composeRule = createAndroidComposeRule<ComponentActivity>()
+
+  @Test
+  fun verifyScreen_rendersAndSearchActionWorks() {
+    var searched = false
+    composeRule.setContent {
+      RegShieldTheme {
+        VerifyContent(
+          isCompact = true,
+          name = "Diaz",
+          stateCode = "CA",
+          loading = false,
+          error = null,
+          dataFreshnessEndedAt = "2026-02-13T06:00:00Z",
+          results = listOf(
+            RaEntry(
+              name = "Diaz, Samantha",
+              entryType = "representative",
+              sourceUrl = "https://example.org/roster",
+              score = 92,
+            ),
+          ),
+          onNameChange = {},
+          onStateChange = {},
+          onSearch = { searched = true },
+          onOpenSource = {},
+          onOpenCalBar = {},
+          onOpenSos = {},
+        )
+      }
+    }
+
+    composeRule.onNodeWithTag("verify_name_input").assertExists()
+    composeRule.onNodeWithTag("verify_search_button").performClick()
+    composeRule.onNodeWithTag("verify_result_item_0").assertExists()
+    assertTrue(searched)
+  }
+
+  @Test
+  fun helpScreen_rendersFiltersAndStatusChip() {
+    composeRule.setContent {
+      RegShieldTheme {
+        HelpContent(
+          isCompact = true,
+          state = HelpUiState(
+            filters = HelpFilters(county = "Los Angeles", language = "Spanish", service = "Asylum"),
+            results = listOf(
+              AidOrg(
+                id = "1",
+                name = "Sample Legal Aid",
+                intakeStatus = "open",
+                counties = listOf("Los Angeles"),
+                languages = listOf("English", "Spanish"),
+                services = listOf("Asylum"),
+                sourceUrl = "https://example.org/source",
+              ),
+            ),
+          ),
+          onCounty = {},
+          onLanguage = {},
+          onService = {},
+          onSearch = {},
+          onOpenOrgLink = {},
+        )
+      }
+    }
+
+    composeRule.onNodeWithTag("help_county_filter").assertExists()
+    composeRule.onNodeWithTag("help_search_button").assertExists()
+    composeRule.onNodeWithTag("help_status_chip").assertExists()
+    composeRule.onNodeWithTag("help_result_item_0").assertExists()
+  }
+
+  @Test
+  fun shieldScreen_checkboxRowAndVaultActionExist() {
+    val checked = mutableStateMapOf<String, Boolean>()
+
+    composeRule.setContent {
+      RegShieldTheme {
+        ShieldContent(
+          isCompact = true,
+          checked = checked,
+          onToggle = { id, value -> checked[id] = value },
+          onOpenVault = {},
+        )
+      }
+    }
+
+    composeRule.onNodeWithTag("shield_flag_0").assertExists()
+    composeRule.onNodeWithTag("shield_open_vault").assertExists()
+  }
+
+  @Test
+  fun vaultScreen_lockedStateActionsExist() {
+    composeRule.setContent {
+      RegShieldTheme {
+        VaultContent(
+          isCompact = true,
+          state = VaultUiState(
+            hasVault = true,
+            locked = true,
+            busy = false,
+            error = null,
+            items = listOf(
+              VaultItemMeta(
+                id = "a",
+                createdAt = "2026-02-13T00:00:00Z",
+                originalName = "note.txt",
+                contentType = "text/plain",
+                size = 120L,
+              ),
+            ),
+          ),
+          passphrase = "secret",
+          onPassphraseChange = {},
+          onClose = {},
+          onUnlock = {},
+          onCreate = {},
+          onImport = {},
+          onAddFiles = {},
+          onExport = {},
+          onLock = {},
+          onDelete = {},
+        )
+      }
+    }
+
+    composeRule.onNodeWithTag("vault_passphrase_input").assertExists()
+    composeRule.onNodeWithTag("vault_unlock_button").assertExists()
+  }
+}

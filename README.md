@@ -65,10 +65,11 @@ npm run android:dev:up
 
 This command will:
 - ensure JDK 17
-- start/reuse Android emulator
+- start/reuse Android emulator (default full-screen strategy: `Pixel_8_Pro_API_34`, fallback `Pixel_8_Pro*API_34`)
 - start/reuse local web (`npm run dev`)
 - build + install `devDebug`
 - launch `org.regshield.ca.dev`
+- pin install/launch to the matched target AVD serial
 
 Useful follow-up commands:
 
@@ -90,6 +91,16 @@ Common failures and fixes:
 - JDK not 17: install JDK 17 (Temurin recommended), then rerun
 - SDK tools missing (`adb`/`emulator`): install Android SDK Platform-Tools + Emulator
 - Emulator boot timeout: retry and inspect log path printed by `android:dev:up`
+
+Recommended device coverage for UI checks:
+- Pixel 8 Pro API 34 (full-screen) in portrait + landscape
+- One smaller phone profile (for example Pixel 3a) in portrait
+
+Fullscreen Android UI acceptance checklist:
+- no oversized blank strip above first hero card
+- floating bottom capsule stays above system gesture area
+- final card in each screen scrolls above bottom navigation
+- bottom navigation icons/labels remain readable at font scale 1.3
 
 ## Environment Variables
 

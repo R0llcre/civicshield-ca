@@ -1,0 +1,38 @@
+name: DB Migrate - Azure Staging
+
+on:
+  workflow_dispatch:
+
+jobs:
+  migrate:
+    # Runs inside the Azure VNet (private Postgres) on a self-hosted runner.
+    runs-on:
+      - self-hosted
+      - regshieldca-stg
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify psql is installed
+        run: |
+          set -euo pipefail
+          command -v psql >/dev/null 2>&1 || { echo "psql not found. Install postgresql-client on the runner VM." >&2; exit 1; }
+
+      - name: Apply migrations + seed
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DATABASE_URL:-}" ]; then
+            echo "Missing secret: DATABASE_URL" >&2
+            exit 1
+          fi
+
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/0001_init.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/0002_aid_org_provenance.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/0003_search_ra_entries.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/migrations/0004_partner_security.sql
+
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f db/seed/staging_demo.sql
+

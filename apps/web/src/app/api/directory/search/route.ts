@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 
 import { SAMPLE_AID_ORGS, type AidOrg } from "@/data/aid_org_sample";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { queryRows } from "@/server/db";
+import { getServerEnv } from "@/server/env";
 
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
@@ -28,6 +30,42 @@ export async function GET(req: Request) {
         },
       },
     );
+  }
+
+  const { DATABASE_URL } = getServerEnv();
+  if (DATABASE_URL) {
+    const where: string[] = [];
+    const params: unknown[] = [];
+    if (county) {
+      params.push([county]);
+      where.push(`counties @> $${params.length}::text[]`);
+    }
+    if (lang) {
+      params.push([lang]);
+      where.push(`languages @> $${params.length}::text[]`);
+    }
+    if (service) {
+      params.push([service]);
+      where.push(`services @> $${params.length}::text[]`);
+    }
+
+    const sql = [
+      "select id,name,website,phone,email,counties,languages,services,intake_status,next_clinic_at,eta_callback_days,source_url,verified_at,verified_by,updated_at",
+      "from public.aid_org",
+      where.length ? `where ${where.join(" and ")}` : "",
+      "limit 50",
+    ]
+      .filter(Boolean)
+      .join(" ");
+
+    const rows = await queryRows<AidOrg>(sql, params);
+    const out = NextResponse.json({ results: rows ?? [] });
+    if (rl) {
+      out.headers.set("X-RateLimit-Limit", String(limit));
+      out.headers.set("X-RateLimit-Remaining", String(rl.remaining));
+      out.headers.set("X-RateLimit-Reset", String(Math.floor(rl.resetAtMs / 1000)));
+    }
+    return out;
   }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;

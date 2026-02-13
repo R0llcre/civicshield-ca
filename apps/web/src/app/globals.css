@@ -1,22 +1,34 @@
 @import "tailwindcss";
 
 :root {
-  /* Light, warm base with high-contrast foreground (no dark-mode bias for MVP). */
-  --background: #fbf6ee;
-  --foreground: #0b1f26;
+  --background: #f4f8fc;
+  --background-strong: #e8f0fb;
+  --foreground: #0f172a;
 
-  --surface: rgba(255, 255, 255, 0.7);
-  --surface-border: rgba(12, 42, 55, 0.14);
+  --surface: rgba(255, 255, 255, 0.78);
+  --surface-strong: rgba(255, 255, 255, 0.92);
+  --surface-border: rgba(15, 23, 42, 0.12);
+  --surface-border-strong: rgba(15, 23, 42, 0.2);
 
-  --muted: rgba(11, 31, 38, 0.7);
-  /* Keep `--muted-2` WCAG AA compliant for normal-sized text on light surfaces. */
-  --muted-2: rgba(11, 31, 38, 0.62);
+  --muted: rgba(15, 23, 42, 0.76);
+  --muted-2: rgba(15, 23, 42, 0.66);
 
-  --accent: #0f766e; /* teal */
-  --accent-2: #ee6c4d; /* ember */
-  --focus: #125b94;
+  --accent: #0b4d91;
+  --accent-soft: #dbeafe;
+  --accent-2: #0a6a53;
+  --accent-3: #a65a06;
+  --focus: #0b4d91;
 
-  --shadow: 0 20px 60px rgba(6, 20, 26, 0.12);
+  --success: #0f766e;
+  --warning: #d97706;
+  --danger: #b91c1c;
+
+  --radius-lg: 18px;
+  --radius-md: 14px;
+
+  --shadow-sm: 0 6px 20px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 18px 44px rgba(15, 23, 42, 0.12);
+  --shadow-lg: 0 30px 65px rgba(15, 23, 42, 0.16);
 }
 
 @theme inline {
@@ -24,39 +36,67 @@
   --color-foreground: var(--foreground);
 
   --color-surface: var(--surface);
+  --color-surface-strong: var(--surface-strong);
   --color-surface-border: var(--surface-border);
+  --color-surface-border-strong: var(--surface-border-strong);
   --color-muted: var(--muted);
   --color-muted-2: var(--muted-2);
   --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
   --color-accent-2: var(--accent-2);
+  --color-accent-3: var(--accent-3);
   --color-focus: var(--focus);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
 
   --font-sans: var(--font-body);
   --font-display: var(--font-display);
 }
 
+* {
+  border-color: var(--surface-border);
+}
+
+::selection {
+  background: color-mix(in oklab, var(--accent) 24%, white);
+  color: var(--foreground);
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-body), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-family: var(--font-body), "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   text-rendering: geometricPrecision;
+  min-height: 100vh;
 }
 
-/* Subtle atmospheric background with a paper-like grid. */
+/* Civic-tech atmosphere: cool gradients + soft beams + subtle grid. */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: -1;
-  background-image: radial-gradient(900px 500px at 10% 10%, rgba(15, 118, 110, 0.18), transparent 55%),
-    radial-gradient(900px 500px at 90% 20%, rgba(238, 108, 77, 0.15), transparent 55%),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.35), transparent 40%),
-    linear-gradient(rgba(11, 31, 38, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(11, 31, 38, 0.06) 1px, transparent 1px);
-  background-size: auto, auto, auto, 32px 32px, 32px 32px;
-  background-position: 0 0, 0 0, 0 0, 0 0, 0 0;
+  background-image: radial-gradient(900px 520px at 4% 0%, rgba(11, 77, 145, 0.22), transparent 58%),
+    radial-gradient(880px 560px at 96% 8%, rgba(14, 138, 106, 0.2), transparent 58%),
+    radial-gradient(840px 520px at 50% 100%, rgba(217, 119, 6, 0.14), transparent 62%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.7), rgba(255, 255, 255, 0.18));
   opacity: 1;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  background-image: linear-gradient(rgba(11, 77, 145, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(11, 77, 145, 0.06) 1px, transparent 1px);
+  background-size: 38px 38px;
+  mask-image: radial-gradient(circle at 50% 0%, black 36%, transparent 88%);
+  opacity: 0.4;
 }
 
 a:focus-visible,
@@ -66,4 +106,58 @@ select:focus-visible,
 textarea:focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 3px;
+}
+
+.glass-panel {
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  box-shadow: var(--shadow-md);
+  backdrop-filter: blur(10px);
+}
+
+.soft-section {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--surface-border);
+  background: linear-gradient(
+    160deg,
+    color-mix(in oklab, white 82%, var(--accent-soft)),
+    color-mix(in oklab, white 87%, var(--background-strong))
+  );
+  box-shadow: var(--shadow-sm);
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.992);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes pulse-border {
+  0%,
+  100% {
+    border-color: color-mix(in oklab, var(--accent), white 75%);
+  }
+  50% {
+    border-color: color-mix(in oklab, var(--accent), white 62%);
+  }
+}
+
+.animate-rise-in {
+  animation: rise-in 420ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.animate-pulse-border {
+  animation: pulse-border 1.9s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-rise-in,
+  .animate-pulse-border {
+    animation: none !important;
+  }
 }

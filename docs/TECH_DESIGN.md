@@ -5,6 +5,7 @@
 - `apps/web`: Next.js App Router + TypeScript + Tailwind v4 + next-intl + Radix UI
 - `etl`: Python (requests + pdfplumber) to download DOJ PDFs, parse, and upsert into Postgres
 - `supabase`: SQL migration enabling `pg_trgm` and RLS policies
+- `db/migrations`: **portable Postgres migrations** (for Azure Database for PostgreSQL, no Supabase auth/RLS)
 
 ## Data Sets
 
@@ -22,6 +23,13 @@ See `supabase/migrations/0001_init.sql` for canonical schema:
 - `aid_org`
 - `aid_org_membership`
 
+For **Azure Postgres** (Full Azure), apply the portable migrations instead:
+
+- `db/migrations/0001_init.sql`
+- `db/migrations/0002_aid_org_provenance.sql`
+- `db/migrations/0003_search_ra_entries.sql`
+- `db/migrations/0004_partner_security.sql`
+
 ## APIs
 
 - `GET /api/verify/ra?name=...&state=CA`
@@ -36,6 +44,18 @@ See `supabase/migrations/0001_init.sql` for canonical schema:
   - RLS in Supabase enforces org membership.
 - `GET /api/meta/health`
   - Basic readiness endpoint (Supabase configured + latest roster sync timestamps).
+
+## Data Access Modes (Supabase vs Azure Postgres)
+
+The Web/API service supports two data sources:
+
+1. **Supabase** (default MVP)
+   - Configure: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - API routes query Supabase directly (and rely on Supabase RLS for partner writes).
+2. **Direct Postgres** (Full Azure)
+   - Configure: `DATABASE_URL` (server-side only; should include `?sslmode=require` for Azure PG)
+   - API routes will prefer Postgres over Supabase when `DATABASE_URL` is set.
+   - Partner write hardening is implemented via DB functions in `db/migrations/0004_partner_security.sql`.
 
 ## ETL
 

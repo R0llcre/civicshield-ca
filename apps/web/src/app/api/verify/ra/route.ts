@@ -4,6 +4,8 @@ import { z } from "zod";
 
 import { SAMPLE_RA, type RaEntry } from "@/data/ra_sample";
 import { checkRateLimit, getClientIp } from "@/lib/rateLimit";
+import { queryRows } from "@/server/db";
+import { getServerEnv } from "@/server/env";
 
 const requestSchema = z.object({
   name: z.string().min(1),
@@ -36,6 +38,104 @@ async function handleVerify(name: string, state: string) {
   const trimmedState = state.trim().toUpperCase();
 
   if (!trimmedName) return NextResponse.json({ error: "Missing name" }, { status: 400 });
+
+  const { DATABASE_URL } = getServerEnv();
+  if (DATABASE_URL) {
+    type RunRow = { ended_at: string | null; source_sha256: string | null };
+    let freshness: { ended_at: string | null; source_sha256: string | null } | null = null;
+    let orgSha: string | null = null;
+    let repSha: string | null = null;
+
+    try {
+      const [orgRun, repRun] = await Promise.all([
+        queryRows<RunRow>(
+          "select ended_at, source_sha256 from public.ra_import_run where status = 'success' and dataset = 'orgs_by_state_city' order by ended_at desc nulls last limit 1",
+        ).then((r) => r[0] ?? null),
+        queryRows<RunRow>(
+          "select ended_at, source_sha256 from public.ra_import_run where status = 'success' and dataset = 'reps_roster' order by ended_at desc nulls last limit 1",
+        ).then((r) => r[0] ?? null),
+      ]);
+
+      orgSha = orgRun?.source_sha256 ?? null;
+      repSha = repRun?.source_sha256 ?? null;
+
+      const orgEnded = orgRun?.ended_at ?? null;
+      const repEnded = repRun?.ended_at ?? null;
+      const pick =
+        orgEnded && repEnded
+          ? new Date(orgEnded) > new Date(repEnded)
+            ? ["org", orgEnded, orgSha]
+            : ["rep", repEnded, repSha]
+          : orgEnded
+            ? ["org", orgEnded, orgSha]
+            : repEnded
+              ? ["rep", repEnded, repSha]
+              : null;
+      if (pick) freshness = { ended_at: pick[1] as string, source_sha256: (pick[2] as string | null) ?? null };
+    } catch {
+      // ignore
+    }
+
+    const q = trimmedName;
+
+    // Prefer similarity-ranked search function. Fall back to ILIKE if missing.
+    try {
+      const rows = await queryRows<RaEntry>(
+        "select entry_type,name,organization_name,city,state,address,phone,website,accreditation_level,status,expires_at,pending_renewal,source_url,source_sha256,score,matched_on from public.search_ra_entries($1,$2,$3)",
+        [q, trimmedState, 20],
+      );
+      return NextResponse.json({
+        results: (rows ?? []) as RaEntry[],
+        data_freshness: freshness,
+      });
+    } catch {
+      // fall back
+    }
+
+    const like = `%${q}%`;
+    const orgRows = await queryRows<RaEntry>(
+      [
+        "select entry_type,name,organization_name,city,state,address,phone,website,accreditation_level,status,expires_at,pending_renewal,source_url,source_sha256",
+        "from public.ra_entry",
+        "where dataset = 'orgs_by_state_city'",
+        "and entry_type = 'organization'",
+        "and state = $1",
+        orgSha ? "and source_sha256 = $2" : "",
+        orgSha ? "and name ilike $3" : "and name ilike $2",
+        "limit 15",
+      ]
+        .filter(Boolean)
+        .join(" "),
+      orgSha ? [trimmedState, orgSha, like] : [trimmedState, like],
+    );
+
+    const repRows = await queryRows<RaEntry>(
+      [
+        "select entry_type,name,organization_name,city,state,address,phone,website,accreditation_level,status,expires_at,pending_renewal,source_url,source_sha256",
+        "from public.ra_entry",
+        "where dataset = 'reps_roster'",
+        "and entry_type = 'representative'",
+        repSha ? "and source_sha256 = $1" : "",
+        repSha ? "and (name ilike $2 or organization_name ilike $2)" : "and (name ilike $1 or organization_name ilike $1)",
+        "limit 15",
+      ]
+        .filter(Boolean)
+        .join(" "),
+      repSha ? [repSha, like] : [like],
+    );
+
+    const resultsRaw: RaEntry[] = [...(repRows ?? []), ...(orgRows ?? [])];
+    const results = resultsRaw
+      .slice()
+      .map((r) => annotateScore(q, r))
+      .sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
+      .slice(0, 20);
+
+    return NextResponse.json({
+      results,
+      data_freshness: freshness,
+    });
+  }
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
