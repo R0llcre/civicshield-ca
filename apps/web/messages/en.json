@@ -134,6 +134,7 @@
     "any": "Any",
     "searchButton": "Find organizations",
     "resultsTitle": "Organizations",
+    "loading": "Loading…",
     "noResults": "No organizations match these filters.",
     "emptyState": "Set filters and search to see results.",
     "status": {

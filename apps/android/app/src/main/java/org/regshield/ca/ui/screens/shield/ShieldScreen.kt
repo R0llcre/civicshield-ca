@@ -140,7 +140,8 @@ fun ShieldContent(
       Modifier
         .fillMaxSize()
         .padding(top = chromeTopPadding)
-        .imePadding(),
+        .imePadding()
+        .testTag("shield_scroll"),
     contentPadding =
       PaddingValues(
         start = 16.dp,
@@ -329,7 +330,7 @@ private fun ActionPlanCard(
 private fun EvidenceVaultCard(
   onOpenVault: () -> Unit,
 ) {
-  CivicCard {
+  CivicCard(modifier = Modifier.testTag("shield_vault_card")) {
     Text(text = stringResource(R.string.shield_vault_title), style = MaterialTheme.typography.titleMedium)
     Text(
       text = stringResource(R.string.shield_vault_body),

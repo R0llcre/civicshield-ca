@@ -134,6 +134,7 @@
     "any": "不限",
     "searchButton": "查找机构",
     "resultsTitle": "机构列表",
+    "loading": "加载中…",
     "noResults": "没有符合条件的机构。",
     "emptyState": "设置筛选条件并点击查询以查看结果。",
     "status": {

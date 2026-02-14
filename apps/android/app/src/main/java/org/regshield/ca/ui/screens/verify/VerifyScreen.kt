@@ -199,7 +199,8 @@ fun VerifyContent(
       Modifier
         .fillMaxSize()
         .padding(top = chromeTopPadding)
-        .imePadding(),
+        .imePadding()
+        .testTag("verify_scroll"),
     contentPadding =
       PaddingValues(
         start = 16.dp,

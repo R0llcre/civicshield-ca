@@ -2,8 +2,10 @@ package org.regshield.ca.ui
 
 import androidx.activity.ComponentActivity
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -63,7 +65,8 @@ class AppUiFlowsTest {
     composeRule.onNodeWithTag("verify_name_input").assertExists()
     composeRule.onNodeWithTag("verify_search_button").performClick()
     composeRule.onNodeWithTag("verify_result_item_0").assertExists()
-    composeRule.onNodeWithTag("verify_match_chip_0").assertExists()
+    composeRule.onNodeWithTag("verify_scroll").performScrollToNode(hasTestTag("verify_result_item_0"))
+    composeRule.onNodeWithTag("verify_match_chip_0", useUnmergedTree = true).assertExists()
     assertTrue(searched)
   }
 
@@ -92,14 +95,16 @@ class AppUiFlowsTest {
           onService = {},
           onSearch = {},
           onOpenOrgLink = {},
+          onOpenUrl = {},
         )
       }
     }
 
     composeRule.onNodeWithTag("help_county_filter").assertExists()
     composeRule.onNodeWithTag("help_search_button").assertExists()
-    composeRule.onNodeWithTag("help_status_chip").assertExists()
     composeRule.onNodeWithTag("help_result_item_0").assertExists()
+    composeRule.onNodeWithTag("help_scroll").performScrollToNode(hasTestTag("help_result_item_0"))
+    composeRule.onNodeWithTag("help_status_chip", useUnmergedTree = true).assertExists()
   }
 
   @Test
@@ -123,7 +128,8 @@ class AppUiFlowsTest {
     }
 
     composeRule.onNodeWithTag("shield_flag_0").assertExists()
-    composeRule.onNodeWithTag("shield_open_vault").assertExists()
+    composeRule.onNodeWithTag("shield_scroll").performScrollToNode(hasTestTag("shield_vault_card"))
+    composeRule.onNodeWithTag("shield_open_vault", useUnmergedTree = true).assertExists()
     composeRule.onNodeWithTag("shield_copy_summary").assertExists()
     composeRule.onNodeWithTag("shield_share_summary").assertExists()
     composeRule.onNodeWithTag("shield_clear_all").assertExists()

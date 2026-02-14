@@ -134,6 +134,7 @@
     "any": "Cualquiera",
     "searchButton": "Buscar organizaciones",
     "resultsTitle": "Organizaciones",
+    "loading": "Cargando…",
     "noResults": "No hay organizaciones con estos filtros.",
     "emptyState": "Elige filtros y busca para ver resultados.",
     "status": {

@@ -84,11 +84,17 @@ curl -fsS -X POST \
   "https://ca-regshieldca-web-stg.blackhill-0c2251ca.westus2.azurecontainerapps.io/api/ask" \
   -H "content-type: application/json" \
   -d '{"messages":[{"role":"user","content":"How do I verify an accredited representative in California?"}]}'
+
+# Help directory (staging seed/sample sanity)
+curl -fsS \
+  "https://ca-regshieldca-web-stg.blackhill-0c2251ca.westus2.azurecontainerapps.io/api/directory/search" \
+  | jq '{count:(.results|length)}'
 ```
 
 Expected:
 - `/api/meta/health` ok (postgres)
 - `/api/ask` returns JSON with `answer_markdown` and allowlisted `citations`, or a strict refusal template.
+- `/api/directory/search` returns a non-empty list (staging demo seed is currently 12+).
 
 Rollback (staging):
 
