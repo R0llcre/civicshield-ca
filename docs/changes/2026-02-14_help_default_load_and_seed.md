@@ -58,6 +58,7 @@ Azure staging seed (required after updating `db/seed/staging_demo.sql`):
 
 1) Run GitHub Actions workflow:
 - `DB Migrate - Azure Staging` (workflow_dispatch) on this branch/ref
+  - Run: `22009495025` (success)
 
 2) Smoke check count:
 
@@ -66,7 +67,7 @@ STG="https://ca-regshieldca-web-stg.blackhill-0c2251ca.westus2.azurecontainerapp
 curl -fsS "$STG/api/directory/search" | jq '{count:(.results|length)}'
 ```
 
-Expected: `count >= 12`
+Result: `{"count":12}`
 
 ## How To Demo (Step-by-step)
 
