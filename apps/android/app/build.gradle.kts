@@ -22,6 +22,8 @@ val regshieldVersionName: String =
   (project.findProperty("REGSHIELD_VERSION_NAME") as String?)
     ?: "0.1.0"
 
+val markwonVersion = "4.6.2"
+
 val internalKeystorePath = System.getenv("REGSHIELD_INTERNAL_KEYSTORE_PATH")
 val internalKeystorePassword = System.getenv("REGSHIELD_INTERNAL_KEYSTORE_PASSWORD")
 val internalKeyAlias = System.getenv("REGSHIELD_INTERNAL_KEY_ALIAS")
@@ -161,6 +163,12 @@ dependencies {
 
   // Local preferences (Shield)
   implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+  // Markdown rendering (Ask)
+  implementation("io.noties.markwon:core:$markwonVersion")
+  implementation("io.noties.markwon:ext-strikethrough:$markwonVersion")
+  implementation("io.noties.markwon:ext-tasklist:$markwonVersion")
+  implementation("io.noties.markwon:ext-tables:$markwonVersion")
 
   // Tests
   testImplementation("junit:junit:4.13.2")

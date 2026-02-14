@@ -111,6 +111,8 @@ Manual demo script (must pass):
 1) Verify: search `Diaz` (or any query) -> open official source link.
 2) Shield: toggle red flags, open Vault.
 3) Ask: ask a CA verification question -> show citations + suggested actions.
+   - Markdown rendering must look correct (no raw `**` or `[text](url)` markers).
+   - Inline links (if present) must be clickable only for allowlisted domains.
 4) Help: filter by county -> see results.
 
 ## 5) Change Log Entry (Required)
