@@ -40,6 +40,34 @@ Then in Xcode:
 2) Pick an iOS Simulator device  
 3) Run
 
+## Run On iPhone (Device)
+
+This repo can run on a real iPhone, but iOS requires code signing.
+
+1) Generate and open the project:
+
+```bash
+cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+xcodegen generate
+open CivicShield.xcodeproj
+```
+
+2) In Xcode, select target `CivicShield` -> `Signing & Capabilities`:
+- Enable `Automatically manage signing`
+- Select your `Team` (Personal Team is fine)
+- Signing certificate: `Apple Development`
+
+3) If Xcode says the bundle id is not available, change it in:
+- `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/project.yml` (`PRODUCT_BUNDLE_IDENTIFIER`)
+
+Then re-run `xcodegen generate`.
+
+4) Connect your iPhone via USB:
+- Unlock phone and tap `Trust` when prompted
+- In Xcode, pick your iPhone as the run destination and press Run
+
+If you see `The executable is not codesigned`, it means the app was built without signing or signing is misconfigured in the selected scheme/config.
+
 ## Demo Script (What To Click)
 
 1) **Verify**
@@ -62,4 +90,3 @@ Then in Xcode:
    - Delete vault -> Import zip -> Unlock -> items restored
 
 Privacy: the vault is **local-only** and encrypted; nothing uploads by default.
-
