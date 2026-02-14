@@ -146,7 +146,8 @@ export async function askOpenAI(params: {
     },
     body: JSON.stringify(payload),
     // Keep requests bounded; client already retries at the UX layer.
-    signal: AbortSignal.timeout(20_000),
+    // RAG calls (file_search + generation) can be slow; keep below mobile HTTP timeouts.
+    signal: AbortSignal.timeout(45_000),
   });
 
   const data = (await res.json().catch(() => null)) as unknown;

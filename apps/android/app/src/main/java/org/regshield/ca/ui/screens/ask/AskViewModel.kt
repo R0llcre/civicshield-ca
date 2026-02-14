@@ -9,6 +9,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.net.SocketTimeoutException
 import org.regshield.ca.api.AskMessage
 import org.regshield.ca.api.AskRequest
 import org.regshield.ca.api.AskResponse
@@ -102,7 +103,12 @@ class AskViewModel @Inject constructor(
           )
         store.setMessages((nextLocal + assistantMsg).takeLast(50))
       } catch (e: Exception) {
-        _state.update { it.copy(error = "AI request failed. Please try again.") }
+        val msg =
+          when (e) {
+            is SocketTimeoutException -> "Request timed out. Please try again."
+            else -> "AI request failed. Please try again."
+          }
+        _state.update { it.copy(error = msg) }
       } finally {
         _state.update { it.copy(sending = false) }
       }
