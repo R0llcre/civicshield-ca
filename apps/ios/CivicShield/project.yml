@@ -1,0 +1,98 @@
+name: CivicShield
+
+options:
+  deploymentTarget:
+    iOS: "16.0"
+
+configs:
+  Dev: debug
+  Staging: debug
+  Prod: release
+
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+    CODE_SIGNING_ALLOWED: "NO"
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+
+packages:
+  ZipFoundation:
+    url: https://github.com/weichsel/ZipFoundation.git
+    from: 0.9.0
+  Down:
+    url: https://github.com/iwasrobbed/Down.git
+    from: 0.11.0
+
+targets:
+  CivicShield:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+    resources:
+      - path: Resources
+    dependencies:
+      - package: ZipFoundation
+        product: ZIPFoundation
+      - package: Down
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.regshield.ca
+        MARKETING_VERSION: 0.1.0
+        CURRENT_PROJECT_VERSION: 1
+        SWIFT_OBJC_BRIDGING_HEADER: Sources/Support/CivicShield-Bridging-Header.h
+      configs:
+        Dev:
+          API_BASE_URL: http://localhost:3000
+          INFOPLIST_FILE: Resources/Info-Dev.plist
+        Staging:
+          API_BASE_URL: https://ca-regshieldca-web-stg.blackhill-0c2251ca.westus2.azurecontainerapps.io
+          INFOPLIST_FILE: Resources/Info-Staging.plist
+        Prod:
+          API_BASE_URL: https://example.invalid
+          INFOPLIST_FILE: Resources/Info-Prod.plist
+
+  CivicShieldTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests
+    resources:
+      - path: Tests/Resources
+    dependencies:
+      - target: CivicShield
+
+schemes:
+  CivicShield-Dev:
+    build:
+      targets:
+        CivicShield: all
+    run:
+      config: Dev
+    test:
+      config: Dev
+      targets:
+        - CivicShieldTests
+
+  CivicShield-Staging:
+    build:
+      targets:
+        CivicShield: all
+    run:
+      config: Staging
+    test:
+      config: Staging
+      targets:
+        - CivicShieldTests
+
+  CivicShield-Prod:
+    build:
+      targets:
+        CivicShield: all
+    run:
+      config: Prod
+    test:
+      config: Prod
+      targets:
+        - CivicShieldTests

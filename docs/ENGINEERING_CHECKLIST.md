@@ -121,7 +121,34 @@ Manual demo script (must pass):
    - Inline links (if present) must be clickable only for allowlisted domains.
 4) Help: filter by county -> see results.
 
-## 5) Change Log Entry (Required)
+## 5) iOS (Staging) - When iOS Changed
+
+Build + unit tests (required on iOS changes):
+
+```bash
+cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+xcodegen generate
+xcodebuild test \
+  -project CivicShield.xcodeproj \
+  -scheme CivicShield-Staging \
+  -destination "platform=iOS Simulator,name=iPhone 15 Pro Max,OS=17.5"
+```
+
+One-command simulator demo:
+
+```bash
+cd "/Users/shenkairan/Documents/RegShield CA"
+npm run ios:staging:up
+```
+
+iOS manual demo script (must pass):
+1) Verify: search `Diaz` -> open official source.
+2) Shield: toggle flags/steps, copy/share summary, open Evidence Vault.
+3) Ask: ask a verification question -> markdown renders; citations and allowlist links open.
+4) Help: featured list auto-loads; filters work.
+5) Evidence Vault: create -> add files -> export zip -> delete -> import zip -> unlock -> items restored.
+
+## 6) Change Log Entry (Required)
 
 Create a new file:
 - `docs/changes/YYYY-MM-DD_<topic>.md`
@@ -136,7 +163,7 @@ It must include:
 - How to demo (Android + web)
 - Rollback steps
 
-## 6) DB Migrations (Azure Staging)
+## 7) DB Migrations (Azure Staging)
 
 If you changed anything under `db/migrations/`, run the workflow:
 - GitHub Actions: `DB Migrate - Azure Staging` (workflow_dispatch)

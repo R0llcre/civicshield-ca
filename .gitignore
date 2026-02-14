@@ -38,3 +38,11 @@ local.properties
 captures/
 *.jks
 *.keystore
+
+# Xcode / iOS
+**/*.xcodeproj/
+**/*.xcworkspace/
+**/DerivedData/
+**/xcuserdata/
+**/*.xcuserstate
+**/.swiftpm/

@@ -30,6 +30,7 @@
     "android:staging:clean-assemble": "bash scripts/android_staging_run.sh clean-assemble",
     "android:staging:up": "bash scripts/android_staging_up.sh",
     "android:staging:down": "bash scripts/android_staging_down.sh",
-    "android:staging:status": "bash scripts/android_staging_status.sh"
+    "android:staging:status": "bash scripts/android_staging_status.sh",
+    "ios:staging:up": "bash scripts/ios_staging_up.sh"
   }
 }

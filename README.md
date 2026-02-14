@@ -102,6 +102,27 @@ Fullscreen Android UI acceptance checklist:
 - final card in each screen scrolls above bottom navigation
 - bottom navigation icons/labels remain readable at font scale 1.3
 
+## Quickstart (iOS)
+
+Prereqs:
+
+- Xcode
+- XcodeGen (`brew install xcodegen`)
+
+Staging on iOS Simulator (one command):
+
+```bash
+npm run ios:staging:up
+```
+
+Manual (Xcode):
+
+```bash
+cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+xcodegen generate
+open CivicShield.xcodeproj
+```
+
 ## Environment Variables
 
 Create a `.env.local` (or `.env`) at repo root:
