@@ -58,6 +58,11 @@
   <string name="help_search_button">Find organizations</string>
   <string name="help_no_results">No organizations match these filters.</string>
   <string name="help_empty">Use filters and search to see results.</string>
+  <string name="help_official_title">Official directories</string>
+  <string name="help_official_body">If you cannot find a match here, try these official or partner directories.</string>
+  <string name="help_official_lawhelpca">LawHelpCA</string>
+  <string name="help_official_imm_adv">Immigration Advocates Directory</string>
+  <string name="help_official_eoir_ra">DOJ/EOIR R&amp;A Roster</string>
   <string name="help_services">Services: %1$s</string>
   <string name="help_languages">Languages: %1$s</string>
   <string name="help_counties">Counties: %1$s</string>

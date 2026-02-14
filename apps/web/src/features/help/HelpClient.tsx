@@ -115,7 +115,7 @@ export function HelpClient() {
   const [error, setError] = React.useState<string | null>(null);
   const [results, setResults] = React.useState<AidOrg[] | null>(null);
 
-  async function runSearch() {
+  const runSearch = React.useCallback(async () => {
     setLoading(true);
     setError(null);
     setResults(null);
@@ -134,7 +134,14 @@ export function HelpClient() {
     } finally {
       setLoading(false);
     }
-  }
+  }, [county, lang, service, t]);
+
+  const didAutoLoad = React.useRef(false);
+  React.useEffect(() => {
+    if (didAutoLoad.current) return;
+    didAutoLoad.current = true;
+    void runSearch();
+  }, [runSearch]);
 
   return (
     <div className="grid gap-4 xl:grid-cols-[0.92fr_1.08fr]">

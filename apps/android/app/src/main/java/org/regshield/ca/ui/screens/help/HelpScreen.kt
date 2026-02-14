@@ -79,6 +79,9 @@ fun HelpScreen(
       val url = org.website ?: org.sourceUrl ?: return@HelpContent
       ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
     },
+    onOpenUrl = { url ->
+      ctx.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    },
   )
 }
 
@@ -92,6 +95,7 @@ fun HelpContent(
   onService: (String) -> Unit,
   onSearch: () -> Unit,
   onOpenOrgLink: (AidOrg) -> Unit,
+  onOpenUrl: (String) -> Unit,
 ) {
   val chromeTopPadding = contentPadding.calculateTopPadding()
   val chromeBottomPadding = contentPadding.calculateBottomPadding()
@@ -133,14 +137,7 @@ fun HelpContent(
           )
         },
         right = {
-          CivicCard {
-            Text(text = stringResource(R.string.help_empty), style = MaterialTheme.typography.bodyMedium)
-            Text(
-              text = stringResource(R.string.verify_disclaimer),
-              style = MaterialTheme.typography.bodySmall,
-              color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-          }
+          OfficialDirectoriesCard(onOpenUrl = onOpenUrl)
         },
       )
     }
@@ -166,7 +163,7 @@ fun HelpContent(
       }
     }
 
-    if (!state.loading && state.results.isEmpty()) {
+    if (state.hasSearched && !state.loading && state.error.isNullOrBlank() && state.results.isEmpty()) {
       item {
         CivicCard {
           Text(text = stringResource(R.string.help_no_results), style = MaterialTheme.typography.bodyMedium)
@@ -181,6 +178,47 @@ fun HelpContent(
         onOpen = { onOpenOrgLink(org) },
       )
     }
+  }
+}
+
+@Composable
+private fun OfficialDirectoriesCard(
+  onOpenUrl: (String) -> Unit,
+) {
+  CivicCard {
+    Text(
+      text = stringResource(R.string.help_official_title),
+      style = MaterialTheme.typography.titleMedium,
+      fontWeight = FontWeight.Bold,
+    )
+    Text(
+      text = stringResource(R.string.help_official_body),
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
+
+    CivicLinkButton(
+      text = stringResource(R.string.help_official_lawhelpca),
+      icon = Icons.AutoMirrored.Filled.OpenInNew,
+      onClick = { onOpenUrl("https://lawhelpca.org/") },
+    )
+    CivicLinkButton(
+      text = stringResource(R.string.help_official_imm_adv),
+      icon = Icons.AutoMirrored.Filled.OpenInNew,
+      onClick = { onOpenUrl("https://www.immigrationadvocates.org/") },
+    )
+    CivicLinkButton(
+      text = stringResource(R.string.help_official_eoir_ra),
+      icon = Icons.AutoMirrored.Filled.OpenInNew,
+      onClick = { onOpenUrl("https://www.justice.gov/eoir/recognition-and-accreditation-roster-reports") },
+    )
+
+    HorizontalDivider()
+    Text(
+      text = stringResource(R.string.verify_disclaimer),
+      style = MaterialTheme.typography.bodySmall,
+      color = MaterialTheme.colorScheme.onSurfaceVariant,
+    )
   }
 }
 

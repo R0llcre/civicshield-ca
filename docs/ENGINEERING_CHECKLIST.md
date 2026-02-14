@@ -132,7 +132,7 @@ It must include:
 
 ## 6) DB Migrations (Azure Staging)
 
-If you changed anything under `db/migrations/`, run the workflow:
+If you changed anything under `db/migrations/` or `db/seed/staging_demo.sql`, run the workflow:
 - GitHub Actions: `DB Migrate - Azure Staging` (workflow_dispatch)
 
 Then re-verify `/api/verify/ra` results include sane `score` ranges (0..100 when present).
