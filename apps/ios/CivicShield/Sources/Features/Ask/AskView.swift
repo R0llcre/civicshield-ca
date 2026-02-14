@@ -5,16 +5,41 @@ struct AskView: View {
   @StateObject private var vm = AskViewModel()
   @Environment(\.openURL) private var openURL
   @State private var showConsent = false
+  @State private var showThreads = false
+  @State private var showExport = false
+  @State private var exportText: String = ""
 
   var body: some View {
     ScrollViewReader { proxy in
       ScrollView {
         VStack(alignment: .leading, spacing: 14) {
           HStack {
-            Spacer()
-            Button("Clear chat") { vm.clear() }
+            Button("Chats") { showThreads = true }
               .font(.system(.subheadline, design: .rounded).weight(.semibold))
               .foregroundStyle(AppTab.ask.accent)
+
+            Button("New") { vm.newChat() }
+              .font(.system(.subheadline, design: .rounded).weight(.semibold))
+              .foregroundStyle(AppTab.ask.accent)
+
+            Spacer()
+
+            Menu {
+              Button("Export") {
+                exportText = vm.exportText()
+                showExport = true
+              }
+              Button("Clear this chat") { vm.clear() }
+              if let tid = vm.activeThreadId {
+                Button("Delete this chat", role: .destructive) {
+                  vm.deleteThread(tid)
+                }
+              }
+            } label: {
+              Image(systemName: "ellipsis.circle")
+                .font(.system(size: 18, weight: .semibold))
+                .foregroundStyle(AppTab.ask.accent)
+            }
           }
 
           GlassCard {
@@ -64,7 +89,7 @@ struct AskView: View {
                   return
                 }
                 Task {
-                  await vm.send(api: env.api, locale: "en")
+                  await vm.send(api: env.api, locale: deviceLocale())
                   if let last = vm.messages.last {
                     withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
                       proxy.scrollTo(last.id, anchor: .bottom)
@@ -82,6 +107,9 @@ struct AskView: View {
 
               Text("Information only. Not legal advice.")
                 .font(.system(.caption, design: .rounded))
+                .foregroundStyle(.secondary)
+              Text("Long chats may send only recent context.")
+                .font(.system(.caption2, design: .rounded))
                 .foregroundStyle(.secondary)
             }
           }
@@ -101,6 +129,167 @@ struct AskView: View {
         )
         .presentationDetents([.medium])
       }
+      .sheet(isPresented: $showThreads) {
+        ThreadsSheet(
+          threads: vm.threads,
+          activeThreadId: vm.activeThreadId,
+          onNew: {
+            vm.newChat()
+            showThreads = false
+          },
+          onSelect: { id in
+            vm.setActiveThread(id)
+            showThreads = false
+          },
+          onRename: { id, title in
+            vm.renameThread(id, title: title)
+          },
+          onDelete: { id in
+            vm.deleteThread(id)
+          }
+        )
+        .presentationDetents([.medium, .large])
+      }
+      .sheet(isPresented: $showExport) {
+        ActivityView(items: [exportText])
+      }
+    }
+  }
+
+  private func deviceLocale() -> String {
+    // Normalize to the 3 supported locales on the server.
+    let raw = (Locale.preferredLanguages.first ?? "en").lowercased()
+    if raw.hasPrefix("es") { return "es" }
+    if raw.hasPrefix("zh") { return "zh-Hans" }
+    return "en"
+  }
+
+  private struct ThreadsSheet: View {
+    let threads: [AskThreadMeta]
+    let activeThreadId: String?
+    let onNew: () -> Void
+    let onSelect: (String) -> Void
+    let onRename: (String, String) -> Void
+    let onDelete: (String) -> Void
+
+    @State private var q: String = ""
+    @State private var renamingId: String? = nil
+    @State private var renameDraft: String = ""
+    @State private var deleteId: String? = nil
+    @State private var confirmDelete = false
+
+    private var filteredThreads: [AskThreadMeta] {
+      let query = q.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+      if query.isEmpty { return threads }
+      return threads.filter {
+        $0.title.lowercased().contains(query) || $0.lastPreview.lowercased().contains(query)
+      }
+    }
+
+    var body: some View {
+      NavigationView {
+        VStack(spacing: 12) {
+          HStack(spacing: 12) {
+            TextField("Search chats", text: $q)
+              .textInputAutocapitalization(.never)
+              .autocorrectionDisabled()
+              .padding(12)
+              .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
+            Button("New", action: onNew)
+              .buttonStyle(PrimaryButtonStyle(tint: AppTab.ask.accent))
+          }
+          .padding(.horizontal, 16)
+          .padding(.top, 16)
+
+          List {
+            if filteredThreads.isEmpty {
+              Text("No chats match your search.")
+                .foregroundStyle(.secondary)
+            }
+
+            ForEach(filteredThreads) { t in
+              threadRow(t)
+            }
+          }
+          .listStyle(.plain)
+        }
+        .navigationTitle("Chats")
+        .alert("Delete chat?", isPresented: $confirmDelete) {
+          Button("Cancel", role: .cancel) { confirmDelete = false }
+          Button("Delete", role: .destructive) {
+            if let id = deleteId { onDelete(id) }
+            confirmDelete = false
+          }
+        } message: {
+          Text("This deletes the chat from this device. This can't be undone.")
+        }
+      }
+    }
+
+    @ViewBuilder
+    private func threadRow(_ t: AskThreadMeta) -> some View {
+      VStack(alignment: .leading, spacing: 10) {
+        if renamingId == t.id {
+          VStack(alignment: .leading, spacing: 10) {
+            TextField("Chat title", text: $renameDraft)
+              .padding(10)
+              .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+            HStack(spacing: 12) {
+              Button("Save") {
+                let trimmed = renameDraft.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !trimmed.isEmpty { onRename(t.id, trimmed) }
+                renamingId = nil
+                renameDraft = ""
+              }
+              .buttonStyle(PrimaryButtonStyle(tint: AppTab.ask.accent))
+              Button("Cancel") {
+                renamingId = nil
+                renameDraft = ""
+              }
+              .buttonStyle(TonalButtonStyle(tint: .gray))
+            }
+          }
+        } else {
+          VStack(alignment: .leading, spacing: 4) {
+            Text(t.title)
+              .font(.system(.headline, design: .rounded).weight(t.id == activeThreadId ? .bold : .semibold))
+            if !t.lastPreview.isEmpty {
+              Text(t.lastPreview)
+                .font(.system(.subheadline, design: .rounded))
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+            }
+            Text("\(t.messageCount) msgs · \(t.updatedAt.formatted(date: .abbreviated, time: .shortened))")
+              .font(.system(.caption, design: .rounded))
+              .foregroundStyle(.secondary)
+          }
+
+          HStack(spacing: 10) {
+            if t.id == activeThreadId {
+              Button("Active") { onSelect(t.id) }
+                .buttonStyle(TonalButtonStyle(tint: .gray))
+            } else {
+              Button("Open") { onSelect(t.id) }
+                .buttonStyle(PrimaryButtonStyle(tint: AppTab.ask.accent))
+            }
+            Button {
+              renamingId = t.id
+              renameDraft = t.title
+            } label: {
+              Image(systemName: "pencil")
+            }
+            .buttonStyle(TonalButtonStyle(tint: .gray))
+            Button(role: .destructive) {
+              deleteId = t.id
+              confirmDelete = true
+            } label: {
+              Image(systemName: "trash")
+            }
+            .buttonStyle(TonalButtonStyle(tint: .gray))
+          }
+        }
+      }
+      .listRowBackground(Color.clear)
     }
   }
 

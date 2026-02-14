@@ -116,6 +116,7 @@
   <string name="ask_suggested_actions">Suggested next steps</string>
   <string name="ask_disclaimer_inline">Information only. Not legal advice.</string>
   <string name="ask_disclaimer_inline_needs_consent">Information only. Not legal advice. Tap Send to confirm before first use.</string>
+  <string name="ask_context_hint">Long chats may send only recent context.</string>
 
   <string name="ask_consent_title">Before you ask</string>
   <string name="ask_consent_body">I understand this is general information, not legal advice, and I should not share sensitive personal information.</string>

@@ -182,12 +182,17 @@ class AppUiFlowsTest {
         AskContent(
           isCompact = true,
           consentAccepted = false,
+          threads = emptyList(),
           messages = emptyList(),
           sending = false,
           error = null,
           draft = "What is an accredited representative?",
           onDraftChange = {},
-          onClearChat = {},
+          onOpenChats = {},
+          onNewChat = {},
+          onExportCurrent = {},
+          onClearCurrent = {},
+          onDeleteCurrent = {},
           onSend = {},
           onAction = {},
           onOpenCitation = {},
@@ -197,6 +202,8 @@ class AppUiFlowsTest {
 
     composeRule.onNodeWithTag("ask_input").assertExists()
     composeRule.onNodeWithTag("ask_send").assertExists()
-    composeRule.onNodeWithTag("ask_clear_chat").assertExists()
+    composeRule.onNodeWithTag("ask_open_chats").assertExists()
+    composeRule.onNodeWithTag("ask_new_chat").assertExists()
+    composeRule.onNodeWithTag("ask_more").assertExists()
   }
 }

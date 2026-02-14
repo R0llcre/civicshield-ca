@@ -7,6 +7,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import java.net.SocketTimeoutException
@@ -15,11 +16,14 @@ import org.regshield.ca.api.AskRequest
 import org.regshield.ca.api.AskResponse
 import org.regshield.ca.api.RegShieldApi
 import org.regshield.ca.data.AskLocalStore
+import org.regshield.ca.data.AskThreadMeta
 import org.regshield.ca.data.AskStoredMessage
 import retrofit2.Response
 
 data class AskUiState(
   val consentAccepted: Boolean = false,
+  val threads: List<AskThreadMeta> = emptyList(),
+  val activeThreadId: String? = null,
   val messages: List<AskStoredMessage> = emptyList(),
   val sending: Boolean = false,
   val error: String? = null,
@@ -35,21 +39,70 @@ class AskViewModel @Inject constructor(
 
   init {
     viewModelScope.launch {
+      // One-time migration from the legacy single-chat storage.
+      store.ensureMigratedToThreads()
+      val idx = store.threadsIndex.first()
+      if (idx.threads.isEmpty()) {
+        store.createThread("Chat 1")
+      } else if (idx.activeThreadId == null) {
+        store.setActiveThread(idx.threads.last().id)
+      }
+    }
+    viewModelScope.launch {
       store.consentAccepted.collect { accepted ->
         _state.update { it.copy(consentAccepted = accepted) }
       }
     }
     viewModelScope.launch {
-      store.messages.collect { msgs ->
+      store.threadsIndex.collect { idx ->
+        val active = idx.activeThreadId ?: idx.threads.lastOrNull()?.id
+        _state.update { it.copy(threads = idx.threads, activeThreadId = active) }
+      }
+    }
+    viewModelScope.launch {
+      store.activeThreadMessages.collect { msgs ->
         val sanitized = sanitizeStoredMessages(msgs)
-        // One-time cleanup: older builds may have stored roles like "User"/"Assistant" which the
-        // server rejects (expects lowercase "user"|"assistant"). Only write when needed.
-        if (sanitized != msgs) {
-          store.setMessages(sanitized)
+        // Cleanup: older builds may have stored roles like "User"/"Assistant" which the server rejects.
+        val activeId = _state.value.activeThreadId
+        if (activeId != null && sanitized != msgs) {
+          store.setThreadMessages(activeId, sanitized)
         }
         _state.update { it.copy(messages = sanitized) }
       }
     }
+  }
+
+  fun newChat(title: String? = null) {
+    viewModelScope.launch {
+      store.createThread(title)
+    }
+  }
+
+  fun setActiveThread(threadId: String) {
+    viewModelScope.launch { store.setActiveThread(threadId) }
+  }
+
+  fun renameThread(threadId: String, newTitle: String) {
+    viewModelScope.launch { store.renameThread(threadId, newTitle) }
+  }
+
+  fun deleteThread(threadId: String) {
+    viewModelScope.launch { store.deleteThread(threadId) }
+  }
+
+  fun clearCurrentThread() {
+    val tid = _state.value.activeThreadId ?: return
+    viewModelScope.launch {
+      store.clearActiveThread(tid)
+      _state.update { it.copy(error = null) }
+    }
+  }
+
+  fun exportCurrentThreadText(): String {
+    val threads = _state.value.threads.associateBy { it.id }
+    val tid = _state.value.activeThreadId
+    val title = tid?.let { threads[it]?.title } ?: "Chat"
+    return exportThreadText(title = title, messages = _state.value.messages)
   }
 
   fun acceptConsent() {
@@ -57,10 +110,7 @@ class AskViewModel @Inject constructor(
   }
 
   fun clearChat() {
-    viewModelScope.launch {
-      store.clearChat()
-      _state.update { it.copy(error = null) }
-    }
+    clearCurrentThread()
   }
 
   fun send(question: String, locale: String) {
@@ -71,12 +121,16 @@ class AskViewModel @Inject constructor(
     viewModelScope.launch {
       _state.update { it.copy(sending = true, error = null) }
 
+      val threadId = _state.value.activeThreadId ?: store.createThread("Chat 1")
+      store.setActiveThread(threadId)
+
       val base = _state.value.messages
-      val nextLocal = (base + AskStoredMessage(role = "user", content = q, ts = System.currentTimeMillis()))
-        .takeLast(50)
+      val nextLocal =
+        (base + AskStoredMessage(role = "user", content = q, ts = System.currentTimeMillis()))
+          .takeLast(50)
 
       // Persist immediately so the user doesn't lose their question on crashes.
-      store.setMessages(nextLocal)
+      store.setThreadMessages(threadId, nextLocal)
 
       try {
         val apiMsgs = buildApiMessages(nextLocal)
@@ -101,7 +155,7 @@ class AskViewModel @Inject constructor(
             citations = body?.citations ?: emptyList(),
             actions = body?.suggestedActions ?: emptyList(),
           )
-        store.setMessages((nextLocal + assistantMsg).takeLast(50))
+        store.setThreadMessages(threadId, (nextLocal + assistantMsg).takeLast(50))
       } catch (e: Exception) {
         val msg =
           when (e) {
@@ -114,6 +168,35 @@ class AskViewModel @Inject constructor(
       }
     }
   }
+}
+
+private fun exportThreadText(title: String, messages: List<AskStoredMessage>): String {
+  fun fmtTs(ts: Long): String {
+    // Keep it simple; avoid java.time (minSdk 24). UTC ISO-ish timestamp.
+    val sdf = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.US)
+    sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+    return sdf.format(java.util.Date(ts))
+  }
+
+  val sb = StringBuilder()
+  sb.appendLine(title)
+  sb.appendLine("Information only. Not legal advice.")
+  sb.appendLine()
+  for (m in messages) {
+    val role = m.role.trim().lowercase()
+    if (role != "user" && role != "assistant") continue
+    sb.appendLine("[${fmtTs(m.ts)}] ${role}:")
+    sb.appendLine(m.content.trim())
+    sb.appendLine()
+    if (role == "assistant" && m.citations.isNotEmpty()) {
+      sb.appendLine("Sources:")
+      for (c in m.citations.take(6)) {
+        sb.appendLine("- ${c.title}: ${c.url}")
+      }
+      sb.appendLine()
+    }
+  }
+  return sb.toString().trim()
 }
 
 private fun buildApiMessages(local: List<AskStoredMessage>): List<AskMessage> {

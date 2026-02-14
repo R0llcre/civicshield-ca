@@ -116,7 +116,13 @@ npm run android:staging:up
 Manual demo script (must pass):
 1) Verify: search `Diaz` (or any query) -> open official source link.
 2) Shield: toggle red flags, open Vault.
-3) Ask: ask a CA verification question -> show citations + suggested actions.
+3) Ask:
+   - Create 2 chats (Chats -> New chat).
+   - Ask 1 question in chat A, then switch to chat B and ask another.
+   - Switch back to chat A: history must still be there.
+   - Export chat A and confirm the exported text includes citations.
+   - (Optional) Rename chat B and delete it.
+   - Ask a CA verification question -> show citations + suggested actions.
    - Markdown rendering must look correct (no raw `**` or `[text](url)` markers).
    - Inline links (if present) must be clickable only for allowlisted domains.
 4) Help: filter by county -> see results.
@@ -144,7 +150,10 @@ npm run ios:staging:up
 iOS manual demo script (must pass):
 1) Verify: search `Diaz` -> open official source.
 2) Shield: toggle flags/steps, copy/share summary, open Evidence Vault.
-3) Ask: ask a verification question -> markdown renders; citations and allowlist links open.
+3) Ask:
+   - Create 2 chats (Chats -> New), ask in both, switch back and verify history persists.
+   - Export current chat (share sheet) and confirm citations are included.
+   - Ask a verification question -> markdown renders; citations and allowlist links open.
 4) Help: featured list auto-loads; filters work.
 5) Evidence Vault: create -> add files -> export zip -> delete -> import zip -> unlock -> items restored.
 
