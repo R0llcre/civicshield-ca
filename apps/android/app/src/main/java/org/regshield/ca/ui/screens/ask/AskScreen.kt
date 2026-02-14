@@ -43,6 +43,7 @@ import org.regshield.ca.ui.components.CivicLinkButton
 import org.regshield.ca.ui.components.CivicPrimaryButton
 import org.regshield.ca.ui.components.CivicTextField
 import org.regshield.ca.ui.components.HeroPanel
+import org.regshield.ca.ui.components.MarkdownText
 import org.regshield.ca.ui.theme.LocalCivicAccent
 
 @Composable
@@ -216,10 +217,21 @@ fun AskContent(
               modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
               verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-              Text(
-                text = msg.content,
-                style = MaterialTheme.typography.bodyMedium,
-              )
+              if (msg.role.lowercase() == "assistant") {
+                MarkdownText(
+                  markdown = msg.content,
+                  style = MaterialTheme.typography.bodyMedium,
+                  textColor = MaterialTheme.colorScheme.onSurface,
+                  linkColor = accent.accent,
+                  onOpenUrl = onOpenCitation,
+                  modifier = Modifier.fillMaxWidth(),
+                )
+              } else {
+                Text(
+                  text = msg.content,
+                  style = MaterialTheme.typography.bodyMedium,
+                )
+              }
 
               if (msg.role.lowercase() == "assistant") {
                 if (msg.citations.isNotEmpty()) {
