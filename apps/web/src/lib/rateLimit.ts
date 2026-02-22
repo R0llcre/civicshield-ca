@@ -10,10 +10,12 @@ function store(): Map<string, Bucket> {
 }
 
 export function getClientIp(req: Request): string {
-  const xff = req.headers.get("x-forwarded-for");
-  if (xff) return xff.split(",")[0]?.trim() || "unknown";
+  // Prefer x-real-ip (set by trusted reverse proxies like Vercel/nginx)
+  // over x-forwarded-for (easily spoofed by appending to the header).
   const real = req.headers.get("x-real-ip");
   if (real) return real.trim() || "unknown";
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) return xff.split(",")[0]?.trim() || "unknown";
   return "unknown";
 }
 

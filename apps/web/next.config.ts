@@ -3,9 +3,21 @@ import createNextIntlPlugin from "next-intl/plugin";
 
 const withNextIntl = createNextIntlPlugin();
 
-function buildCspReportOnlyValue(isDev: boolean): string {
-  const scriptSrc = ["'self'", "'unsafe-inline'", "https:"];
+function buildCspValue(isDev: boolean): string {
+  const supabaseHost = process.env.NEXT_PUBLIC_SUPABASE_URL
+    ? new URL(process.env.NEXT_PUBLIC_SUPABASE_URL).origin
+    : "";
+  const sentryDsn = process.env.NEXT_PUBLIC_SENTRY_DSN ?? "";
+  const sentryHost = sentryDsn
+    ? (() => { try { return new URL(sentryDsn).origin; } catch { return ""; } })()
+    : "";
+
+  const scriptSrc = ["'self'", "'unsafe-inline'"];
   if (isDev) scriptSrc.push("'unsafe-eval'");
+
+  const connectSrc = ["'self'", "https://api.openai.com"];
+  if (supabaseHost) connectSrc.push(supabaseHost);
+  if (sentryHost) connectSrc.push(sentryHost);
 
   const directives = [
     "default-src 'self'",
@@ -14,11 +26,10 @@ function buildCspReportOnlyValue(isDev: boolean): string {
     "object-src 'none'",
     "frame-ancestors 'none'",
     "img-src 'self' data: https:",
-    "font-src 'self' data: https:",
-    "style-src 'self' 'unsafe-inline' https:",
+    "font-src 'self' data: https://fonts.gstatic.com",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     `script-src ${scriptSrc.join(" ")}`,
-    // Allow calls to Supabase/Sentry/etc without needing per-host config at MVP stage.
-    "connect-src 'self' https:",
+    `connect-src ${connectSrc.join(" ")}`,
     "manifest-src 'self'",
   ];
 
@@ -32,7 +43,7 @@ const securityHeaders = [
   { key: "X-DNS-Prefetch-Control", value: "off" },
   { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
   // HSTS is ignored by browsers on HTTP, but helps when served over HTTPS (Vercel).
-  { key: "Strict-Transport-Security", value: "max-age=15552000; includeSubDomains" },
+  { key: "Strict-Transport-Security", value: "max-age=31536000; includeSubDomains; preload" },
   // Disable powerful features we don't need.
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
 ];
@@ -43,8 +54,7 @@ const nextConfig: NextConfig = {
     const isDev = process.env.NODE_ENV !== "production";
     const headers = [
       ...securityHeaders,
-      // Start with report-only to reduce rollout risk; enforce later once verified in staging.
-      { key: "Content-Security-Policy-Report-Only", value: buildCspReportOnlyValue(isDev) },
+      { key: "Content-Security-Policy-Report-Only", value: buildCspValue(isDev) },
     ];
 
     return [

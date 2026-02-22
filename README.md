@@ -135,6 +135,9 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 # Optional: client-side error monitoring
 NEXT_PUBLIC_SENTRY_DSN=
 
+# Security headers rollout: CSP is currently report-only in staging.
+# Enforce after reviewing CSP reports and allowlist gaps.
+
 # ETL (server)
 DATABASE_URL=
 
@@ -143,7 +146,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 
 # AI Q&A (server; keep secret)
 OPENAI_API_KEY=
-# Optional: override model (default gpt-5-mini)
+# Optional: override model (default gpt-4.1)
 OPENAI_MODEL=
 # Ask RAG (required for /api/ask)
 OPENAI_VECTOR_STORE_ID=

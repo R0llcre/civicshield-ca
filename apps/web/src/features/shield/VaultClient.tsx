@@ -238,6 +238,12 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
             />
           </label>
 
+          {error ? (
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              {error}
+            </div>
+          ) : null}
+
           <div className="flex flex-wrap gap-2">
             {state.hasVault ? (
               <Button onClick={() => unlock(false)} disabled={busy || !passphrase} size="lg">
@@ -381,7 +387,12 @@ export function EvidenceVault({ labels }: { labels: Labels }) {
                           <Download className="h-4 w-4" />
                           {labels.download}
                         </Button>
-                        <Button variant="ghost" onClick={() => deleteItem(m.id)} disabled={busy} size="sm">
+                        <Button
+                          variant="ghost"
+                          onClick={() => { if (confirm(`Delete "${m.originalName}"?`)) deleteItem(m.id); }}
+                          disabled={busy}
+                          size="sm"
+                        >
                           <Trash2 className="h-4 w-4" />
                           {labels.delete}
                         </Button>

@@ -101,7 +101,7 @@ export async function GET(req: Request) {
   if (service) q = q.contains("services", [service]);
 
   const res = await q;
-  if (res.error) return NextResponse.json({ error: res.error.message }, { status: 500 });
+  if (res.error) return NextResponse.json({ error: "Directory search failed" }, { status: 500 });
 
   const out = NextResponse.json({ results: (res.data as unknown as AidOrg[]) ?? [] });
   if (rl) {

@@ -138,7 +138,8 @@ export function HelpClient() {
     return () => {
       cancelled = true;
     };
-  }, [t]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- only run on mount
+  }, []);
 
   async function runSearch() {
     setLoading(true);

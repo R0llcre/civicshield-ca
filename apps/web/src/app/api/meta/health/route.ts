@@ -4,6 +4,16 @@ import { NextResponse } from "next/server";
 import { getServerEnv } from "@/server/env";
 import { queryRows } from "@/server/db";
 
+type HealthConfig = {
+  supabase_configured: boolean;
+  db_configured: boolean;
+  ask_configured: boolean;
+  rag_configured: boolean;
+  web_search_enabled: boolean;
+  web_search_external: boolean;
+  rag_strict: boolean;
+};
+
 export async function GET() {
   const {
     DATABASE_URL,
@@ -13,7 +23,7 @@ export async function GET() {
     OPENAI_WEB_SEARCH_EXTERNAL,
     OPENAI_RAG_STRICT,
   } = getServerEnv();
-  const askConfig = {
+  const askConfig: Omit<HealthConfig, "supabase_configured" | "db_configured"> = {
     ask_configured: Boolean(OPENAI_API_KEY),
     rag_configured: Boolean(OPENAI_VECTOR_STORE_ID),
     web_search_enabled: Boolean(OPENAI_ENABLE_WEB_SEARCH),
@@ -48,7 +58,9 @@ export async function GET() {
         ok: false,
         mode: "postgres",
         db_configured: true,
+        supabase_configured: false,
         ...askConfig,
+        error: "Database query failed",
         db_error: e instanceof Error ? e.message : String(e),
       });
     }
@@ -61,8 +73,8 @@ export async function GET() {
     return NextResponse.json({
       ok: true,
       mode: "sample",
-      supabase_configured: false,
       db_configured: false,
+      supabase_configured: false,
       ...askConfig,
       ra_import: null,
     });
@@ -92,8 +104,8 @@ export async function GET() {
   return NextResponse.json({
     ok: true,
     mode: "supabase",
-    supabase_configured: true,
     db_configured: false,
+    supabase_configured: true,
     ...askConfig,
     ra_import: {
       orgs_by_state_city: orgRun.error ? null : orgRun.data,
