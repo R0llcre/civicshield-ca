@@ -8,12 +8,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.regshield.ca.R
 import org.regshield.ca.api.RaEntry
 import org.regshield.ca.data.VerifyRepository
 
 data class VerifyUiState(
+  val hasSearched: Boolean = false,
+  val queryName: String? = null,
+  val queryState: String? = null,
   val loading: Boolean = false,
-  val error: String? = null,
+  val errorResId: Int? = null,
+  val errorMessage: String? = null,
   val dataFreshnessEndedAt: String? = null,
   val results: List<RaEntry> = emptyList(),
 )
@@ -29,31 +34,51 @@ class VerifyViewModel @Inject constructor(
     val trimmedName = name.trim()
     val trimmedState = state.trim().uppercase().ifBlank { "CA" }
     if (trimmedName.isBlank()) {
-      _state.value = _state.value.copy(error = "Please enter a name.")
+      _state.value =
+        _state.value.copy(
+          errorResId = R.string.verify_error_enter_name,
+          errorMessage = null,
+        )
       return
     }
 
-    _state.value = VerifyUiState(loading = true)
+    // Mark this request, keep old results during loading to avoid flashing.
+    _state.value =
+      _state.value.copy(
+        loading = true,
+        errorResId = null,
+        errorMessage = null,
+        queryName = trimmedName,
+        queryState = trimmedState,
+      )
     viewModelScope.launch {
       val res = repo.verify(trimmedName, trimmedState)
       _state.value = res.fold(
         onSuccess = { body ->
           VerifyUiState(
+            hasSearched = true,
+            queryName = trimmedName,
+            queryState = trimmedState,
             loading = false,
-            error = body.error,
+            errorResId = null,
+            errorMessage = body.error,
             dataFreshnessEndedAt = body.dataFreshness?.endedAt,
             results = body.results,
           )
         },
         onFailure = { err ->
-          VerifyUiState(loading = false, error = err.message ?: "Request failed")
+          _state.value.copy(
+            hasSearched = true,
+            loading = false,
+            errorResId = null,
+            errorMessage = err.message ?: "Request failed",
+          )
         },
       )
     }
   }
 
   fun clearError() {
-    _state.value = _state.value.copy(error = null)
+    _state.value = _state.value.copy(errorResId = null, errorMessage = null)
   }
 }
-

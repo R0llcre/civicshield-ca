@@ -19,6 +19,7 @@ data class HelpFilters(
 
 data class HelpUiState(
   val loading: Boolean = false,
+  val hasSearched: Boolean = false,
   val error: String? = null,
   val filters: HelpFilters = HelpFilters(),
   val results: List<AidOrg> = emptyList(),
@@ -30,6 +31,13 @@ class HelpViewModel @Inject constructor(
 ) : ViewModel() {
   private val _state = MutableStateFlow(HelpUiState())
   val state: StateFlow<HelpUiState> = _state.asStateFlow()
+
+  private var didInitialLoad = false
+
+  init {
+    // Default to a "featured" list so Help is useful on first open.
+    searchFeaturedOnce()
+  }
 
   fun setCounty(v: String) {
     _state.value = _state.value.copy(filters = _state.value.filters.copy(county = v))
@@ -43,22 +51,36 @@ class HelpViewModel @Inject constructor(
     _state.value = _state.value.copy(filters = _state.value.filters.copy(service = v))
   }
 
+  private fun searchFeaturedOnce() {
+    if (didInitialLoad) return
+    didInitialLoad = true
+    runSearch(county = null, lang = null, service = null)
+  }
+
   fun search() {
     val f = _state.value.filters
+    runSearch(
+      county = f.county.ifBlank { null },
+      lang = f.language.ifBlank { null },
+      service = f.service.ifBlank { null },
+    )
+  }
+
+  private fun runSearch(
+    county: String?,
+    lang: String?,
+    service: String?,
+  ) {
     _state.value = _state.value.copy(loading = true, error = null)
     viewModelScope.launch {
-      val res = repo.search(
-        county = f.county.ifBlank { null },
-        lang = f.language.ifBlank { null },
-        service = f.service.ifBlank { null },
-      )
+      val res = repo.search(county = county, lang = lang, service = service)
       _state.value = res.fold(
         onSuccess = { body ->
           val sorted = body.results.sortedWith(compareBy<AidOrg>({ statusRank(it.intakeStatus) }, { it.name }))
-          _state.value.copy(loading = false, results = sorted, error = body.error)
+          _state.value.copy(loading = false, hasSearched = true, results = sorted, error = body.error)
         },
         onFailure = { err ->
-          _state.value.copy(loading = false, error = err.message ?: "Request failed")
+          _state.value.copy(loading = false, hasSearched = true, error = err.message ?: "Request failed")
         },
       )
     }
@@ -71,4 +93,3 @@ class HelpViewModel @Inject constructor(
     else -> 9
   }
 }
-

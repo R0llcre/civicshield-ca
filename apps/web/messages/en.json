@@ -6,6 +6,7 @@
   "Nav": {
     "verify": "Verify",
     "shield": "Shield",
+    "ask": "Ask",
     "help": "Help",
     "partner": "Partner"
   },
@@ -17,15 +18,19 @@
         "title": "Credential verification",
         "body": "Search DOJ EOIR Recognition & Accreditation rosters and follow official links for CA State Bar and CA SOS."
       },
-      "shield": {
-        "title": "Scam shield",
-        "body": "Turn warnings into a checklist. Build a local, encrypted evidence vault you control."
-      },
-      "help": {
-        "title": "Referral accelerator",
-        "body": "Simple triage to find organizations by county, language and intake status."
-      }
+    "shield": {
+      "title": "Scam shield",
+      "body": "Turn warnings into a checklist. Build a local, encrypted evidence vault you control."
+    },
+    "ask": {
+      "title": "Ask (AI Q&A)",
+      "body": "Information-only Q&A about CA immigration basics, legal aid options, and what to verify next."
+    },
+    "help": {
+      "title": "Referral accelerator",
+      "body": "Simple triage to find organizations by county, language and intake status."
     }
+  }
   },
   "Common": {
     "informationOnlyTitle": "Information only, not legal advice",
@@ -129,6 +134,7 @@
     "any": "Any",
     "searchButton": "Find organizations",
     "resultsTitle": "Organizations",
+    "loading": "Loading…",
     "noResults": "No organizations match these filters.",
     "emptyState": "Set filters and search to see results.",
     "status": {
@@ -226,6 +232,45 @@
     "logsBody": "We avoid collecting sensitive information in logs and monitoring. Do not enter sensitive identifiers unless necessary.",
     "thirdPartiesTitle": "Third-party services",
     "thirdPartiesBody": "RegShield CA may use infrastructure providers (e.g., hosting and database) to operate the service. Evidence vault content is not uploaded by default."
+  },
+  "Ask": {
+    "title": "Ask",
+    "description": "AI-assisted, information-only Q&A about California immigration basics, legal aid, and credential checks.",
+    "chatTitle": "Ask a question",
+    "disclaimerBody": "Information only, not legal advice. Do not enter sensitive info (A-number, passport/ID, full address).",
+    "disclaimerInline": "Information only. Not legal advice.",
+    "contextHint": "Long chats may send only recent context.",
+    "empty": "Ask a question to get started. Your chat stays on this device unless you clear it.",
+    "inputLabel": "Your question",
+    "inputPlaceholder": "Ask about immigration steps, deadlines, legal aid options, or how to verify credentials...",
+  "send": "Send",
+  "sending": "Sending...",
+  "chats": "Chats",
+  "newChat": "New chat",
+  "export": "Export",
+  "clear": "Clear chat",
+  "searchChats": "Search chats",
+  "noChatsMatch": "No chats match your search.",
+  "rename": "Rename",
+  "delete": "Delete",
+  "open": "Open",
+  "active": "Active",
+  "save": "Save",
+  "cancel": "Cancel",
+  "renamePlaceholder": "Chat title",
+  "confirmDelete": "Delete this chat from this device? This can't be undone.",
+  "sources": "Official sources",
+  "tipsTitle": "Use it safely",
+  "tipsBody": "Keep your questions general. Use official sources and verification links.",
+    "tip1": "Avoid sharing sensitive personal info (A-number, passport/ID numbers, full address).",
+    "tip2": "If you need legal advice for your specific case, contact a qualified attorney or accredited representative.",
+    "tip3": "When in doubt, verify credentials using official directories and follow evidence links.",
+    "consentTitle": "Before you ask",
+    "consentBody": "I understand this is general information, not legal advice, and I should not share sensitive personal information.",
+    "consentCancel": "Cancel",
+    "consentAgree": "I understand",
+    "errorNotConfigured": "AI Q&A is not configured on this server.",
+    "errorTryAgain": "Something went wrong. Please try again."
   },
   "Disclaimer": {
     "title": "Disclaimer",

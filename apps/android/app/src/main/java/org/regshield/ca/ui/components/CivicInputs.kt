@@ -39,6 +39,8 @@ fun CivicTextField(
   enabled: Boolean = true,
   readOnly: Boolean = false,
   singleLine: Boolean = true,
+  minLines: Int = if (singleLine) 1 else 3,
+  maxLines: Int = if (singleLine) 1 else 6,
   visualTransformation: VisualTransformation = VisualTransformation.None,
   keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
   trailingIcon: @Composable (() -> Unit)? = null,
@@ -77,6 +79,8 @@ fun CivicTextField(
         enabled = enabled,
         readOnly = readOnly,
         singleLine = singleLine,
+        minLines = minLines,
+        maxLines = maxLines,
         visualTransformation = visualTransformation,
         keyboardOptions = keyboardOptions,
         placeholder = { if (!placeholder.isNullOrBlank()) Text(text = placeholder) },
@@ -149,4 +153,3 @@ fun CivicDropdownField(
     }
   }
 }
-

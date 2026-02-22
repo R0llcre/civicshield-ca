@@ -26,6 +26,12 @@ export default async function Home() {
       accent: "from-[color:var(--color-accent-3)]/24 to-transparent",
     },
     {
+      href: "/ask",
+      title: tHome("cards.ask.title"),
+      body: tHome("cards.ask.body"),
+      accent: "from-[color:var(--color-accent-2)]/24 to-transparent",
+    },
+    {
       href: "/help",
       title: tHome("cards.help.title"),
       body: tHome("cards.help.body"),
@@ -48,6 +54,12 @@ export default async function Home() {
               {tNav("verify")}
             </Link>
             <Link
+              href="/ask"
+              className="inline-flex h-11 items-center rounded-2xl border border-[color:var(--color-surface-border)] bg-white/85 px-4 text-sm font-semibold text-[color:var(--color-foreground)] hover:bg-white"
+            >
+              {tNav("ask")}
+            </Link>
+            <Link
               href="/help"
               className="inline-flex h-11 items-center rounded-2xl border border-[color:var(--color-surface-border)] bg-white/85 px-4 text-sm font-semibold text-[color:var(--color-foreground)] hover:bg-white"
             >
@@ -56,16 +68,17 @@ export default async function Home() {
           </div>
         }
       >
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <Metric label={tNav("verify")} value={tHome("cards.verify.title")} />
           <Metric label={tNav("shield")} value={tHome("cards.shield.title")} />
+          <Metric label={tNav("ask")} value={tHome("cards.ask.title")} />
           <Metric label={tNav("help")} value={tHome("cards.help.title")} />
         </div>
       </Hero>
 
       <section className="space-y-4">
         <SectionHeader title={tCommon("informationOnlyTitle")} subtitle={tCommon("informationOnlyBody")} />
-        <div className="grid gap-4 sm:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {cards.map((c) => (
           <Link key={c.href} href={c.href} className="group animate-rise-in">
             <Card className="h-full overflow-hidden transition hover:-translate-y-0.5 hover:shadow-[var(--shadow-lg)]">

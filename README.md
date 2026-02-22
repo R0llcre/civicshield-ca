@@ -102,6 +102,27 @@ Fullscreen Android UI acceptance checklist:
 - final card in each screen scrolls above bottom navigation
 - bottom navigation icons/labels remain readable at font scale 1.3
 
+## Quickstart (iOS)
+
+Prereqs:
+
+- Xcode
+- XcodeGen (`brew install xcodegen`)
+
+Staging on iOS Simulator (one command):
+
+```bash
+npm run ios:staging:up
+```
+
+Manual (Xcode):
+
+```bash
+cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+xcodegen generate
+open CivicShield.xcodeproj
+```
+
 ## Environment Variables
 
 Create a `.env.local` (or `.env`) at repo root:
@@ -114,11 +135,26 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=
 # Optional: client-side error monitoring
 NEXT_PUBLIC_SENTRY_DSN=
 
+# Security headers rollout: CSP is currently report-only in staging.
+# Enforce after reviewing CSP reports and allowlist gaps.
+
 # ETL (server)
 DATABASE_URL=
 
 # Ops scripts (server/admin; keep secret)
 SUPABASE_SERVICE_ROLE_KEY=
+
+# AI Q&A (server; keep secret)
+OPENAI_API_KEY=
+# Optional: override model (default gpt-4.1)
+OPENAI_MODEL=
+# Ask RAG (required for /api/ask)
+OPENAI_VECTOR_STORE_ID=
+# Optional: authoritative web search fallback (default true, cache-only)
+OPENAI_ENABLE_WEB_SEARCH=true
+OPENAI_WEB_SEARCH_EXTERNAL=false
+# Optional: strict mode (default true: refuse if no authoritative citations)
+OPENAI_RAG_STRICT=true
 ```
 
 Without Supabase env vars, the web app runs in **demo mode** using sample data.

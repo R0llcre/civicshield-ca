@@ -115,6 +115,32 @@ export function HelpClient() {
   const [error, setError] = React.useState<string | null>(null);
   const [results, setResults] = React.useState<AidOrg[] | null>(null);
 
+  React.useEffect(() => {
+    // Default to a featured list so Help isn't empty on first open.
+    let cancelled = false;
+    async function loadFeatured() {
+      setLoading(true);
+      setError(null);
+      setResults(null);
+      try {
+        const url = new URL("/api/directory/search", window.location.origin);
+        const res = await fetch(url.toString());
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = (await res.json()) as ApiResponse;
+        if (!cancelled) setResults(data.results);
+      } catch (e) {
+        if (!cancelled) setError(e instanceof Error ? e.message : t("errors.unknown"));
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+    void loadFeatured();
+    return () => {
+      cancelled = true;
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- only run on mount
+  }, []);
+
   async function runSearch() {
     setLoading(true);
     setError(null);
@@ -206,7 +232,7 @@ export function HelpClient() {
         <CardHeader>
           <SectionHeader
             title={t("resultsTitle")}
-            subtitle={t("emptyState")}
+            subtitle={loading ? t("loading") : t("emptyState")}
             action={
               <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-800">
                 <Building2 className="h-3.5 w-3.5" />
@@ -216,7 +242,11 @@ export function HelpClient() {
           />
         </CardHeader>
         <CardContent className="space-y-3">
-          {results ? (
+          {loading ? (
+            <div className="rounded-2xl border border-[color:var(--color-surface-border)] bg-white/60 px-4 py-3 text-sm text-[color:var(--color-muted)]">
+              {t("loading")}
+            </div>
+          ) : results ? (
             results.length === 0 ? (
               <div className="rounded-2xl border border-[color:var(--color-surface-border)] bg-white/60 px-4 py-3 text-sm text-[color:var(--color-muted)]">
                 {t("noResults")}

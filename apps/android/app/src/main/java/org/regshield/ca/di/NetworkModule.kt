@@ -36,8 +36,11 @@ object NetworkModule {
   fun provideOkHttpClient(): OkHttpClient =
     OkHttpClient.Builder()
       .connectTimeout(10, TimeUnit.SECONDS)
-      .readTimeout(20, TimeUnit.SECONDS)
-      .writeTimeout(20, TimeUnit.SECONDS)
+      // Ask (/api/ask) is an LLM + RAG call and can be noticeably slower than other endpoints.
+      // Keep timeouts high enough to avoid false failures on mobile networks/emulators.
+      .readTimeout(45, TimeUnit.SECONDS)
+      .writeTimeout(30, TimeUnit.SECONDS)
+      .callTimeout(50, TimeUnit.SECONDS)
       .build()
 
   @Provides

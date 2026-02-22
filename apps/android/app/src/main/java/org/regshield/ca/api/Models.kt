@@ -86,3 +86,42 @@ data class HealthRunRow(
   @SerialName("ended_at") val endedAt: String? = null,
   @SerialName("source_sha256") val sourceSha256: String? = null,
 )
+
+@Serializable
+data class AskRequest(
+  val locale: String,
+  val messages: List<AskMessage>,
+)
+
+@Serializable
+data class AskMessage(
+  val role: String,
+  val content: String,
+)
+
+@Serializable
+data class AskCitation(
+  val title: String,
+  val url: String,
+)
+
+@Serializable
+data class AskActionPayload(
+  val url: String? = null,
+)
+
+@Serializable
+data class AskSuggestedAction(
+  val type: String,
+  val label: String,
+  val payload: AskActionPayload? = null,
+)
+
+@Serializable
+data class AskResponse(
+  @SerialName("answer_markdown") val answerMarkdown: String? = null,
+  val citations: List<AskCitation> = emptyList(),
+  @SerialName("suggested_actions") val suggestedActions: List<AskSuggestedAction> = emptyList(),
+  val disclaimer: String? = null,
+  val error: String? = null,
+)

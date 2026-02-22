@@ -6,6 +6,7 @@
   "Nav": {
     "verify": "Verificar",
     "shield": "Escudo",
+    "ask": "Preguntar",
     "help": "Ayuda",
     "partner": "Aliados"
   },
@@ -17,15 +18,19 @@
         "title": "Verificación de credenciales",
         "body": "Busca en los listados oficiales del DOJ EOIR y usa enlaces oficiales para CA State Bar y CA SOS."
       },
-      "shield": {
-        "title": "Escudo antifraude",
-        "body": "Convierte advertencias en una lista. Crea una bóveda local y cifrada que tú controlas."
-      },
-      "help": {
-        "title": "Acelerador de referencias",
-        "body": "Filtro simple por condado, idioma y estado de admisión."
-      }
+    "shield": {
+      "title": "Escudo antifraude",
+      "body": "Convierte advertencias en una lista. Crea una bóveda local y cifrada que tú controlas."
+    },
+    "ask": {
+      "title": "Preguntar (IA)",
+      "body": "Preguntas y respuestas solo informativas sobre inmigración en CA, ayuda legal y qué verificar después."
+    },
+    "help": {
+      "title": "Acelerador de referencias",
+      "body": "Filtro simple por condado, idioma y estado de admisión."
     }
+  }
   },
   "Common": {
     "informationOnlyTitle": "Solo información, no asesoría legal",
@@ -129,6 +134,7 @@
     "any": "Cualquiera",
     "searchButton": "Buscar organizaciones",
     "resultsTitle": "Organizaciones",
+    "loading": "Cargando…",
     "noResults": "No hay organizaciones con estos filtros.",
     "emptyState": "Elige filtros y busca para ver resultados.",
     "status": {
@@ -226,6 +232,45 @@
     "logsBody": "Evitamos recopilar información sensible en registros y monitoreo. No ingreses identificadores sensibles a menos que sea necesario.",
     "thirdPartiesTitle": "Servicios de terceros",
     "thirdPartiesBody": "RegShield CA puede usar proveedores de infraestructura (por ejemplo, hosting y base de datos) para operar el servicio. El contenido de la bóveda no se sube por defecto."
+  },
+  "Ask": {
+    "title": "Preguntar",
+    "description": "Preguntas y respuestas con IA (solo informativas) sobre inmigración en California, ayuda legal y verificación de credenciales.",
+    "chatTitle": "Haz una pregunta",
+    "disclaimerBody": "Solo información, no es asesoramiento legal. No ingreses datos sensibles (A-number, pasaporte/ID, dirección completa).",
+    "disclaimerInline": "Solo información. No es asesoramiento legal.",
+    "contextHint": "Los chats largos pueden enviar solo el contexto más reciente.",
+    "empty": "Haz una pregunta para comenzar. Tu chat se queda en este dispositivo a menos que lo borres.",
+    "inputLabel": "Tu pregunta",
+    "inputPlaceholder": "Pregunta sobre pasos de inmigración, plazos, opciones de ayuda legal o cómo verificar credenciales...",
+  "send": "Enviar",
+  "sending": "Enviando...",
+  "chats": "Chats",
+  "newChat": "Nuevo chat",
+  "export": "Exportar",
+  "clear": "Borrar chat",
+  "searchChats": "Buscar chats",
+  "noChatsMatch": "No hay chats que coincidan con tu búsqueda.",
+  "rename": "Renombrar",
+  "delete": "Eliminar",
+  "open": "Abrir",
+  "active": "Activo",
+  "save": "Guardar",
+  "cancel": "Cancelar",
+  "renamePlaceholder": "Título del chat",
+  "confirmDelete": "¿Eliminar este chat de este dispositivo? No se puede deshacer.",
+  "sources": "Fuentes oficiales",
+  "tipsTitle": "Úsalo con seguridad",
+  "tipsBody": "Mantén tus preguntas generales. Usa fuentes oficiales y enlaces de verificación.",
+    "tip1": "Evita compartir información personal sensible (A-number, números de pasaporte/ID, dirección completa).",
+    "tip2": "Si necesitas asesoramiento legal para tu caso, contacta a un abogado calificado o representante acreditado.",
+    "tip3": "Si hay dudas, verifica credenciales en directorios oficiales y sigue los enlaces de evidencia.",
+    "consentTitle": "Antes de preguntar",
+    "consentBody": "Entiendo que esto es información general, no asesoramiento legal, y que no debo compartir información personal sensible.",
+    "consentCancel": "Cancelar",
+    "consentAgree": "Entiendo",
+    "errorNotConfigured": "La función de preguntas con IA no está configurada en este servidor.",
+    "errorTryAgain": "Algo salió mal. Intenta de nuevo."
   },
   "Disclaimer": {
     "title": "Aviso legal",

@@ -22,7 +22,9 @@ export function getPool() {
   if (!pool) {
     pool = new Pool({
       connectionString: DATABASE_URL,
-      ssl: shouldUseSsl(DATABASE_URL) ? { rejectUnauthorized: false } : undefined,
+      ssl: shouldUseSsl(DATABASE_URL)
+        ? { rejectUnauthorized: process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== "false" }
+        : undefined,
       max: 10,
       idleTimeoutMillis: 30_000,
       connectionTimeoutMillis: 5_000,

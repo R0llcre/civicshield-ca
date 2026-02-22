@@ -92,13 +92,21 @@ export const vaultDb = {
       ? await decryptPayload<VaultManifest>(key, manifestBlob)
       : { items: [] };
 
+    // Pre-encrypt all items before opening the transaction (crypto is async).
+    const encrypted: Array<{ id: string; encrypted: EncryptedBlob }> = [];
     for (const it of items) {
-      const encrypted = await encryptPayload(key, it.bytes);
-      await d.put("items", { id: it.meta.id, encrypted });
+      encrypted.push({ id: it.meta.id, encrypted: await encryptPayload(key, it.bytes) });
       manifest.items.push(it.meta);
     }
+    const encryptedManifest = await encryptPayload(key, manifest);
 
-    await d.put("meta", await encryptPayload(key, manifest), "manifest");
+    // Write atomically inside a single transaction.
+    const tx = d.transaction(["meta", "items"], "readwrite");
+    for (const item of encrypted) {
+      await tx.objectStore("items").put(item);
+    }
+    await tx.objectStore("meta").put(encryptedManifest, "manifest");
+    await tx.done;
   },
 
   async deleteItem(key: CryptoKey, id: string) {

@@ -12,6 +12,11 @@ const requestSchema = z.object({
   state: z.string().min(2).max(2).optional(),
 });
 
+/** Escape LIKE/ILIKE metacharacters so user input is treated as literal text. */
+function escapeLike(s: string): string {
+  return s.replace(/[%_\\]/g, (c) => `\\${c}`);
+}
+
 function scoreMatch(q: string, value: string) {
   const needle = q.toLowerCase();
   const hay = value.toLowerCase();
@@ -92,7 +97,7 @@ async function handleVerify(name: string, state: string) {
       // fall back
     }
 
-    const like = `%${q}%`;
+    const like = `%${escapeLike(q)}%`;
     const orgRows = await queryRows<RaEntry>(
       [
         "select entry_type,name,organization_name,city,state,address,phone,website,accreditation_level,status,expires_at,pending_renewal,source_url,source_sha256",
@@ -235,7 +240,7 @@ async function handleVerify(name: string, state: string) {
     .eq("dataset", "orgs_by_state_city")
     .eq("entry_type", "organization")
     .eq("state", trimmedState)
-    .ilike("name", `%${q}%`);
+    .ilike("name", `%${escapeLike(q)}%`);
   if (orgSha) orgQuery = orgQuery.eq("source_sha256", orgSha);
   const orgRes = await orgQuery.limit(15);
 
@@ -246,7 +251,7 @@ async function handleVerify(name: string, state: string) {
     )
     .eq("dataset", "reps_roster")
     .eq("entry_type", "representative")
-    .or(`name.ilike.%${q}%,organization_name.ilike.%${q}%`);
+    .or(`name.ilike.%${escapeLike(q).replace(/,/g, "\\,")}%,organization_name.ilike.%${escapeLike(q).replace(/,/g, "\\,")}%`);
   if (repSha) repQuery = repQuery.eq("source_sha256", repSha);
   const repRes = await repQuery.limit(15);
 

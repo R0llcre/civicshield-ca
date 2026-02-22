@@ -21,6 +21,7 @@ export function Button({
 }) {
   return (
     <button
+      type={props.type ?? "button"}
       className={cn(
         "inline-flex items-center justify-center gap-2 rounded-2xl border text-sm font-semibold tracking-[0.01em] transition",
         "disabled:opacity-50 disabled:pointer-events-none",

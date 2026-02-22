@@ -34,7 +34,10 @@ export async function exportVaultZip(
   return new Blob([ab], { type: "application/zip" });
 }
 
+const MAX_ZIP_BYTES = 256 * 1024 * 1024; // 256 MB
+
 export async function importVaultZip(zipBytes: ArrayBuffer): Promise<{ params: VaultParams; payload: EncryptedBlob }> {
+  if (zipBytes.byteLength > MAX_ZIP_BYTES) throw new Error("Invalid vault zip");
   const data = new Uint8Array(zipBytes);
   const unzipped = unzipSync(data);
   const manifestBytes = unzipped["vault_v1.json"];

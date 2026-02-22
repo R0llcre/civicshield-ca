@@ -6,6 +6,7 @@
   "Nav": {
     "verify": "核验",
     "shield": "防骗",
+    "ask": "问答",
     "help": "转介",
     "partner": "机构"
   },
@@ -17,15 +18,19 @@
         "title": "资质核验",
         "body": "查询 DOJ EOIR 名录，并提供 CA State Bar 与 CA SOS 的官方核验入口。"
       },
-      "shield": {
-        "title": "防骗盾牌",
-        "body": "把官方建议变成清单；用本地加密证据库整理材料。"
-      },
-      "help": {
-        "title": "对接加速",
-        "body": "按县/语言/接案状态筛选机构，减少无效联系。"
-      }
+    "shield": {
+      "title": "防骗盾牌",
+      "body": "把官方建议变成清单；用本地加密证据库整理材料。"
+    },
+    "ask": {
+      "title": "AI 问答",
+      "body": "以加州为背景的移民基础、法律援助与核验步骤信息问答（非法律建议）。"
+    },
+    "help": {
+      "title": "对接加速",
+      "body": "按县/语言/接案状态筛选机构，减少无效联系。"
     }
+  }
   },
   "Common": {
     "informationOnlyTitle": "仅供信息参考，不构成法律建议",
@@ -129,6 +134,7 @@
     "any": "不限",
     "searchButton": "查找机构",
     "resultsTitle": "机构列表",
+    "loading": "加载中…",
     "noResults": "没有符合条件的机构。",
     "emptyState": "设置筛选条件并点击查询以查看结果。",
     "status": {
@@ -226,6 +232,45 @@
     "logsBody": "我们避免在日志与监控中收集敏感信息。除非必要，请勿输入敏感编号类信息。",
     "thirdPartiesTitle": "第三方服务",
     "thirdPartiesBody": "RegShield CA 可能使用基础设施提供商（例如托管与数据库）来运行服务。证据库内容默认不会上传。"
+  },
+  "Ask": {
+    "title": "问答",
+    "description": "AI 辅助的信息问答：加州移民基础、法律援助与核验步骤（非法律建议）。",
+    "chatTitle": "提问",
+    "disclaimerBody": "仅供信息参考，不构成法律建议。不要输入敏感信息（A-number、护照/证件号、完整住址）。",
+    "disclaimerInline": "仅供信息参考，不构成法律建议。",
+    "contextHint": "较长的对话可能只会发送最近的上下文。",
+    "empty": "从一个问题开始。对话仅保存在本设备，清除后即删除。",
+    "inputLabel": "你的问题",
+    "inputPlaceholder": "可询问移民流程、截止日期、法律援助渠道、如何核验资质...",
+  "send": "发送",
+  "sending": "发送中...",
+  "chats": "对话",
+  "newChat": "新对话",
+  "export": "导出",
+  "clear": "清除对话",
+  "searchChats": "搜索对话",
+  "noChatsMatch": "没有匹配的对话。",
+  "rename": "重命名",
+  "delete": "删除",
+  "open": "打开",
+  "active": "当前",
+  "save": "保存",
+  "cancel": "取消",
+  "renamePlaceholder": "对话标题",
+  "confirmDelete": "要从本设备删除此对话吗？此操作无法撤销。",
+  "sources": "官方来源",
+  "tipsTitle": "安全使用",
+  "tipsBody": "问题保持概括，用官方来源与核验链接做最终确认。",
+    "tip1": "避免输入敏感个人信息（A-number、护照/证件号、完整住址）。",
+    "tip2": "如需针对你具体案件的法律建议，请联系合格律师或获认证代表。",
+    "tip3": "不确定时先做资质核验，并查看官方证据链接。",
+    "consentTitle": "开始前确认",
+    "consentBody": "我理解这是一般信息，不构成法律建议，并且我不应分享敏感个人信息。",
+    "consentCancel": "取消",
+    "consentAgree": "我已了解",
+    "errorNotConfigured": "本服务器尚未配置 AI 问答功能。",
+    "errorTryAgain": "出错了，请稍后重试。"
   },
   "Disclaimer": {
     "title": "免责声明",

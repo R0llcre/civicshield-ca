@@ -1,10 +1,11 @@
 package org.regshield.ca.ui
 
 import androidx.activity.ComponentActivity
-import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollToNode
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
@@ -13,6 +14,7 @@ import org.regshield.ca.api.RaEntry
 import org.regshield.ca.ui.screens.help.HelpContent
 import org.regshield.ca.ui.screens.help.HelpFilters
 import org.regshield.ca.ui.screens.help.HelpUiState
+import org.regshield.ca.ui.screens.ask.AskContent
 import org.regshield.ca.ui.screens.shield.ShieldContent
 import org.regshield.ca.ui.screens.verify.VerifyContent
 import org.regshield.ca.ui.theme.RegShieldTheme
@@ -33,21 +35,27 @@ class AppUiFlowsTest {
           isCompact = true,
           name = "Diaz",
           stateCode = "CA",
+          hasSearched = true,
+          queryName = "Diaz",
+          queryState = "CA",
           loading = false,
-          error = null,
+          errorResId = null,
+          errorMessage = null,
           dataFreshnessEndedAt = "2026-02-13T06:00:00Z",
           results = listOf(
             RaEntry(
               name = "Diaz, Samantha",
               entryType = "representative",
               sourceUrl = "https://example.org/roster",
-              score = 92,
+              score = 0.92,
+              matchedOn = "name",
             ),
           ),
           onNameChange = {},
           onStateChange = {},
           onSearch = { searched = true },
-          onOpenSource = {},
+          onOpenUrl = {},
+          onCallPhone = {},
           onOpenCalBar = {},
           onOpenSos = {},
         )
@@ -57,6 +65,8 @@ class AppUiFlowsTest {
     composeRule.onNodeWithTag("verify_name_input").assertExists()
     composeRule.onNodeWithTag("verify_search_button").performClick()
     composeRule.onNodeWithTag("verify_result_item_0").assertExists()
+    composeRule.onNodeWithTag("verify_scroll").performScrollToNode(hasTestTag("verify_result_item_0"))
+    composeRule.onNodeWithTag("verify_match_chip_0", useUnmergedTree = true).assertExists()
     assertTrue(searched)
   }
 
@@ -85,33 +95,45 @@ class AppUiFlowsTest {
           onService = {},
           onSearch = {},
           onOpenOrgLink = {},
+          onOpenUrl = {},
         )
       }
     }
 
     composeRule.onNodeWithTag("help_county_filter").assertExists()
     composeRule.onNodeWithTag("help_search_button").assertExists()
-    composeRule.onNodeWithTag("help_status_chip").assertExists()
     composeRule.onNodeWithTag("help_result_item_0").assertExists()
+    composeRule.onNodeWithTag("help_scroll").performScrollToNode(hasTestTag("help_result_item_0"))
+    composeRule.onNodeWithTag("help_status_chip", useUnmergedTree = true).assertExists()
   }
 
   @Test
   fun shieldScreen_checkboxRowAndVaultActionExist() {
-    val checked = mutableStateMapOf<String, Boolean>()
-
     composeRule.setContent {
       RegShieldTheme {
         ShieldContent(
           isCompact = true,
-          checked = checked,
-          onToggle = { id, value -> checked[id] = value },
+          selectedFlagIds = setOf("pay"),
+          completedStepIds = setOf("verify"),
+          onToggleFlag = { _, _ -> },
+          onToggleStep = { _, _ -> },
+          onClearAll = {},
+          onCopySummary = {},
+          onShareSummary = {},
           onOpenVault = {},
+          onGoVerify = {},
+          onGoHelp = {},
         )
       }
     }
 
     composeRule.onNodeWithTag("shield_flag_0").assertExists()
-    composeRule.onNodeWithTag("shield_open_vault").assertExists()
+    composeRule.onNodeWithTag("shield_scroll").performScrollToNode(hasTestTag("shield_vault_card"))
+    composeRule.onNodeWithTag("shield_open_vault", useUnmergedTree = true).assertExists()
+    composeRule.onNodeWithTag("shield_copy_summary").assertExists()
+    composeRule.onNodeWithTag("shield_share_summary").assertExists()
+    composeRule.onNodeWithTag("shield_clear_all").assertExists()
+    composeRule.onNodeWithTag("shield_step_0").assertExists()
   }
 
   @Test
@@ -151,5 +173,37 @@ class AppUiFlowsTest {
 
     composeRule.onNodeWithTag("vault_passphrase_input").assertExists()
     composeRule.onNodeWithTag("vault_unlock_button").assertExists()
+  }
+
+  @Test
+  fun askScreen_rendersInputAndSendAndClear() {
+    composeRule.setContent {
+      RegShieldTheme {
+        AskContent(
+          isCompact = true,
+          consentAccepted = false,
+          threads = emptyList(),
+          messages = emptyList(),
+          sending = false,
+          error = null,
+          draft = "What is an accredited representative?",
+          onDraftChange = {},
+          onOpenChats = {},
+          onNewChat = {},
+          onExportCurrent = {},
+          onClearCurrent = {},
+          onDeleteCurrent = {},
+          onSend = {},
+          onAction = {},
+          onOpenCitation = {},
+        )
+      }
+    }
+
+    composeRule.onNodeWithTag("ask_input").assertExists()
+    composeRule.onNodeWithTag("ask_send").assertExists()
+    composeRule.onNodeWithTag("ask_open_chats").assertExists()
+    composeRule.onNodeWithTag("ask_new_chat").assertExists()
+    composeRule.onNodeWithTag("ask_more").assertExists()
   }
 }

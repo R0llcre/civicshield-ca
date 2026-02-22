@@ -36,6 +36,7 @@ import org.regshield.ca.ui.theme.LocalCivicAccent
 private object Routes {
   const val VERIFY = "verify"
   const val SHIELD = "shield"
+  const val ASK = "ask"
   const val HELP = "help"
   const val VAULT = "vault"
 }
@@ -58,7 +59,7 @@ fun RegShieldApp() {
   val scheme = MaterialTheme.colorScheme
   val accentColors =
     when (rawRoute) {
-      Routes.VERIFY, null ->
+      Routes.VERIFY, Routes.ASK, null ->
         CivicAccentColors(
           accent = scheme.primary,
           onAccent = scheme.onPrimary,
@@ -91,8 +92,17 @@ fun RegShieldApp() {
   val bottomItems = listOf(
     ChromeNavItem(Routes.VERIFY, stringResource(R.string.nav_verify), R.drawable.ic_verify),
     ChromeNavItem(Routes.SHIELD, stringResource(R.string.nav_shield), R.drawable.ic_shield),
+    ChromeNavItem(Routes.ASK, stringResource(R.string.nav_ask), R.drawable.ic_ask),
     ChromeNavItem(Routes.HELP, stringResource(R.string.nav_help), R.drawable.ic_help),
   )
+
+  fun navigateBottom(route: String) {
+    navController.navigate(route) {
+      launchSingleTop = true
+      popUpTo(Routes.VERIFY) { saveState = true }
+      restoreState = true
+    }
+  }
 
   CompositionLocalProvider(LocalCivicAccent provides accentColors) {
     androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
@@ -107,11 +117,7 @@ fun RegShieldApp() {
             destination?.hierarchy?.any { it.route == route } == true ||
               (rawRoute == Routes.VAULT && route == Routes.SHIELD)
           if (!alreadySelected) {
-            navController.navigate(route) {
-              launchSingleTop = true
-              popUpTo(Routes.VERIFY) { saveState = true }
-              restoreState = true
-            }
+            navigateBottom(route)
           }
         },
       ) { contentPadding ->
@@ -136,6 +142,16 @@ fun RegShieldApp() {
               isCompact = isCompact,
               contentPadding = contentPadding,
               onOpenVault = { navController.navigate(Routes.VAULT) },
+              onGoVerify = { navigateBottom(Routes.VERIFY) },
+              onGoHelp = { navigateBottom(Routes.HELP) },
+            )
+          }
+          composable(Routes.ASK) {
+            org.regshield.ca.ui.screens.ask.AskScreen(
+              isCompact = isCompact,
+              contentPadding = contentPadding,
+              onGoVerify = { navigateBottom(Routes.VERIFY) },
+              onGoHelp = { navigateBottom(Routes.HELP) },
             )
           }
           composable(Routes.HELP) {

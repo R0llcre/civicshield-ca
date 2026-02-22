@@ -1,0 +1,34 @@
+.git
+.DS_Store
+
+# Node / Next
+**/node_modules
+**/.next
+out
+
+# Local env / tmp
+.env
+.env.*.local
+.tmp
+etl/_tmp
+
+# Python
+**/__pycache__
+**/*.py[cod]
+.pytest_cache
+.venv
+
+# Playwright
+playwright-report
+test-results
+
+# Android / Gradle
+.gradle
+**/build
+local.properties
+*.iml
+.idea
+captures
+*.jks
+*.keystore
+
