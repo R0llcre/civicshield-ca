@@ -9,7 +9,7 @@ This project uses **XcodeGen** (`project.yml`) to generate the Xcode project.
 From repo root:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "/Users/shenkairan/Documents/Spring26/RegShield CA"
 npm run ios:staging:up
 ```
 
@@ -29,7 +29,7 @@ CIVICSHIELD_IOS_DEVICE="iPhone 15 Pro" npm run ios:staging:up
 ## Manual (Xcode)
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+cd "/Users/shenkairan/Documents/Spring26/RegShield CA/apps/ios/CivicShield"
 xcodegen generate
 open CivicShield.xcodeproj
 ```
@@ -47,7 +47,7 @@ This repo can run on a real iPhone, but iOS requires code signing.
 1) Generate and open the project:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+cd "/Users/shenkairan/Documents/Spring26/RegShield CA/apps/ios/CivicShield"
 xcodegen generate
 open CivicShield.xcodeproj
 ```
@@ -58,7 +58,7 @@ open CivicShield.xcodeproj
 - Signing certificate: `Apple Development`
 
 3) If Xcode says the bundle id is not available, change it in:
-- `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/project.yml` (`PRODUCT_BUNDLE_IDENTIFIER`)
+- `/Users/shenkairan/Documents/Spring26/RegShield CA/apps/ios/CivicShield/project.yml` (`PRODUCT_BUNDLE_IDENTIFIER`)
 
 Then re-run `xcodegen generate`.
 

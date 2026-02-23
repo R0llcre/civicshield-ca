@@ -25,6 +25,11 @@ __pycache__/
 etl/_tmp/
 .tmp/
 
+# Local scratch / generated artifacts (keep repo clean)
+tmp/
+output/
+.claude/worktrees/
+
 # Playwright
 playwright-report/
 test-results/

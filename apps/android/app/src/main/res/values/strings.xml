@@ -77,10 +77,11 @@
   <string name="shield_plan_progress">%1$d/%2$d done</string>
   <string name="shield_copy_summary">Copy summary</string>
   <string name="shield_share_summary">Share summary</string>
-  <string name="shield_risk_low">Risk: Low</string>
-  <string name="shield_risk_medium">Risk: Medium</string>
-  <string name="shield_risk_high">Risk: High</string>
-  <string name="shield_badge">Flags %1$d/%2$d · Plan %3$d/%4$d · %5$s</string>
+  <string name="shield_risk_low">Overall risk: Low</string>
+  <string name="shield_risk_medium">Overall risk: Medium</string>
+  <string name="shield_risk_high">Overall risk: High</string>
+  <string name="shield_badge">Signals %1$d/%2$d · Steps %3$d/%4$d · %5$s</string>
+  <string name="shield_flags_selected_summary">%1$d selected</string>
   <string name="shield_vault_title">Evidence Vault</string>
   <string name="shield_vault_body">Local-only encrypted storage for files and notes. Nothing uploads by default.</string>
   <string name="shield_open_vault">Open Evidence Vault</string>

@@ -8,11 +8,12 @@ struct AskView: View {
   @State private var showThreads = false
   @State private var showExport = false
   @State private var exportText: String = ""
+  @FocusState private var inputFocused: Bool
 
   var body: some View {
     ScrollViewReader { proxy in
       ScrollView {
-        VStack(alignment: .leading, spacing: 14) {
+        LazyVStack(alignment: .leading, spacing: 14) {
           HStack {
             Button("Chats") { showThreads = true }
               .font(.system(.subheadline, design: .rounded).weight(.semibold))
@@ -58,10 +59,7 @@ struct AskView: View {
                 .foregroundStyle(.secondary)
             }
           } else {
-            ForEach(vm.messages) { m in
-              ChatBubble(message: m)
-                .id(m.id)
-            }
+            MessagesTimeline(messages: vm.messages)
           }
 
           GlassCard {
@@ -74,6 +72,7 @@ struct AskView: View {
                 .lineLimit(3...6)
                 .textInputAutocapitalization(.sentences)
                 .autocorrectionDisabled()
+                .focused($inputFocused)
                 .padding(12)
                 .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 16, style: .continuous))
 
@@ -88,6 +87,7 @@ struct AskView: View {
                   showConsent = true
                   return
                 }
+                inputFocused = false
                 Task {
                   await vm.send(api: env.api, locale: deviceLocale())
                   if let last = vm.messages.last {
@@ -117,6 +117,23 @@ struct AskView: View {
         .padding(.horizontal, 16)
         .padding(.bottom, 28)
       }
+      .onAppear {
+        PerfSignpost.event("ask_view_appear")
+        PerfSignpost.event("ask_view_prewarm_check")
+        WebViewPrewarmer.shared.prewarmIfNeeded()
+      }
+      .scrollDismissesKeyboard(.interactively)
+      .toolbar {
+        ToolbarItemGroup(placement: .keyboard) {
+          Spacer()
+          Button("Done") { inputFocused = false }
+        }
+      }
+      .simultaneousGesture(
+        TapGesture().onEnded {
+          inputFocused = false
+        }
+      )
       .sheet(isPresented: $showConsent) {
         ConsentSheet(
           onAgree: {
@@ -162,6 +179,17 @@ struct AskView: View {
     if raw.hasPrefix("es") { return "es" }
     if raw.hasPrefix("zh") { return "zh-Hans" }
     return "en"
+  }
+
+  private struct MessagesTimeline: View {
+    let messages: [AskMessage]
+
+    var body: some View {
+      ForEach(messages) { m in
+        ChatBubble(message: m)
+          .id(m.id)
+      }
+    }
   }
 
   private struct ThreadsSheet: View {
@@ -316,49 +344,132 @@ struct AskView: View {
     }
   }
 
-  private struct ChatBubble: View {
+ private struct ChatBubble: View {
     @EnvironmentObject private var env: AppEnvironment
     @Environment(\.openURL) private var openURL
     let message: AskMessage
+    @State private var richTextActivated = false
+    @State private var activationTask: Task<Void, Never>? = nil
 
     var isUser: Bool { message.role.lowercased() == "user" }
+    private let bubbleMaxWidth: CGFloat = 520
 
     var body: some View {
-      VStack(alignment: isUser ? .trailing : .leading, spacing: 8) {
-        Group {
-          if isUser {
-            Text(message.content)
-              .font(.system(.body, design: .rounded))
-              .foregroundStyle(.white)
-          } else {
-            MarkdownView(
-              markdown: message.content,
-              accent: UIColor(AppTab.ask.accent),
-              onOpenURL: { url in
-                openURL(url)
-              }
-            )
-          }
-        }
-        .padding(14)
-        .frame(maxWidth: .infinity, alignment: isUser ? .trailing : .leading)
-        .background(
-          isUser ? AppTab.ask.accent : Color.white.opacity(0.65),
-          in: RoundedRectangle(cornerRadius: 22, style: .continuous)
-        )
-        .overlay(
-          RoundedRectangle(cornerRadius: 22, style: .continuous)
-            .stroke(Color.white.opacity(isUser ? 0.18 : 0.35), lineWidth: 1)
-        )
+      let shape = RoundedRectangle(cornerRadius: 22, style: .continuous)
+      HStack(alignment: .bottom, spacing: 0) {
+        if isUser { Spacer(minLength: 32) }
 
-        if !isUser {
-          if let actions = message.suggestedActions, !actions.isEmpty {
-            ActionChips(actions: actions)
+        VStack(alignment: isUser ? .trailing : .leading, spacing: 8) {
+          Group {
+            if isUser {
+              Text(message.content)
+                .font(.system(.body, design: .rounded))
+                .foregroundStyle(.white)
+                .multilineTextAlignment(.leading)
+            } else {
+              if richTextActivated {
+                MarkdownView(
+                  markdown: message.content,
+                  accent: UIColor(AppTab.ask.accent),
+                  onOpenURL: { url in
+                    openURL(url)
+                  }
+                )
+              } else {
+                VStack(alignment: .leading, spacing: 8) {
+                  HStack(spacing: 8) {
+                    ProgressView()
+                      .controlSize(.small)
+                    Text("Rendering response...")
+                      .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                      .foregroundStyle(.secondary)
+                  }
+
+                  VStack(alignment: .leading, spacing: 6) {
+                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                      .fill(Color.primary.opacity(0.10))
+                      .frame(height: 11)
+                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                      .fill(Color.primary.opacity(0.08))
+                      .frame(height: 11)
+                    RoundedRectangle(cornerRadius: 4, style: .continuous)
+                      .fill(Color.primary.opacity(0.06))
+                      .frame(width: 180, height: 11)
+                  }
+                }
+              }
+            }
           }
-          if let citations = message.citations, !citations.isEmpty {
-            CitationsList(citations: citations)
+          .padding(14)
+          // Important: apply the width constraint *after* the background so short user messages
+          // don't paint a full-width accent bar.
+          .background(
+            isUser ? AnyShapeStyle(AppTab.ask.accent) : AnyShapeStyle(.thinMaterial),
+            in: shape
+          )
+          .overlay(
+            Group {
+              if !isUser {
+                shape.fill(
+                  LinearGradient(
+                    colors: [AppTab.ask.accent.opacity(0.08), .clear],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                  )
+                )
+              }
+            }
+          )
+          .overlay(
+            Group {
+              if isUser {
+                shape.stroke(Color.white.opacity(0.18), lineWidth: 1)
+              } else {
+                shape.stroke(
+                  LinearGradient(
+                    colors: [
+                      .white.opacity(0.95),
+                      AppTab.ask.accent.opacity(0.22),
+                      .white.opacity(0.55),
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                  ),
+                  lineWidth: 1
+                )
+              }
+            }
+          )
+          .shadow(color: .black.opacity(isUser ? 0.0 : 0.06), radius: 12, x: 0, y: 8)
+          .frame(maxWidth: bubbleMaxWidth, alignment: isUser ? .trailing : .leading)
+
+          if !isUser {
+            if let actions = message.suggestedActions, !actions.isEmpty {
+              ActionChips(actions: actions)
+                .frame(maxWidth: bubbleMaxWidth, alignment: .leading)
+            }
+            if let citations = message.citations, !citations.isEmpty {
+              CitationsList(citations: citations)
+                .frame(maxWidth: bubbleMaxWidth, alignment: .leading)
+            }
           }
         }
+        .onAppear {
+          guard !isUser else { return }
+          guard !richTextActivated else { return }
+          activationTask?.cancel()
+          activationTask = Task {
+            try? await Task.sleep(nanoseconds: 120_000_000)
+            guard !Task.isCancelled else { return }
+            richTextActivated = true
+          }
+        }
+        .onDisappear {
+          activationTask?.cancel()
+          activationTask = nil
+        }
+
+        if !isUser { Spacer(minLength: 32) }
       }
     }
 

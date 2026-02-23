@@ -118,7 +118,7 @@ npm run ios:staging:up
 Manual (Xcode):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+cd "/Users/shenkairan/Documents/Spring26/RegShield CA/apps/ios/CivicShield"
 xcodegen generate
 open CivicShield.xcodeproj
 ```

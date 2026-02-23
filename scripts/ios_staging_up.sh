@@ -8,7 +8,6 @@ LOG_DIR="${ROOT_DIR}/.tmp/ios"
 
 DEVICE_NAME="${CIVICSHIELD_IOS_DEVICE:-iPhone 15 Pro Max}"
 SCHEME="CivicShield-Staging"
-BUNDLE_ID="org.regshield.ca"
 
 mkdir -p "${LOG_DIR}"
 
@@ -99,6 +98,7 @@ xcodebuild build \
   -scheme "${SCHEME}" \
   -destination "platform=iOS Simulator,id=${UDID}" \
   -derivedDataPath "${DERIVED_DIR}" \
+  -skipMacroValidation \
   CODE_SIGNING_ALLOWED=NO \
   > "${LOG_DIR}/build.log" 2>&1
 
@@ -111,6 +111,17 @@ fi
 
 echo "Installing app: ${APP_PATH}"
 xcrun simctl install "${UDID}" "${APP_PATH}"
+
+if ! command -v /usr/libexec/PlistBuddy >/dev/null 2>&1; then
+  echo "PlistBuddy is required (missing /usr/libexec/PlistBuddy)." >&2
+  exit 1
+fi
+
+BUNDLE_ID="$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "${APP_PATH}/Info.plist" 2>/dev/null || true)"
+if [[ -z "${BUNDLE_ID}" ]]; then
+  echo "Failed to read CFBundleIdentifier from: ${APP_PATH}/Info.plist" >&2
+  exit 1
+fi
 
 echo "Launching: ${BUNDLE_ID}"
 xcrun simctl launch "${UDID}" "${BUNDLE_ID}" >/dev/null

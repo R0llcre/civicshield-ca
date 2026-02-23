@@ -114,7 +114,9 @@ fun MarkdownText(
     modifier = modifier,
     factory = { ctx ->
       TextView(ctx).apply {
-        setPadding(0, 0, 0, 0)
+        // Prevent list markers / leading spans from being clipped at the view edge.
+        val pad = (2f * ctx.resources.displayMetrics.density).toInt().coerceAtLeast(0)
+        setPaddingRelative(pad, 0, pad, 0)
         includeFontPadding = false
         movementMethod = LinkMovementMethod.getInstance()
         highlightColor = android.graphics.Color.TRANSPARENT

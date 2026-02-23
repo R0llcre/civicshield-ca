@@ -163,6 +163,8 @@ final class AskViewModel: ObservableObject {
       error = "Enter a question."
       return
     }
+    let sendInterval = PerfSignpost.begin("ask_send")
+    defer { PerfSignpost.end("ask_send", sendInterval) }
 
     if activeThreadId == nil {
       newChat(title: "Chat 1")
@@ -179,11 +181,13 @@ final class AskViewModel: ObservableObject {
 
     do {
       let apiMsgs = buildApiMessages(from: messages)
+      PerfSignpost.event("ask_request_begin")
       let res: AskResponse = try await api.post(
         "/api/ask",
         body: AskRequest(locale: locale, messages: apiMsgs),
         timeout: 60
       )
+      PerfSignpost.event("ask_request_end")
 
       let assistant = AskMessage(
         role: "assistant",
@@ -194,6 +198,7 @@ final class AskViewModel: ObservableObject {
       messages.append(assistant)
       trimAndSave(threadId: tid)
     } catch {
+      PerfSignpost.event("ask_request_error")
       self.error = (error as? LocalizedError)?.errorDescription ?? "AI request failed. Please try again."
       trimAndSave(threadId: tid)
     }

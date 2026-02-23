@@ -1,6 +1,6 @@
 import Foundation
 
-struct VaultParams: Codable, Equatable {
+struct VaultParams: Codable, Equatable, Sendable {
   let version: Int
   let saltB64: String
   let iterations: Int
@@ -12,7 +12,7 @@ struct VaultParams: Codable, Equatable {
   }
 }
 
-struct VaultItemMeta: Codable, Identifiable, Equatable {
+struct VaultItemMeta: Codable, Identifiable, Equatable, Sendable {
   let id: String
   let createdAt: String
   let originalName: String
@@ -20,7 +20,7 @@ struct VaultItemMeta: Codable, Identifiable, Equatable {
   let size: Int64
 }
 
-struct VaultFile: Codable, Equatable {
+struct VaultFile: Codable, Equatable, Sendable {
   let id: String
   let bytesB64: String
 
@@ -30,12 +30,12 @@ struct VaultFile: Codable, Equatable {
   }
 }
 
-struct VaultPlain: Codable, Equatable {
+struct VaultPlain: Codable, Equatable, Sendable {
   let items: [VaultItemMeta]
   let files: [VaultFile]
 }
 
-struct EncryptedBlob: Codable, Equatable {
+struct EncryptedBlob: Codable, Equatable, Sendable {
   let ivB64: String
   let ciphertextB64: String
 
@@ -46,14 +46,13 @@ struct EncryptedBlob: Codable, Equatable {
 }
 
 // Zip manifest schema (shared with Android/Web)
-struct VaultExportV1: Codable, Equatable {
+struct VaultExportV1: Codable, Equatable, Sendable {
   let version: Int
   let kdf: VaultKdf
   let alg: String
 }
 
-struct VaultKdf: Codable, Equatable {
+struct VaultKdf: Codable, Equatable, Sendable {
   let saltB64: String
   let iterations: Int
 }
-

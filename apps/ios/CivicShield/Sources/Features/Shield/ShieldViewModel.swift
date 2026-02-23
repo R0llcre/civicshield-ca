@@ -65,14 +65,14 @@ final class ShieldViewModel: ObservableObject {
 
   func riskLabel() -> String {
     switch selectedFlags.count {
-    case 0...1: return "Risk: Low"
-    case 2...3: return "Risk: Medium"
-    default: return "Risk: High"
+    case 0...1: return "Overall risk: Low"
+    case 2...3: return "Overall risk: Medium"
+    default: return "Overall risk: High"
     }
   }
 
   func planProgressLabel() -> String {
-    "\(completedSteps.count)/\(steps.count) done"
+    "Steps: \(completedSteps.count)/\(steps.count) done"
   }
 
   func summaryText() -> String {
@@ -103,4 +103,3 @@ final class ShieldViewModel: ObservableObject {
     UserDefaults.standard.set(Array(completedSteps), forKey: stepsKey)
   }
 }
-

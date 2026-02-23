@@ -267,6 +267,7 @@ if ! curl -fsS --max-time 5 "${REGSHIELD_STAGING_BASE_URL%/}/api/meta/health" >/
 fi
 
 echo "Installing stagingDebug app..."
+GRADLE_OPTS="${GRADLE_OPTS:-} -Dorg.gradle.workers.max=1" \
 ANDROID_SERIAL="$EMU_SERIAL" REGSHIELD_STAGING_BASE_URL="$REGSHIELD_STAGING_BASE_URL" \
   bash "$ROOT_DIR/scripts/android_staging_run.sh" install
 

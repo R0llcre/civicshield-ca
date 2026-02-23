@@ -16,7 +16,7 @@ struct VaultView: View {
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 14) {
+      LazyVStack(alignment: .leading, spacing: 14) {
         GlassCard {
           Text("Evidence Vault")
             .font(.system(.title, design: .rounded).weight(.bold))
@@ -29,7 +29,7 @@ struct VaultView: View {
         if let unlocked = store.unlocked {
           unlockedSection(unlocked: unlocked)
         } else {
-          lockedSection(hasVault: store.hasVault())
+          lockedSection(hasVault: store.hasVault)
         }
 
         if let error {
@@ -48,6 +48,9 @@ struct VaultView: View {
       }
       .padding(.horizontal, 16)
       .padding(.bottom, 28)
+    }
+    .task {
+      await store.refreshStatus()
     }
     .fileImporter(
       isPresented: $showAddFiles,
@@ -73,10 +76,12 @@ struct VaultView: View {
     }
     .alert("Delete vault?", isPresented: $showDeleteVaultConfirm) {
       Button("Delete", role: .destructive) {
-        do {
-          try store.deleteVault()
-        } catch {
-          self.error = (error as? LocalizedError)?.errorDescription ?? "Unable to delete vault."
+        Task {
+          do {
+            try await store.deleteVault()
+          } catch {
+            self.error = (error as? LocalizedError)?.errorDescription ?? "Unable to delete vault."
+          }
         }
       }
       Button("Cancel", role: .cancel) {}
@@ -121,21 +126,24 @@ struct VaultView: View {
         }
       }
 
-      if hasVault {
-        Button {
-          unlock()
-        } label: {
-          Label("Unlock", systemImage: "lock.open")
+      Group {
+        if hasVault {
+          Button {
+            Task { await unlock() }
+          } label: {
+            Label("Unlock", systemImage: "lock.open")
+          }
+          .buttonStyle(PrimaryButtonStyle(tint: AppTab.shield.accent))
+        } else {
+          Button {
+            Task { await create() }
+          } label: {
+            Label("Create vault", systemImage: "lock.shield")
+          }
+          .buttonStyle(PrimaryButtonStyle(tint: AppTab.shield.accent))
         }
-        .buttonStyle(PrimaryButtonStyle(tint: AppTab.shield.accent))
-      } else {
-        Button {
-          create()
-        } label: {
-          Label("Create vault", systemImage: "lock.shield")
-        }
-        .buttonStyle(PrimaryButtonStyle(tint: AppTab.shield.accent))
       }
+      .disabled(store.busy)
 
       Button {
         // Import replaces local vault only after successful decrypt + parse.
@@ -145,6 +153,7 @@ struct VaultView: View {
         Label("Import vault zip", systemImage: "square.and.arrow.down")
       }
       .buttonStyle(TonalButtonStyle(tint: AppTab.shield.accent))
+      .disabled(store.busy)
 
       if hasVault {
         Button(role: .destructive) {
@@ -153,6 +162,16 @@ struct VaultView: View {
           Label("Delete local vault", systemImage: "trash")
         }
         .buttonStyle(TonalButtonStyle(tint: .gray))
+        .disabled(store.busy)
+      }
+
+      if store.busy {
+        HStack(spacing: 10) {
+          ProgressView()
+          Text("Working...")
+            .font(.system(.subheadline, design: .rounded).weight(.semibold))
+            .foregroundStyle(.secondary)
+        }
       }
     }
   }
@@ -181,14 +200,16 @@ struct VaultView: View {
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(PrimaryButtonStyle(tint: AppTab.shield.accent))
+        .disabled(store.busy)
 
         Button {
-          export()
+          Task { await export() }
         } label: {
           Label("Export zip", systemImage: "square.and.arrow.up")
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(TonalButtonStyle(tint: AppTab.shield.accent))
+        .disabled(store.busy)
       }
 
       HStack(spacing: 12) {
@@ -202,6 +223,7 @@ struct VaultView: View {
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(TonalButtonStyle(tint: .gray))
+        .disabled(store.busy)
 
         Button(role: .destructive) {
           showDeleteVaultConfirm = true
@@ -210,18 +232,32 @@ struct VaultView: View {
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(TonalButtonStyle(tint: .gray))
+        .disabled(store.busy)
+      }
+
+      if store.busy {
+        HStack(spacing: 10) {
+          ProgressView()
+          Text("Working...")
+            .font(.system(.subheadline, design: .rounded).weight(.semibold))
+            .foregroundStyle(.secondary)
+        }
       }
     }
 
     if !unlocked.items.isEmpty {
-      ForEach(unlocked.items) { item in
-        VaultItemCard(item: item, onDelete: {
-          do {
-            try store.deleteItem(id: item.id)
-          } catch {
-            self.error = (error as? LocalizedError)?.errorDescription ?? "Unable to delete item."
-          }
-        })
+      LazyVStack(spacing: 12) {
+        ForEach(unlocked.items) { item in
+          VaultItemCard(item: item, onDelete: {
+            Task {
+              do {
+                try await store.deleteItem(id: item.id)
+              } catch {
+                self.error = (error as? LocalizedError)?.errorDescription ?? "Unable to delete item."
+              }
+            }
+          })
+        }
       }
     } else {
       GlassCard {
@@ -234,7 +270,7 @@ struct VaultView: View {
     }
   }
 
-  private func create() {
+  private func create() async {
     error = nil
     let p = passphrase.trimmingCharacters(in: .whitespacesAndNewlines)
     let c = confirmPassphrase.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -247,7 +283,7 @@ struct VaultView: View {
       return
     }
     do {
-      try store.createNew(passphrase: p)
+      try await store.createNew(passphrase: p)
       passphrase = ""
       confirmPassphrase = ""
     } catch {
@@ -255,7 +291,7 @@ struct VaultView: View {
     }
   }
 
-  private func unlock() {
+  private func unlock() async {
     error = nil
     let p = passphrase.trimmingCharacters(in: .whitespacesAndNewlines)
     guard !p.isEmpty else {
@@ -263,7 +299,7 @@ struct VaultView: View {
       return
     }
     do {
-      try store.unlock(passphrase: p)
+      try await store.unlock(passphrase: p)
       passphrase = ""
       confirmPassphrase = ""
     } catch {
@@ -271,10 +307,10 @@ struct VaultView: View {
     }
   }
 
-  private func export() {
+  private func export() async {
     error = nil
     do {
-      let data = try store.exportZip()
+      let data = try await store.exportZip()
       exportDoc = DataDocument(data: data)
       showExporter = true
     } catch {
@@ -286,14 +322,16 @@ struct VaultView: View {
     switch result {
     case let .success(urls):
       guard !urls.isEmpty else { return }
-      do {
-        let scoped: [(URL, Bool)] = urls.map { ($0, $0.startAccessingSecurityScopedResource()) }
-        defer {
-          for (u, ok) in scoped where ok { u.stopAccessingSecurityScopedResource() }
+      Task {
+        do {
+          let scoped: [(URL, Bool)] = urls.map { ($0, $0.startAccessingSecurityScopedResource()) }
+          defer {
+            for (u, ok) in scoped where ok { u.stopAccessingSecurityScopedResource() }
+          }
+          try await store.addFiles(urls: urls)
+        } catch {
+          self.error = (error as? LocalizedError)?.errorDescription ?? "Unable to add files."
         }
-        try store.addFiles(urls: urls)
-      } catch {
-        self.error = (error as? LocalizedError)?.errorDescription ?? "Unable to add files."
       }
     case let .failure(err):
       self.error = err.localizedDescription
@@ -304,21 +342,23 @@ struct VaultView: View {
     switch result {
     case let .success(urls):
       guard let url = urls.first else { return }
-      do {
-        let ok = url.startAccessingSecurityScopedResource()
-        defer { if ok { url.stopAccessingSecurityScopedResource() } }
+      Task {
+        do {
+          let ok = url.startAccessingSecurityScopedResource()
+          defer { if ok { url.stopAccessingSecurityScopedResource() } }
 
-        let data = try Data(contentsOf: url)
-        let p = passphrase.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !p.isEmpty else {
-          error = "Enter the vault passphrase to import."
-          return
+          let data = try Data(contentsOf: url)
+          let p = passphrase.trimmingCharacters(in: .whitespacesAndNewlines)
+          guard !p.isEmpty else {
+            error = "Enter the vault passphrase to import."
+            return
+          }
+          try await store.importZip(passphrase: p, zipData: data)
+          passphrase = ""
+          confirmPassphrase = ""
+        } catch {
+          self.error = (error as? LocalizedError)?.errorDescription ?? "Unable to import."
         }
-        try store.importZip(passphrase: p, zipData: data)
-        passphrase = ""
-        confirmPassphrase = ""
-      } catch {
-        self.error = (error as? LocalizedError)?.errorDescription ?? "Unable to import."
       }
     case let .failure(err):
       self.error = err.localizedDescription

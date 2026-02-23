@@ -6,7 +6,7 @@ struct VerifyView: View {
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 14) {
+      LazyVStack(alignment: .leading, spacing: 14) {
         GlassCard {
           Text("Verify credentials")
             .font(.system(.title, design: .rounded).weight(.bold))
@@ -86,7 +86,7 @@ struct VerifyView: View {
             }
           }
 
-          VStack(spacing: 12) {
+          LazyVStack(spacing: 12) {
             ForEach(vm.results) { r in
               VerifyResultCard(entry: r)
             }

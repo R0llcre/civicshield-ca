@@ -87,14 +87,15 @@ if run_gradle "$LOG_FILE" $TASK; then
   exit 0
 fi
 
-# Known intermittent issue: duplicate kapt generated files ending in " 2.java".
-if rg -q "Factory 2\\.java|hilt_aggregated_deps.* 2\\.java" "$LOG_FILE"; then
+# Known intermittent issues:
+# 1) duplicate kapt generated files ending in " 2.java"
+# 2) duplicate classes in runtime classes.jar (e.g. material R$anim.class)
+if rg -q "Factory 2\\.java|hilt_aggregated_deps.* 2\\.java|already contains entry 'com/google/android/material/R\\$anim.class'|already contains entry" "$LOG_FILE"; then
   echo ""
-  echo "Detected duplicate kapt generated sources. Retrying with clean build..."
+  echo "Detected retryable duplicate build artifacts. Retrying with clean build..."
   run_gradle "$LOG_FILE" :app:clean $TASK
   exit 0
 fi
 
 echo "Gradle build failed. See log above." >&2
 exit 1
-

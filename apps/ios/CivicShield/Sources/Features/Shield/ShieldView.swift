@@ -4,6 +4,8 @@ struct ShieldView: View {
   @StateObject private var vm = ShieldViewModel()
   @State private var showShare = false
   @State private var toast: String? = nil
+  @State private var flagsExpanded: Bool = true
+  @State private var planExpanded: Bool = true
 
   var body: some View {
     ScrollView {
@@ -17,104 +19,162 @@ struct ShieldView: View {
             .foregroundStyle(.secondary)
 
           HStack(spacing: 10) {
-            StatusPill(text: "Flags \(vm.selectedFlags.count)/\(vm.flags.count)", tint: AppTab.shield.accent)
+            StatusPill(text: "Signals \(vm.selectedFlags.count)/\(vm.flags.count)", tint: AppTab.shield.accent)
             StatusPill(text: vm.planProgressLabel(), tint: .gray)
             StatusPill(text: vm.riskLabel(), tint: vm.selectedFlags.count >= 2 ? .orange : .green)
           }
         }
 
         GlassCard {
-          HStack {
-            Text("Red flags checklist")
-              .font(.system(.headline, design: .rounded).weight(.bold))
-            Spacer()
-            Button("Clear") { vm.clearAllFlags() }
-              .font(.system(.caption, design: .rounded).weight(.semibold))
-              .foregroundStyle(.secondary)
-          }
+          VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+              HStack(spacing: 8) {
+                Image(systemName: flagsExpanded ? "chevron.down" : "chevron.right")
+                  .font(.system(size: 14, weight: .semibold))
+                  .foregroundStyle(.secondary)
 
-          VStack(spacing: 10) {
-            ForEach(vm.flags) { f in
-              Button {
-                vm.toggleFlag(f.id)
-              } label: {
-                HStack(alignment: .top, spacing: 12) {
-                  Image(systemName: vm.selectedFlags.contains(f.id) ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(vm.selectedFlags.contains(f.id) ? AppTab.shield.accent : .secondary)
-                    .font(.system(size: 18, weight: .semibold))
-                    .padding(.top, 2)
+                Text("Red flags checklist")
+                  .font(.system(.headline, design: .rounded).weight(.bold))
 
-                  VStack(alignment: .leading, spacing: 3) {
-                    Text(f.title)
-                      .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                      .foregroundStyle(.primary)
-                    Text(f.detail)
-                      .font(.system(.caption, design: .rounded))
-                      .foregroundStyle(.secondary)
-                  }
+                Spacer(minLength: 0)
 
-                  Spacer(minLength: 0)
+                Text("\(vm.selectedFlags.count) selected")
+                  .font(.system(.caption, design: .rounded).weight(.semibold))
+                  .foregroundStyle(.secondary)
+              }
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .contentShape(Rectangle())
+              .onTapGesture {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                  flagsExpanded.toggle()
                 }
-                .padding(12)
-                .background(AppTab.shield.accent.opacity(vm.selectedFlags.contains(f.id) ? 0.10 : 0.06), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
-                .overlay(
-                  RoundedRectangle(cornerRadius: 18, style: .continuous)
-                    .stroke(AppTab.shield.accent.opacity(vm.selectedFlags.contains(f.id) ? 0.22 : 0.10), lineWidth: 1)
-                )
+              }
+
+              Button {
+                vm.clearAllFlags()
+              } label: {
+                Text("Clear")
+                  .font(.system(.caption, design: .rounded).weight(.semibold))
               }
               .buttonStyle(.plain)
+              .foregroundStyle(AppTab.shield.accent)
+              .padding(.horizontal, 12)
+              .padding(.vertical, 8)
+              .frame(minHeight: 44)
+              .background(AppTab.shield.accent.opacity(0.10), in: Capsule())
+              .overlay(Capsule().stroke(AppTab.shield.accent.opacity(0.18), lineWidth: 1))
+            }
+
+            if flagsExpanded {
+              VStack(spacing: 10) {
+                ForEach(vm.flags) { f in
+                  Button {
+                    vm.toggleFlag(f.id)
+                  } label: {
+                    HStack(alignment: .top, spacing: 12) {
+                      Image(systemName: vm.selectedFlags.contains(f.id) ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(vm.selectedFlags.contains(f.id) ? AppTab.shield.accent : .secondary)
+                        .font(.system(size: 18, weight: .semibold))
+                        .padding(.top, 2)
+
+                      VStack(alignment: .leading, spacing: 3) {
+                        Text(f.title)
+                          .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                          .foregroundStyle(.primary)
+                        Text(f.detail)
+                          .font(.system(.caption, design: .rounded))
+                          .foregroundStyle(.primary.opacity(0.78))
+                      }
+
+                      Spacer(minLength: 0)
+                    }
+                    .padding(12)
+                    .background(AppTab.shield.accent.opacity(vm.selectedFlags.contains(f.id) ? 0.10 : 0.06), in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                    .overlay(
+                      RoundedRectangle(cornerRadius: 18, style: .continuous)
+                        .stroke(AppTab.shield.accent.opacity(vm.selectedFlags.contains(f.id) ? 0.22 : 0.10), lineWidth: 1)
+                    )
+                  }
+                  .buttonStyle(.plain)
+                }
+              }
             }
           }
         }
 
         GlassCard {
-          Text("Action plan")
-            .font(.system(.headline, design: .rounded).weight(.bold))
+          VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 12) {
+              HStack(spacing: 8) {
+                Image(systemName: planExpanded ? "chevron.down" : "chevron.right")
+                  .font(.system(size: 14, weight: .semibold))
+                  .foregroundStyle(.secondary)
 
-          VStack(alignment: .leading, spacing: 10) {
-            ForEach(Array(vm.steps.enumerated()), id: \.element.id) { idx, s in
-              Button {
-                vm.toggleStep(s.id)
-              } label: {
-                HStack(alignment: .top, spacing: 12) {
-                  Text("\(idx + 1)")
-                    .font(.system(.caption, design: .rounded).weight(.bold))
-                    .foregroundStyle(AppTab.shield.accent)
-                    .frame(width: 22, height: 22)
-                    .background(AppTab.shield.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                Text("Action plan")
+                  .font(.system(.headline, design: .rounded).weight(.bold))
 
-                  Text(s.text)
-                    .font(.system(.subheadline, design: .rounded).weight(.semibold))
-                    .foregroundStyle(.primary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                Spacer(minLength: 0)
 
-                  Image(systemName: vm.completedSteps.contains(s.id) ? "checkmark.circle.fill" : "circle")
-                    .foregroundStyle(vm.completedSteps.contains(s.id) ? AppTab.shield.accent : .secondary)
-                }
-                .padding(12)
-                .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                Text(vm.planProgressLabel())
+                  .font(.system(.caption, design: .rounded).weight(.semibold))
+                  .foregroundStyle(.secondary)
               }
-              .buttonStyle(.plain)
+              .frame(maxWidth: .infinity, alignment: .leading)
+              .contentShape(Rectangle())
+              .onTapGesture {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                  planExpanded.toggle()
+                }
+              }
             }
-          }
 
-          HStack(spacing: 12) {
-            Button {
-              UIPasteboard.general.string = vm.summaryText()
-              toast = "Copied"
-            } label: {
-              Label("Copy summary", systemImage: "doc.on.doc")
-                .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(TonalButtonStyle(tint: AppTab.shield.accent))
+            if planExpanded {
+              VStack(alignment: .leading, spacing: 10) {
+                ForEach(Array(vm.steps.enumerated()), id: \.element.id) { idx, s in
+                  Button {
+                    vm.toggleStep(s.id)
+                  } label: {
+                    HStack(alignment: .top, spacing: 12) {
+                      Text("\(idx + 1)")
+                        .font(.system(.caption, design: .rounded).weight(.bold))
+                        .foregroundStyle(AppTab.shield.accent)
+                        .frame(width: 22, height: 22)
+                        .background(AppTab.shield.accent.opacity(0.12), in: RoundedRectangle(cornerRadius: 8, style: .continuous))
 
-            Button {
-              showShare = true
-            } label: {
-              Label("Share summary", systemImage: "square.and.arrow.up")
-                .frame(maxWidth: .infinity)
+                      Text(s.text)
+                        .font(.system(.subheadline, design: .rounded).weight(.semibold))
+                        .foregroundStyle(.primary)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+
+                      Image(systemName: vm.completedSteps.contains(s.id) ? "checkmark.circle.fill" : "circle")
+                        .foregroundStyle(vm.completedSteps.contains(s.id) ? AppTab.shield.accent : .secondary)
+                    }
+                    .padding(12)
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 18, style: .continuous))
+                  }
+                  .buttonStyle(.plain)
+                }
+              }
+
+              HStack(spacing: 12) {
+                Button {
+                  UIPasteboard.general.string = vm.summaryText()
+                  toast = "Copied"
+                } label: {
+                  Label("Copy summary", systemImage: "doc.on.doc")
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(TonalButtonStyle(tint: AppTab.shield.accent))
+
+                Button {
+                  showShare = true
+                } label: {
+                  Label("Share summary", systemImage: "square.and.arrow.up")
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(TonalButtonStyle(tint: AppTab.shield.accent))
+              }
             }
-            .buttonStyle(TonalButtonStyle(tint: AppTab.shield.accent))
           }
         }
 
@@ -165,4 +225,3 @@ struct ShieldView: View {
     }
   }
 }
-

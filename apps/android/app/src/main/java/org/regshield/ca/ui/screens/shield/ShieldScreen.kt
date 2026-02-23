@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.ExpandLess
+import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.Checkbox
@@ -29,6 +32,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -132,6 +138,8 @@ fun ShieldContent(
       checkedCount <= 2 -> R.string.shield_risk_medium
       else -> R.string.shield_risk_high
     }
+  var flagsExpanded by rememberSaveable { mutableStateOf(true) }
+  var planExpanded by rememberSaveable { mutableStateOf(true) }
   val chromeTopPadding = contentPadding.calculateTopPadding()
   val chromeBottomPadding = contentPadding.calculateBottomPadding()
 
@@ -174,6 +182,8 @@ fun ShieldContent(
           completedStepIds = completedStepIds,
           onToggleFlag = onToggleFlag,
           onClearAll = onClearAll,
+          expanded = flagsExpanded,
+          onToggleExpanded = { flagsExpanded = !flagsExpanded },
         )
       } else {
         SplitColumns(
@@ -185,6 +195,8 @@ fun ShieldContent(
               completedStepIds = completedStepIds,
               onToggleFlag = onToggleFlag,
               onClearAll = onClearAll,
+              expanded = flagsExpanded,
+              onToggleExpanded = { flagsExpanded = !flagsExpanded },
             )
           },
           right = {
@@ -193,6 +205,8 @@ fun ShieldContent(
               onToggleStep = onToggleStep,
               onCopySummary = onCopySummary,
               onShareSummary = onShareSummary,
+              expanded = planExpanded,
+              onToggleExpanded = { planExpanded = !planExpanded },
             )
           },
         )
@@ -206,6 +220,8 @@ fun ShieldContent(
           onToggleStep = onToggleStep,
           onCopySummary = onCopySummary,
           onShareSummary = onShareSummary,
+          expanded = planExpanded,
+          onToggleExpanded = { planExpanded = !planExpanded },
         )
       }
     }
@@ -236,29 +252,55 @@ private fun RedFlagsCard(
   completedStepIds: Set<String>,
   onToggleFlag: (String, Boolean) -> Unit,
   onClearAll: () -> Unit,
-) {
-  val canClear = selectedFlagIds.isNotEmpty() || completedStepIds.isNotEmpty()
-  CivicCard {
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(10.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Text(
-        text = stringResource(R.string.shield_red_flags),
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.weight(1f),
-      )
-      CivicLinkButton(
-        text = stringResource(R.string.shield_clear_all),
-        onClick = onClearAll,
-        enabled = canClear,
-        modifier = Modifier.testTag("shield_clear_all"),
-      )
-    }
-    for ((index, flag) in FLAGS.withIndex()) {
-      ShieldFlagTile(
-        title = stringResource(flag.title),
+  expanded: Boolean,
+  onToggleExpanded: () -> Unit,
+  ) {
+	  val canClear = selectedFlagIds.isNotEmpty() || completedStepIds.isNotEmpty()
+	  CivicCard {
+	    Row(
+	      modifier = Modifier.fillMaxWidth(),
+	      horizontalArrangement = Arrangement.spacedBy(12.dp),
+	      verticalAlignment = Alignment.CenterVertically,
+	    ) {
+	      Row(
+	        modifier =
+	          Modifier
+	            .weight(1f)
+	            .clickable { onToggleExpanded() }
+	            .padding(vertical = 6.dp),
+	        horizontalArrangement = Arrangement.spacedBy(10.dp),
+	        verticalAlignment = Alignment.CenterVertically,
+	      ) {
+	        Icon(
+	          imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+	          contentDescription = if (expanded) "Collapse" else "Expand",
+	          tint = MaterialTheme.colorScheme.onSurfaceVariant,
+	        )
+	        Text(
+	          text = stringResource(R.string.shield_red_flags),
+	          style = MaterialTheme.typography.titleMedium,
+	          fontWeight = FontWeight.Bold,
+	        )
+	        if (!expanded) {
+	          Spacer(modifier = Modifier.weight(1f))
+	          Text(
+	            text = stringResource(R.string.shield_flags_selected_summary, selectedFlagIds.size),
+	            style = MaterialTheme.typography.labelMedium,
+	            color = MaterialTheme.colorScheme.onSurfaceVariant,
+	          )
+	        }
+	      }
+	      CivicLinkButton(
+	        text = stringResource(R.string.shield_clear_all),
+	        onClick = onClearAll,
+	        enabled = canClear,
+	        modifier = Modifier.testTag("shield_clear_all"),
+	      )
+	    }
+	    if (!expanded) return@CivicCard
+	    for ((index, flag) in FLAGS.withIndex()) {
+	      ShieldFlagTile(
+	        title = stringResource(flag.title),
         detail = stringResource(flag.detail),
         checked = selectedFlagIds.contains(flag.id),
         testTag = "shield_flag_$index",
@@ -274,23 +316,42 @@ private fun ActionPlanCard(
   onToggleStep: (String, Boolean) -> Unit,
   onCopySummary: () -> Unit,
   onShareSummary: () -> Unit,
-) {
-  val done = completedStepIds.size
-  CivicCard {
-    Row(
-      modifier = Modifier.fillMaxWidth(),
-      horizontalArrangement = Arrangement.spacedBy(10.dp),
-      verticalAlignment = Alignment.CenterVertically,
-    ) {
-      Text(
-        text = stringResource(R.string.shield_action_plan),
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.weight(1f),
-      )
-      InfoBadge(text = stringResource(R.string.shield_plan_progress, done, STEPS.size))
-    }
+  expanded: Boolean,
+  onToggleExpanded: () -> Unit,
+	) {
+	  val done = completedStepIds.size
+	  CivicCard {
+	    Row(
+	      modifier = Modifier.fillMaxWidth(),
+	      horizontalArrangement = Arrangement.spacedBy(12.dp),
+	      verticalAlignment = Alignment.CenterVertically,
+	    ) {
+	      Row(
+	        modifier =
+	          Modifier
+	            .weight(1f)
+	            .clickable { onToggleExpanded() }
+	            .padding(vertical = 6.dp),
+	        horizontalArrangement = Arrangement.spacedBy(10.dp),
+	        verticalAlignment = Alignment.CenterVertically,
+	      ) {
+	        Icon(
+	          imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
+	          contentDescription = if (expanded) "Collapse" else "Expand",
+	          tint = MaterialTheme.colorScheme.onSurfaceVariant,
+	        )
+	        Text(
+	          text = stringResource(R.string.shield_action_plan),
+	          style = MaterialTheme.typography.titleMedium,
+	          fontWeight = FontWeight.Bold,
+	        )
+	        Spacer(modifier = Modifier.weight(1f))
+	        InfoBadge(text = stringResource(R.string.shield_plan_progress, done, STEPS.size))
+	      }
+	    }
 
-    for ((index, step) in STEPS.withIndex()) {
+	    if (!expanded) return@CivicCard
+	    for ((index, step) in STEPS.withIndex()) {
       PlanStepTile(
         number = index + 1,
         text = stringResource(step.text),
@@ -390,11 +451,11 @@ private fun ShieldFlagTile(
   checked: Boolean,
   testTag: String,
   onChange: (Boolean) -> Unit,
-) {
-  val accent = LocalCivicAccent.current
-  val bg =
-    if (checked) {
-      accent.accentContainer.copy(alpha = 0.7f)
+	) {
+	  val accent = LocalCivicAccent.current
+	  val bg =
+	    if (checked) {
+	      accent.accentContainer.copy(alpha = 0.7f)
     } else {
       MaterialTheme.colorScheme.surface.copy(alpha = 0.92f)
     }
@@ -405,21 +466,21 @@ private fun ShieldFlagTile(
       MaterialTheme.colorScheme.outline.copy(alpha = 0.18f)
     }
 
-  Surface(
-    modifier =
-      Modifier
-        .fillMaxWidth()
+	  Surface(
+	    modifier =
+	      Modifier
+	        .fillMaxWidth()
         .testTag(testTag)
         .clickable { onChange(!checked) },
     shape = MaterialTheme.shapes.extraLarge,
     color = bg,
     border = BorderStroke(width = 1.dp, color = border),
   ) {
-    Row(
-      modifier = Modifier.padding(12.dp),
-      verticalAlignment = Alignment.Top,
-      horizontalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
+	    Row(
+	      modifier = Modifier.padding(12.dp),
+	      verticalAlignment = Alignment.Top,
+	      horizontalArrangement = Arrangement.spacedBy(10.dp),
+	    ) {
       Checkbox(
         checked = checked,
         onCheckedChange = onChange,
@@ -429,15 +490,21 @@ private fun ShieldFlagTile(
             checkmarkColor = accent.onAccent,
           ),
       )
-      Box(modifier = Modifier.weight(1f)) {
-        androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-          Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-          Text(text = detail, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-      }
-    }
-  }
-}
+	      Box(modifier = Modifier.weight(1f)) {
+	        androidx.compose.foundation.layout.Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+	          Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+	          Text(
+	            text = detail,
+	            style = MaterialTheme.typography.bodySmall,
+	            color =
+	              if (checked) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.80f)
+	              else MaterialTheme.colorScheme.onSurfaceVariant,
+	          )
+	        }
+	      }
+	    }
+	  }
+	}
 
 @Composable
 private fun PlanStepTile(

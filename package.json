@@ -31,6 +31,9 @@
     "android:staging:up": "bash scripts/android_staging_up.sh",
     "android:staging:down": "bash scripts/android_staging_down.sh",
     "android:staging:status": "bash scripts/android_staging_status.sh",
-    "ios:staging:up": "bash scripts/ios_staging_up.sh"
+    "android:staging:gate": "bash scripts/android_stability_gate.sh",
+    "android:nightly:gate": "bash scripts/android_nightly_full_gate.sh",
+    "ios:staging:up": "bash scripts/ios_staging_up.sh",
+    "ios:perf:profile": "bash scripts/ios_perf_profile.sh"
   }
 }

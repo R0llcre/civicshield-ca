@@ -40,14 +40,9 @@ private struct MarkdownWebView: UIViewRepresentable {
     Coordinator(height: $height, onOpenURL: onOpenURL)
   }
 
+  @MainActor
   func makeUIView(context: Context) -> WKWebView {
-    let config = WKWebViewConfiguration()
-    config.websiteDataStore = .nonPersistent()
-    if #available(iOS 14.0, *) {
-      config.defaultWebpagePreferences.allowsContentJavaScript = false
-    } else {
-      config.preferences.javaScriptEnabled = false
-    }
+    let config = WebViewShared.makeConfiguration()
 
     let webView = WKWebView(frame: .zero, configuration: config)
     webView.navigationDelegate = context.coordinator
@@ -62,23 +57,31 @@ private struct MarkdownWebView: UIViewRepresentable {
     return webView
   }
 
+  @MainActor
   func updateUIView(_ uiView: WKWebView, context: Context) {
-    let html = context.coordinator.renderHTML(markdown: markdown, accent: accent)
-    if context.coordinator.lastHTML != html {
-      context.coordinator.lastHTML = html
-      uiView.loadHTMLString(html, baseURL: nil)
-      return
-    }
-
-    // Re-measure in case width/trait changes affect layout.
-    context.coordinator.scheduleHeightUpdate(for: uiView)
+    let trait = uiView.traitCollection
+    let params = MarkdownRenderParams.from(trait: trait, accent: accent)
+    context.coordinator.update(uiView: uiView, markdown: markdown, params: params)
   }
 
   final class Coordinator: NSObject, WKNavigationDelegate {
     private let height: Binding<CGFloat>
     private let onOpenURL: (URL) -> Void
 
+    nonisolated private static let stripImgRegex: NSRegularExpression? = {
+      // Remove <img ...> tags to avoid unintended external network fetches.
+      try? NSRegularExpression(pattern: "<img\\b[^>]*>", options: [.caseInsensitive])
+    }()
+
+    nonisolated(unsafe) private static var didEmitFirstAssistantRenderBegin = false
+    nonisolated(unsafe) private static var didEmitFirstAssistantRenderEnd = false
+
+    private var lastKey: String = ""
     var lastHTML: String = ""
+    private var inFlightKey: String? = nil
+    private var renderToken: Int = 0
+    private var renderTask: Task<Void, Never>?
+    private var pendingHeightWorkItem: DispatchWorkItem?
 
     init(height: Binding<CGFloat>, onOpenURL: @escaping (URL) -> Void) {
       self.height = height
@@ -89,7 +92,7 @@ private struct MarkdownWebView: UIViewRepresentable {
       scheduleHeightUpdate(for: webView)
     }
 
-    func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+    private func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
       if navigationAction.navigationType == .linkActivated, let url = navigationAction.request.url {
         if UrlPolicy.isAllowed(url) {
           onOpenURL(url)
@@ -100,54 +103,118 @@ private struct MarkdownWebView: UIViewRepresentable {
       decisionHandler(.allow)
     }
 
-    func scheduleHeightUpdate(for webView: WKWebView) {
-      // Avoid synchronous state updates during view update/layout.
-      DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak webView] in
-        guard let webView else { return }
-        let h = max(20, webView.scrollView.contentSize.height.rounded(.up))
-        if abs(self.height.wrappedValue - h) > 0.5 {
-          self.height.wrappedValue = h
+    func update(uiView: WKWebView, markdown: String, params: MarkdownRenderParams) {
+      let key = cacheKey(markdown: markdown, params: params)
+
+      // Fast path: already rendered for these inputs.
+      if key == lastKey, !lastHTML.isEmpty {
+        scheduleHeightUpdate(for: uiView)
+        return
+      }
+      lastKey = key
+
+      // Render already in progress for this key.
+      if inFlightKey == key {
+        return
+      }
+      inFlightKey = key
+
+      if !Self.didEmitFirstAssistantRenderBegin {
+        Self.didEmitFirstAssistantRenderBegin = true
+        PerfSignpost.event("ask_first_assistant_markdown_begin")
+      }
+
+      renderToken &+= 1
+      let token = renderToken
+      renderTask?.cancel()
+      renderTask = Task { [weak self, weak uiView] in
+        guard let self, let uiView else { return }
+
+        PerfSignpost.event("ask_markdown_render_begin")
+        let html = await MarkdownRenderScheduler.shared.html(forKey: key) {
+          Self.renderHTML(markdown: markdown, params: params)
+        }
+        guard !Task.isCancelled else { return }
+        PerfSignpost.event("ask_markdown_render_end")
+
+        if !Self.didEmitFirstAssistantRenderEnd {
+          Self.didEmitFirstAssistantRenderEnd = true
+          PerfSignpost.event("ask_first_assistant_markdown_end")
+        }
+
+        guard self.lastKey == key, self.renderToken == token else {
+          if self.inFlightKey == key { self.inFlightKey = nil }
+          return
+        }
+
+        self.inFlightKey = nil
+        if self.lastHTML != html {
+          self.lastHTML = html
+          PerfSignpost.event("ask_webview_loadhtml_begin")
+          uiView.loadHTMLString(html, baseURL: nil)
+          PerfSignpost.event("ask_webview_loadhtml_end")
+        } else {
+          self.scheduleHeightUpdate(for: uiView)
         }
       }
     }
 
-    func renderHTML(markdown: String, accent: UIColor) -> String {
-      let fontSize = UIFont.preferredFont(forTextStyle: .body).pointSize
-      let monoSize = UIFont.preferredFont(forTextStyle: .callout).pointSize
-      let textColor = UIColor.label
-      let secondary = UIColor.secondaryLabel
-      let border = UIColor.separator
+    func scheduleHeightUpdate(for webView: WKWebView) {
+      pendingHeightWorkItem?.cancel()
+      let work = DispatchWorkItem { [weak webView] in
+        self.pendingHeightWorkItem = nil
+        guard let webView else { return }
+        let h = max(20, webView.scrollView.contentSize.height.rounded(.up))
+        if abs(self.height.wrappedValue - h) > 1.0 {
+          PerfSignpost.event("ask_markdown_height_writeback")
+          self.height.wrappedValue = h
+        }
+      }
+      pendingHeightWorkItem = work
+      DispatchQueue.main.asyncAfter(deadline: .now() + 0.12, execute: work)
+    }
 
-      let accentHex = accent.toHex() ?? "#0B4D91"
-      let textHex = textColor.toHex() ?? "#111827"
-      let secondaryHex = secondary.toHex() ?? "#475569"
-      let borderHex = border.toHex() ?? "#CBD5E1"
+    private func cacheKey(markdown: String, params: MarkdownRenderParams) -> String {
+      var hasher = Hasher()
+      hasher.combine(markdown)
+      hasher.combine(params.accentHex)
+      hasher.combine(params.textHex)
+      hasher.combine(params.secondaryHex)
+      hasher.combine(params.borderHex)
+      hasher.combine(params.uiStyle.rawValue)
+      hasher.combine(Int(params.fontSize * 10))
+      hasher.combine(Int(params.monoSize * 10))
+      return String(hasher.finalize())
+    }
 
+    nonisolated static func renderHTML(markdown: String, params: MarkdownRenderParams) -> String {
       let bodyCSS = """
       :root { color-scheme: light dark; }
       html, body { margin: 0; padding: 0; background: transparent; }
       body {
         font-family: -apple-system, system-ui, "SF Pro Text", "SF Pro Display";
-        font-size: \(fontSize)px;
+        font-size: \(params.fontSize)px;
         line-height: 1.35;
-        color: \(textHex);
+        color: \(params.textHex);
         word-wrap: break-word;
+        /* Give list markers and first glyphs a tiny safety margin to avoid left-edge clipping. */
+        padding: 0 2px;
       }
       p { margin: 0 0 10px 0; }
-      a { color: \(accentHex); text-decoration: underline; }
-      ul, ol { margin: 0 0 10px 18px; padding: 0; }
+      a { color: \(params.accentHex); text-decoration: underline; }
+      ul, ol { margin: 0 0 10px 0; padding-left: 22px; }
       li { margin: 4px 0; }
       blockquote {
         margin: 8px 0;
         padding: 8px 10px;
-        border-left: 3px solid \(borderHex);
-        color: \(secondaryHex);
+        border-left: 3px solid \(params.borderHex);
+        color: \(params.secondaryHex);
         background: rgba(0,0,0,0.03);
         border-radius: 10px;
       }
       code {
         font-family: ui-monospace, Menlo, Monaco, SFMono-Regular, "SF Mono";
-        font-size: \(monoSize)px;
+        font-size: \(params.monoSize)px;
         background: rgba(0,0,0,0.05);
         padding: 2px 4px;
         border-radius: 6px;
@@ -164,14 +231,17 @@ private struct MarkdownWebView: UIViewRepresentable {
         border-collapse: collapse;
         width: 100%;
         margin: 10px 0;
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
       }
       th, td {
-        border: 1px solid \(borderHex);
+        border: 1px solid \(params.borderHex);
         padding: 6px 8px;
         vertical-align: top;
       }
       th { background: rgba(0,0,0,0.04); text-align: left; }
-      hr { border: none; border-top: 1px solid \(borderHex); margin: 12px 0; }
+      hr { border: none; border-top: 1px solid \(params.borderHex); margin: 12px 0; }
       /* Do not load external images. */
       img { display: none !important; }
       """
@@ -185,9 +255,14 @@ private struct MarkdownWebView: UIViewRepresentable {
         htmlBody = "<pre>\(markdown.htmlEscaped())</pre>"
       }
 
-      let sanitized = htmlBody
+      var sanitized = htmlBody
         .replacingOccurrences(of: "<script", with: "&lt;script", options: [.caseInsensitive])
         .replacingOccurrences(of: "</script>", with: "&lt;/script&gt;", options: [.caseInsensitive])
+
+      if let re = Self.stripImgRegex {
+        let ns = sanitized as NSString
+        sanitized = re.stringByReplacingMatches(in: sanitized, options: [], range: NSRange(location: 0, length: ns.length), withTemplate: "")
+      }
 
       return """
       <!doctype html>
@@ -223,5 +298,38 @@ private extension UIColor {
     guard self.getRed(&r, green: &g, blue: &b, alpha: &a) else { return nil }
     return String(format: "#%02X%02X%02X", Int(r * 255.0), Int(g * 255.0), Int(b * 255.0))
   }
+
+  func toHex(resolvedWith trait: UITraitCollection) -> String? {
+    self.resolvedColor(with: trait).toHex()
+  }
 }
 
+private struct MarkdownRenderParams: Sendable {
+  let fontSize: CGFloat
+  let monoSize: CGFloat
+  let accentHex: String
+  let textHex: String
+  let secondaryHex: String
+  let borderHex: String
+  let uiStyle: UIUserInterfaceStyle
+
+  static func from(trait: UITraitCollection, accent: UIColor) -> MarkdownRenderParams {
+    let fontSize = UIFont.preferredFont(forTextStyle: .body).pointSize
+    let monoSize = UIFont.preferredFont(forTextStyle: .callout).pointSize
+
+    let accentHex = accent.toHex(resolvedWith: trait) ?? "#0B4D91"
+    let textHex = UIColor.label.toHex(resolvedWith: trait) ?? "#111827"
+    let secondaryHex = UIColor.secondaryLabel.toHex(resolvedWith: trait) ?? "#475569"
+    let borderHex = UIColor.separator.toHex(resolvedWith: trait) ?? "#CBD5E1"
+
+    return MarkdownRenderParams(
+      fontSize: fontSize,
+      monoSize: monoSize,
+      accentHex: accentHex,
+      textHex: textHex,
+      secondaryHex: secondaryHex,
+      borderHex: borderHex,
+      uiStyle: trait.userInterfaceStyle
+    )
+  }
+}

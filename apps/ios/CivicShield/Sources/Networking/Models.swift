@@ -125,12 +125,12 @@ struct AidOrg: Codable, Identifiable {
 
 // MARK: - Ask
 
-struct AskRequest: Codable {
+struct AskRequest: Codable, Sendable {
   let locale: String
   let messages: [AskApiMessage]
 }
 
-struct AskMessage: Codable, Identifiable {
+struct AskMessage: Codable, Identifiable, Equatable, Sendable {
   let id: UUID
   let role: String
   let content: String
@@ -155,12 +155,12 @@ struct AskMessage: Codable, Identifiable {
   }
 }
 
-struct AskApiMessage: Codable {
+struct AskApiMessage: Codable, Equatable, Sendable {
   let role: String
   let content: String
 }
 
-struct AskResponse: Codable {
+struct AskResponse: Codable, Equatable, Sendable {
   let answerMarkdown: String
   let citations: [AskCitation]
   let suggestedActions: [AskSuggestedAction]
@@ -174,13 +174,13 @@ struct AskResponse: Codable {
   }
 }
 
-struct AskCitation: Codable, Identifiable {
+struct AskCitation: Codable, Identifiable, Equatable, Sendable {
   var id: String { url }
   let title: String
   let url: String
 }
 
-struct AskSuggestedAction: Codable, Identifiable {
+struct AskSuggestedAction: Codable, Identifiable, Equatable, Sendable {
   var id: String { "\(type)-\(label)" }
   let type: String
   let label: String

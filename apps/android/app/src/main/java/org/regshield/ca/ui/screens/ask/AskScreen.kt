@@ -3,6 +3,7 @@ package org.regshield.ca.ui.screens.ask
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material.icons.Icons
@@ -39,6 +41,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -77,6 +81,8 @@ fun AskScreen(
   var showDeleteConfirm by remember { mutableStateOf(false) }
   var deleteTarget by remember { mutableStateOf<AskThreadMeta?>(null) }
   val context = LocalContext.current
+  val focusManager = LocalFocusManager.current
+  val keyboard = LocalSoftwareKeyboardController.current
 
   fun openUrl(url: String) {
     runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }
@@ -114,6 +120,9 @@ fun AskScreen(
       }
     },
     onSend = {
+      // UX: hide keyboard and clear focus immediately on send (or consent dialog).
+      focusManager.clearFocus(force = true)
+      keyboard?.hide()
       val q = draft.trim()
       if (q.isBlank()) return@AskContent
       if (!st.consentAccepted) {
@@ -342,29 +351,34 @@ fun AskContent(
       }
     } else {
       itemsIndexed(messages) { idx, msg ->
+        val isUser = msg.role.lowercase() == "user"
+        val bubbleMaxWidth = if (isCompact) 560.dp else 520.dp
         Row(
           modifier =
             Modifier
               .fillMaxWidth()
               .testTag("ask_msg_$idx"),
           horizontalArrangement =
-            if (msg.role.lowercase() == "user") Arrangement.End else Arrangement.Start,
+            if (isUser) Arrangement.End else Arrangement.Start,
         ) {
           androidx.compose.material3.Surface(
             shape = MaterialTheme.shapes.extraLarge,
             color =
-              if (msg.role.lowercase() == "user") accent.accent else MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
+              if (isUser) accent.accent else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.96f),
             contentColor =
-              if (msg.role.lowercase() == "user") accent.onAccent else MaterialTheme.colorScheme.onSurface,
+              if (isUser) accent.onAccent else MaterialTheme.colorScheme.onSurface,
+            border =
+              if (isUser) null
+              else BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.14f)),
             tonalElevation = 0.dp,
-            shadowElevation = 2.dp,
-            modifier = Modifier.fillMaxWidth(if (isCompact) 0.92f else 0.7f),
+            shadowElevation = if (isUser) 2.dp else 4.dp,
+            modifier = Modifier.widthIn(max = bubbleMaxWidth),
           ) {
             Column(
               modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
               verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-              if (msg.role.lowercase() == "assistant") {
+              if (!isUser) {
                 MarkdownText(
                   markdown = msg.content,
                   style = MaterialTheme.typography.bodyMedium,
@@ -380,7 +394,7 @@ fun AskContent(
                 )
               }
 
-              if (msg.role.lowercase() == "assistant") {
+              if (!isUser) {
                 if (msg.citations.isNotEmpty()) {
                   Text(
                     text = stringResource(R.string.ask_sources_title),

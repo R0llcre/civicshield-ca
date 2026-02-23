@@ -7,6 +7,27 @@ final class AppEnvironment: ObservableObject {
 
   init() {
     self.api = ApiClient(baseURL: AppConfig.apiBaseURL)
+
+    // Developer helper: allow launching directly into a tab via `simctl launch ... --args --tab=ask`.
+    // This is only for local debugging (e.g. screenshots/perf profiling).
+    if let t = Self.tabOverrideFromArgs() {
+      self.tab = t
+    }
+  }
+
+  private static func tabOverrideFromArgs() -> AppTab? {
+    for a in ProcessInfo.processInfo.arguments {
+      guard a.hasPrefix("--tab=") else { continue }
+      let v = a.dropFirst("--tab=".count).lowercased()
+      switch v {
+      case "verify": return .verify
+      case "shield": return .shield
+      case "ask": return .ask
+      case "help": return .help
+      default: return nil
+      }
+    }
+    return nil
   }
 }
 

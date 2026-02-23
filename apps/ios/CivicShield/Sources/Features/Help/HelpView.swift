@@ -25,7 +25,7 @@ struct HelpView: View {
 
   var body: some View {
     ScrollView {
-      VStack(alignment: .leading, spacing: 14) {
+      LazyVStack(alignment: .leading, spacing: 14) {
         GlassCard {
           Text("Find legal aid faster")
             .font(.system(.title, design: .rounded).weight(.bold))
@@ -37,23 +37,26 @@ struct HelpView: View {
 
         GlassCard {
           VStack(alignment: .leading, spacing: 12) {
-            Picker("County", selection: $vm.county) {
-              Text("Any").tag("")
-              ForEach(COUNTY_OPTIONS.filter { !$0.isEmpty }, id: \.self) { Text($0).tag($0) }
-            }
-            .pickerStyle(.menu)
+            GlassSelectField(
+              label: "County",
+              value: vm.county,
+              options: COUNTY_OPTIONS.filter { !$0.isEmpty },
+              onSelect: { vm.county = $0 }
+            )
 
-            Picker("Language", selection: $vm.language) {
-              Text("Any").tag("")
-              ForEach(LANGUAGE_OPTIONS.filter { !$0.isEmpty }, id: \.self) { Text($0).tag($0) }
-            }
-            .pickerStyle(.menu)
+            GlassSelectField(
+              label: "Language",
+              value: vm.language,
+              options: LANGUAGE_OPTIONS.filter { !$0.isEmpty },
+              onSelect: { vm.language = $0 }
+            )
 
-            Picker("Service", selection: $vm.service) {
-              Text("Any").tag("")
-              ForEach(SERVICE_OPTIONS.filter { !$0.isEmpty }, id: \.self) { Text($0).tag($0) }
-            }
-            .pickerStyle(.menu)
+            GlassSelectField(
+              label: "Service",
+              value: vm.service,
+              options: SERVICE_OPTIONS.filter { !$0.isEmpty },
+              onSelect: { vm.service = $0 }
+            )
 
             Button {
               Task { await vm.search(api: env.api) }
@@ -92,7 +95,7 @@ struct HelpView: View {
         }
 
         if !vm.results.isEmpty {
-          VStack(spacing: 12) {
+          LazyVStack(spacing: 12) {
             ForEach(vm.results) { org in
               AidOrgCard(org: org, onOpen: {
                 if let raw = org.website ?? org.sourceUrl, let u = URL(string: raw) { openURL(u) }
