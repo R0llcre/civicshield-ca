@@ -10,7 +10,7 @@ This file is a hard requirement for this repo:
 ## 0) Preconditions
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "/Users/shenkairan/Documents/Spring26/RegShield CA"
 git status --porcelain=v1
 ```
 
@@ -55,14 +55,14 @@ Outputs:
 1) Build/push image to ACR and deploy to ACA:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "/Users/shenkairan/Documents/Spring26/RegShield CA"
 bash scripts/azure_staging_deploy_web.sh
 ```
 
 2) Configure Ask RAG env/secrets on Azure staging (OpenAI key + vector store id):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "/Users/shenkairan/Documents/Spring26/RegShield CA"
 bash scripts/azure_staging_enable_ask_rag.sh
 ```
 
@@ -106,12 +106,23 @@ az containerapp revision activate -g rg-regshieldca-stg-westus2 -n ca-regshieldc
 
 ## 4) Android (Staging) - Always
 
-Start/reuse full-screen emulator, install, and launch:
+Run the local stability gate first (single-worker, watchdog-protected):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "/Users/shenkairan/Documents/Spring26/RegShield CA"
+npm run android:staging:gate
+```
+
+Then start/reuse full-screen emulator, install, and launch:
+
+```bash
+cd "/Users/shenkairan/Documents/Spring26/RegShield CA"
 npm run android:staging:up
 ```
+
+Notes:
+- `android:staging:gate` runs `:app:testStagingDebugUnitTest` + `:app:assembleStagingDebug` with idle timeout protection.
+- Full `:app:test` is intentionally moved to nightly CI matrix (`.github/workflows/android-nightly-matrix.yml`) to avoid blocking local demo/debug loops.
 
 Manual demo script (must pass):
 1) Verify: search `Diaz` (or any query) -> open official source link.
@@ -132,18 +143,29 @@ Manual demo script (must pass):
 Build + unit tests (required on iOS changes):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+cd "/Users/shenkairan/Documents/Spring26/RegShield CA/apps/ios/CivicShield"
 xcodegen generate
+xcodebuild build \
+  -project CivicShield.xcodeproj \
+  -scheme CivicShield-Staging \
+  -destination "platform=iOS Simulator,name=iPhone 15 Pro Max,OS=17.5"
 xcodebuild test \
   -project CivicShield.xcodeproj \
   -scheme CivicShield-Staging \
   -destination "platform=iOS Simulator,name=iPhone 15 Pro Max,OS=17.5"
 ```
 
+If performance-sensitive iOS code changed (Ask/Vault/List rendering/startup), collect traces:
+
+```bash
+cd "/Users/shenkairan/Documents/Spring26/RegShield CA"
+npm run ios:perf:profile
+```
+
 One-command simulator demo:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "/Users/shenkairan/Documents/Spring26/RegShield CA"
 npm run ios:staging:up
 ```
 
@@ -156,6 +178,35 @@ iOS manual demo script (must pass):
    - Ask a verification question -> markdown renders; citations and allowlist links open.
 4) Help: featured list auto-loads; filters work.
 5) Evidence Vault: create -> add files -> export zip -> delete -> import zip -> unlock -> items restored.
+6) Ask performance:
+   - Cold start then first open Ask should remain interactive (no obvious freeze).
+   - With 50-message history, switching Verify ⇄ Ask should remain responsive and not stutter.
+
+### iOS macro/trust emergency path (when Xcode GUI fails before compile)
+
+If Xcode shows errors like:
+- `Macro ... must be enabled before it can be used`
+- `Type 'AppFeature' does not conform to protocol 'Reducer'`
+- `Generic parameter ... could not be inferred` after macro failure
+
+Run this recovery sequence:
+
+```bash
+cd "/Users/shenkairan/Documents/Spring26/RegShield CA/apps/ios/CivicShield"
+xcodegen generate
+xcodebuild build \
+  -project CivicShield.xcodeproj \
+  -scheme CivicShield-Staging \
+  -destination "platform=iOS Simulator,name=iPhone 15 Pro Max,OS=17.5" \
+  -skipMacroValidation
+xcodebuild test \
+  -project CivicShield.xcodeproj \
+  -scheme CivicShield-Staging \
+  -destination "platform=iOS Simulator,name=iPhone 15 Pro Max,OS=17.5" \
+  -skipMacroValidation
+```
+
+Then reopen `CivicShield.xcodeproj` and rerun.
 
 ## 6) Change Log Entry (Required)
 
