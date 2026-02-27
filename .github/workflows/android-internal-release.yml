@@ -45,7 +45,7 @@ jobs:
             -PREGSHIELD_VERSION_CODE="${GITHUB_RUN_NUMBER}" \
             -PREGSHIELD_VERSION_NAME="${VERSION_NAME}"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: android-staging-release-apk
           path: apps/android/app/build/outputs/apk/staging/release/*.apk
