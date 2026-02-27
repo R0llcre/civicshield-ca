@@ -53,7 +53,7 @@ jobs:
 
       - name: Upload summary (always)
         if: always() && (github.event_name != 'schedule' || steps.guard.outputs.should_run == 'true')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: etl_summary
           path: etl_artifacts/summary.json
@@ -61,7 +61,7 @@ jobs:
 
       - name: Upload failure artifacts (PDFs + parse output)
         if: failure() && (github.event_name != 'schedule' || steps.guard.outputs.should_run == 'true')
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: etl_failure_artifacts
           path: |
