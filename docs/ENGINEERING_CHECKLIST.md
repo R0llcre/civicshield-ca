@@ -10,7 +10,7 @@ This file is a hard requirement for this repo:
 ## 0) Preconditions
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd <repo-root>
 git status --porcelain=v1
 ```
 
@@ -55,14 +55,14 @@ Outputs:
 1) Build/push image to ACR and deploy to ACA:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd <repo-root>
 bash scripts/azure_staging_deploy_web.sh
 ```
 
 2) Configure Ask RAG env/secrets on Azure staging (OpenAI key + vector store id):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd <repo-root>
 bash scripts/azure_staging_enable_ask_rag.sh
 ```
 
@@ -109,7 +109,7 @@ az containerapp revision activate -g rg-regshieldca-stg-westus2 -n ca-regshieldc
 Start/reuse full-screen emulator, install, and launch:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd <repo-root>
 npm run android:staging:up
 ```
 
@@ -143,7 +143,7 @@ xcodebuild test \
 One-command simulator demo:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd <repo-root>
 npm run ios:staging:up
 ```
 

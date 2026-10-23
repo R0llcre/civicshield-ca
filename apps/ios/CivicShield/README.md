@@ -9,7 +9,7 @@ This project uses **XcodeGen** (`project.yml`) to generate the Xcode project.
 From repo root:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd <repo-root>
 npm run ios:staging:up
 ```
 
@@ -58,7 +58,7 @@ open CivicShield.xcodeproj
 - Signing certificate: `Apple Development`
 
 3) If Xcode says the bundle id is not available, change it in:
-- `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/project.yml` (`PRODUCT_BUNDLE_IDENTIFIER`)
+- `apps/ios/CivicShield/project.yml` (`PRODUCT_BUNDLE_IDENTIFIER`)
 
 Then re-run `xcodegen generate`.
 
