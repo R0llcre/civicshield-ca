@@ -1,6 +1,6 @@
-# RegShield CA Web
+# CivicShield CA Web
 
-This is the Next.js web app for RegShield CA.
+This is the Next.js web app for CivicShield CA.
 
 Start from repo root:
 

@@ -29,7 +29,7 @@ CIVICSHIELD_IOS_DEVICE="iPhone 15 Pro" npm run ios:staging:up
 ## Manual (Xcode)
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+cd apps/ios/CivicShield
 xcodegen generate
 open CivicShield.xcodeproj
 ```
@@ -47,7 +47,7 @@ This repo can run on a real iPhone, but iOS requires code signing.
 1) Generate and open the project:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+cd apps/ios/CivicShield
 xcodegen generate
 open CivicShield.xcodeproj
 ```

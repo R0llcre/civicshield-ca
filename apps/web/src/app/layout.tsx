@@ -16,7 +16,7 @@ const displayFont = Sora({
 });
 
 export const metadata: Metadata = {
-  title: "RegShield CA",
+  title: "CivicShield CA",
   description: "Verify credentials. Avoid scams. Find help faster.",
 };
 

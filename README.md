@@ -1,6 +1,6 @@
-# RegShield CA
+# CivicShield CA
 
-RegShield CA is a California-focused safety layer for immigration legal help:
+CivicShield CA (formerly RegShield CA) is a California-focused safety layer for immigration legal help:
 
 - **Verify**: check official DOJ EOIR Recognition & Accreditation (R&A) rosters (and link out to CA State Bar / CA SOS).
 - **Shield**: scam red flags + a **local, encrypted** evidence vault (no uploads).
@@ -12,6 +12,10 @@ This repo is a small monorepo:
 - `etl` Python ETL to sync DOJ roster PDFs into Postgres/Supabase
 - `supabase` SQL migrations + demo seed data
 - `docs` PRD, tech design, privacy/threat model, data sources, runbook
+
+## Status
+
+Prototype built in February 2026: Next.js web app, Android and iOS clients, Python ETL for the DOJ roster, Supabase migrations and design docs (PRD, tech design, privacy threat model, runbooks). The web app runs in demo mode with sample data when no Supabase credentials are configured; staging deployment is described in `docs/STAGING_CHECKLIST.md` and `docs/RUNBOOK_AZURE.md`. Not a live service, and not legal advice.
 
 ## Quickstart (Web)
 
@@ -118,7 +122,7 @@ npm run ios:staging:up
 Manual (Xcode):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+cd apps/ios/CivicShield
 xcodegen generate
 open CivicShield.xcodeproj
 ```
