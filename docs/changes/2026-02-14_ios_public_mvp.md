@@ -15,38 +15,38 @@ Topic: iOS public app (Verify/Shield/Ask/Help/Vault) runnable on iOS Simulator w
 ## What Changed
 
 - Added iOS app sources (XcodeGen-based project):
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/`
+  - `<repo-root>/apps/ios/CivicShield/`
 - Fixed XcodeGen + SPM integration and Swift 6 build behavior:
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/project.yml`
+  - `<repo-root>/apps/ios/CivicShield/project.yml`
 - Fixed an iOS compile error in Help:
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/Sources/Features/Help/HelpView.swift`
+  - `<repo-root>/apps/ios/CivicShield/Sources/Features/Help/HelpView.swift`
 - Fixed a SwiftUI naming conflict in Verify:
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/Sources/Features/Verify/VerifyView.swift`
+  - `<repo-root>/apps/ios/CivicShield/Sources/Features/Verify/VerifyView.swift`
 - Added Evidence Vault UI (SwiftUI) wired to existing vault crypto/zip/store:
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/Sources/Vault/VaultView.swift`
+  - `<repo-root>/apps/ios/CivicShield/Sources/Vault/VaultView.swift`
 - Added missing imports for vault code:
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/Sources/Vault/VaultStore.swift`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/Sources/Vault/VaultZip.swift`
+  - `<repo-root>/apps/ios/CivicShield/Sources/Vault/VaultStore.swift`
+  - `<repo-root>/apps/ios/CivicShield/Sources/Vault/VaultZip.swift`
 - Fixed Info.plist required keys for simulator install/test:
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/Resources/Info-Dev.plist`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/Resources/Info-Staging.plist`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/Resources/Info-Prod.plist`
+  - `<repo-root>/apps/ios/CivicShield/Resources/Info-Dev.plist`
+  - `<repo-root>/apps/ios/CivicShield/Resources/Info-Staging.plist`
+  - `<repo-root>/apps/ios/CivicShield/Resources/Info-Prod.plist`
 - Swift 6 concurrency: marked API client as safe to send across tasks:
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/Sources/Networking/ApiClient.swift`
+  - `<repo-root>/apps/ios/CivicShield/Sources/Networking/ApiClient.swift`
 - Ask model types: removed unused `Equatable` conformance that broke synthesis:
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/Sources/Networking/Models.swift`
+  - `<repo-root>/apps/ios/CivicShield/Sources/Networking/Models.swift`
 - Added iOS unit tests + cross-platform vault fixture:
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/Tests/VaultCryptoTests.swift`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/Tests/VaultZipTests.swift`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/Tests/Resources/vault_web_fixture.zip`
+  - `<repo-root>/apps/ios/CivicShield/Tests/VaultCryptoTests.swift`
+  - `<repo-root>/apps/ios/CivicShield/Tests/VaultZipTests.swift`
+  - `<repo-root>/apps/ios/CivicShield/Tests/Resources/vault_web_fixture.zip`
 - Added one-command iOS simulator startup script + npm entry:
-  - `/Users/shenkairan/Documents/RegShield CA/scripts/ios_staging_up.sh`
-  - `/Users/shenkairan/Documents/RegShield CA/package.json`
+  - `<repo-root>/scripts/ios_staging_up.sh`
+  - `<repo-root>/package.json`
 - Repo hygiene/docs:
-  - `/Users/shenkairan/Documents/RegShield CA/.gitignore` (ignore Xcode generated artifacts)
-  - `/Users/shenkairan/Documents/RegShield CA/docs/ENGINEERING_CHECKLIST.md` (iOS verification section)
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/README.md`
-  - `/Users/shenkairan/Documents/RegShield CA/README.md`
+  - `<repo-root>/.gitignore` (ignore Xcode generated artifacts)
+  - `<repo-root>/docs/ENGINEERING_CHECKLIST.md` (iOS verification section)
+  - `<repo-root>/apps/ios/CivicShield/README.md`
+  - `<repo-root>/README.md`
 
 Behavior changes:
 
@@ -58,7 +58,7 @@ Behavior changes:
 1) Web (unchanged but still required by checklist):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm -w apps/web run lint
 npm -w apps/web run typecheck
 npm -w apps/web run test
@@ -69,7 +69,7 @@ Results: PASS (2026-02-14)
 2) iOS build + unit tests:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+cd "<repo-root>/apps/ios/CivicShield"
 xcodegen generate
 xcodebuild test \
   -project CivicShield.xcodeproj \
@@ -95,7 +95,7 @@ Results: PASS (2026-02-14) — `/api/meta/health` ok, `/api/ask` returned answer
 iOS (staging, one command):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm run ios:staging:up
 ```
 

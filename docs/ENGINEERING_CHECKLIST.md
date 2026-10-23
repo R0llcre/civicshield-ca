@@ -132,7 +132,7 @@ Manual demo script (must pass):
 Build + unit tests (required on iOS changes):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+cd "<repo-root>/apps/ios/CivicShield"
 xcodegen generate
 xcodebuild test \
   -project CivicShield.xcodeproj \

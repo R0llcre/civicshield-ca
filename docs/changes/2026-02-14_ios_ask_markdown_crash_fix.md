@@ -22,21 +22,21 @@ We need Ask to be robust on device while still supporting full markdown (tables/
   - External images stripped (`img { display:none }`) to avoid unintended network loads
 
 Files:
-- `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/Sources/Features/Ask/MarkdownView.swift`
+- `<repo-root>/apps/ios/CivicShield/Sources/Features/Ask/MarkdownView.swift`
 
 ## How To Verify (Commands + Results)
 
 Generate project:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+cd "<repo-root>/apps/ios/CivicShield"
 xcodegen generate
 ```
 
 Run unit tests:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+cd "<repo-root>/apps/ios/CivicShield"
 xcodebuild test \
   -project CivicShield.xcodeproj \
   -scheme CivicShield-Staging \
@@ -54,7 +54,7 @@ Manual device verification:
 Simulator:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm run ios:staging:up
 ```
 

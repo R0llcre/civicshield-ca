@@ -16,43 +16,43 @@ Topic: Android chrome polish (CivicShield + no overlap + glass), Ask RAG runs on
 ## What Changed
 
 - Android app name + top bar:
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/res/values/strings.xml`
+  - `<repo-root>/apps/android/app/src/main/res/values/strings.xml`
     - `app_name` -> `CivicShield`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/components/AppChrome.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/components/AppChrome.kt`
     - Top pill reads `R.string.app_name` (no hardcoded string)
     - Glass-like "pill" surface for top and bottom chrome
     - No overlap fix: screens now treat chrome top inset as viewport padding, not scrollable content padding
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/verify/VerifyScreen.kt`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/help/HelpScreen.kt`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/shield/ShieldScreen.kt`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/ask/AskScreen.kt`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/vault/VaultScreen.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/verify/VerifyScreen.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/help/HelpScreen.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/shield/ShieldScreen.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/ask/AskScreen.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/vault/VaultScreen.kt`
 
 - Shield summary header uses app name:
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/shield/ShieldSummary.kt`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/shield/ShieldScreen.kt`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/test/java/org/regshield/ca/ui/screens/shield/ShieldSummaryTest.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/shield/ShieldSummary.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/shield/ShieldScreen.kt`
+  - `<repo-root>/apps/android/app/src/test/java/org/regshield/ca/ui/screens/shield/ShieldSummaryTest.kt`
 
 - Ask RAG model default -> `gpt-4.1` and model-specific payload:
-  - `/Users/shenkairan/Documents/RegShield CA/apps/web/src/server/env.ts`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/web/src/server/openai.ts`
+  - `<repo-root>/apps/web/src/server/env.ts`
+  - `<repo-root>/apps/web/src/server/openai.ts`
     - Only GPT-5 family requests include `reasoning` and `text.verbosity`
     - Non-GPT-5 models (e.g., `gpt-4.1`) omit those fields
-  - `/Users/shenkairan/Documents/RegShield CA/apps/web/src/app/api/ask/route.test.ts`
+  - `<repo-root>/apps/web/src/app/api/ask/route.test.ts`
   - Azure helper:
-    - `/Users/shenkairan/Documents/RegShield CA/scripts/azure_staging_enable_ask_rag.sh` default model -> `gpt-4.1`
+    - `<repo-root>/scripts/azure_staging_enable_ask_rag.sh` default model -> `gpt-4.1`
 
 - Verify score fix (DB): return similarity percentage as `score`, keep ordering via a separate `rank`.
-  - `/Users/shenkairan/Documents/RegShield CA/db/migrations/0006_search_ra_entries_similarity_score.sql`
-  - `/Users/shenkairan/Documents/RegShield CA/supabase/migrations/0006_search_ra_entries_similarity_score.sql`
-  - `/Users/shenkairan/Documents/RegShield CA/.github/workflows/db-migrate-azure-staging.yml` applies 0006 on staging
+  - `<repo-root>/db/migrations/0006_search_ra_entries_similarity_score.sql`
+  - `<repo-root>/supabase/migrations/0006_search_ra_entries_similarity_score.sql`
+  - `<repo-root>/.github/workflows/db-migrate-azure-staging.yml` applies 0006 on staging
 
 ## How To Verify (Commands + Results)
 
 Web checks:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm -w apps/web run lint
 npm -w apps/web run typecheck
 npm -w apps/web run test
@@ -63,7 +63,7 @@ Result: all passed.
 Android checks:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 JAVA_HOME=$(/usr/libexec/java_home -v 17) ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
 ./gradlew :app:test :app:assembleStagingDebug
 ```
@@ -73,7 +73,7 @@ Result: build + unit tests passed.
 Azure staging deploy + Ask enable:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 bash scripts/azure_staging_deploy_web.sh
 bash scripts/azure_staging_enable_ask_rag.sh
 node scripts/smoke_api.mjs --base-url "https://ca-regshieldca-web-stg.blackhill-0c2251ca.westus2.azurecontainerapps.io" --max-ra-age-hours 48
@@ -102,7 +102,7 @@ Expected: `score` is a realistic 0..100 similarity percentage (not all identical
 Android (staging):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm run android:staging:up
 ```
 

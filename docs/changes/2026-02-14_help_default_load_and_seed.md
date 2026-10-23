@@ -18,28 +18,28 @@ Tradeoffs:
 ## What Changed
 
 - Android: auto-load featured results on first open; only show "no results" after a search completed.
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/help/HelpViewModel.kt`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/help/HelpScreen.kt`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/res/values/strings.xml`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/help/HelpViewModel.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/help/HelpScreen.kt`
+  - `<repo-root>/apps/android/app/src/main/res/values/strings.xml`
 - Android: add an "Official directories" card with trusted external links (LawHelpCA, Immigration Advocates, DOJ/EOIR R&A).
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/help/HelpScreen.kt`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/res/values/strings.xml`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/help/HelpScreen.kt`
+  - `<repo-root>/apps/android/app/src/main/res/values/strings.xml`
 - Android: stabilize Compose UI tests by adding scroll-container tags and scrolling to items before asserting inner UI tags.
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/verify/VerifyScreen.kt`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/help/HelpScreen.kt`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/shield/ShieldScreen.kt`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/androidTest/java/org/regshield/ca/ui/AppUiFlowsTest.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/verify/VerifyScreen.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/help/HelpScreen.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/shield/ShieldScreen.kt`
+  - `<repo-root>/apps/android/app/src/androidTest/java/org/regshield/ca/ui/AppUiFlowsTest.kt`
 - Web: auto-load featured results on first open; add a loading state label.
-  - `/Users/shenkairan/Documents/RegShield CA/apps/web/src/features/help/HelpClient.tsx`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/web/messages/en.json`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/web/messages/es.json`
-  - `/Users/shenkairan/Documents/RegShield CA/apps/web/messages/zh-Hans.json`
+  - `<repo-root>/apps/web/src/features/help/HelpClient.tsx`
+  - `<repo-root>/apps/web/messages/en.json`
+  - `<repo-root>/apps/web/messages/es.json`
+  - `<repo-root>/apps/web/messages/zh-Hans.json`
 - Sample/demo orgs: expand to 12+ entries for local (no DB) environments.
-  - `/Users/shenkairan/Documents/RegShield CA/apps/web/src/data/aid_org_sample.ts`
+  - `<repo-root>/apps/web/src/data/aid_org_sample.ts`
 - Azure staging demo seed: expand to 12+ entries (applied by the `DB Migrate - Azure Staging` workflow).
-  - `/Users/shenkairan/Documents/RegShield CA/db/seed/staging_demo.sql`
+  - `<repo-root>/db/seed/staging_demo.sql`
 - Checklist: add a staging `/api/directory/search` smoke command.
-  - `/Users/shenkairan/Documents/RegShield CA/docs/ENGINEERING_CHECKLIST.md`
+  - `<repo-root>/docs/ENGINEERING_CHECKLIST.md`
 
 Behavior changes:
 - Android/Web Help now fetches a featured list automatically on first open.
@@ -50,7 +50,7 @@ Behavior changes:
 Web:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm -w apps/web run lint
 npm -w apps/web run typecheck
 npm -w apps/web run test
@@ -59,7 +59,7 @@ npm -w apps/web run test
 Android:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 JAVA_HOME=$(/usr/libexec/java_home -v 17) ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
 ./gradlew :app:test :app:assembleStagingDebug
 ```
@@ -67,7 +67,7 @@ JAVA_HOME=$(/usr/libexec/java_home -v 17) ANDROID_SDK_ROOT="$HOME/Library/Androi
 Android UI tests (emulator must be running):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 JAVA_HOME=$(/usr/libexec/java_home -v 17) ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
 ./gradlew :app:connectedDevDebugAndroidTest
 ```
@@ -90,7 +90,7 @@ Expected:
 2) Android demo:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm run android:staging:up
 ```
 

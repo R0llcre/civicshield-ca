@@ -14,22 +14,22 @@ Topic: Fix Ask failures caused by oversized chat context and improve error visib
 ## What Changed
 
 - Server: give a clearer 400 error when the request is rejected due to length limits.
-  - `/Users/shenkairan/Documents/RegShield CA/apps/web/src/app/api/ask/route.ts`
+  - `<repo-root>/apps/web/src/app/api/ask/route.ts`
 
 - Android: ensure requests stay under server limits and show real server errors.
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/ask/AskViewModel.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/ask/AskViewModel.kt`
     - Trim/slice message history by character budget before sending to `/api/ask`
     - Parse `errorBody()` and `retry-after` (429) so users see actionable errors
 
 - Minor DX: script banner text uses the new app name.
-  - `/Users/shenkairan/Documents/RegShield CA/scripts/android_staging_up.sh`
+  - `<repo-root>/scripts/android_staging_up.sh`
 
 ## How To Verify (Commands + Results)
 
 Web:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm -w apps/web run lint
 npm -w apps/web run typecheck
 npm -w apps/web run test
@@ -38,7 +38,7 @@ npm -w apps/web run test
 Android:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 JAVA_HOME=$(/usr/libexec/java_home -v 17) ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
 ./gradlew :app:test :app:assembleStagingDebug
 ```
@@ -46,7 +46,7 @@ JAVA_HOME=$(/usr/libexec/java_home -v 17) ANDROID_SDK_ROOT="$HOME/Library/Androi
 Azure staging:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 bash scripts/azure_staging_deploy_web.sh
 bash scripts/azure_staging_enable_ask_rag.sh
 curl -fsS -X POST "https://ca-regshieldca-web-stg.blackhill-0c2251ca.westus2.azurecontainerapps.io/api/ask" \
@@ -62,7 +62,7 @@ Expected:
 1. Install and launch the Android staging app:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm run android:staging:up
 ```
 

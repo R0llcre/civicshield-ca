@@ -15,15 +15,15 @@ Topic: Render `/api/ask` `answer_markdown` as rich text on Android (full Markdow
 ## What Changed
 
 - Android: Add Markwon dependencies for Markdown rendering.
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/build.gradle.kts`
+  - `<repo-root>/apps/android/app/build.gradle.kts`
 - Android: Add a reusable `MarkdownText` composable (Compose `AndroidView(TextView)` + Markwon).
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/components/MarkdownText.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/components/MarkdownText.kt`
 - Android: Ask assistant bubbles render Markdown via `MarkdownText` (user bubbles remain plain text).
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/ask/AskScreen.kt`
+  - `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/ask/AskScreen.kt`
 - Android: Add androidTest to assert we do not display raw Markdown markers.
-  - `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/androidTest/java/org/regshield/ca/ui/MarkdownRenderTest.kt`
+  - `<repo-root>/apps/android/app/src/androidTest/java/org/regshield/ca/ui/MarkdownRenderTest.kt`
 - Docs: Update engineering checklist with Ask Markdown acceptance points.
-  - `/Users/shenkairan/Documents/RegShield CA/docs/ENGINEERING_CHECKLIST.md`
+  - `<repo-root>/docs/ENGINEERING_CHECKLIST.md`
 
 Behavior changes:
 - Ask assistant messages now render rich Markdown (bold/lists/links/tables/code blocks).
@@ -34,7 +34,7 @@ Behavior changes:
 Web (always):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm -w apps/web run lint
 npm -w apps/web run typecheck
 npm -w apps/web run test
@@ -43,7 +43,7 @@ npm -w apps/web run test
 Android (build + unit tests + androidTest build):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 JAVA_HOME=$(/usr/libexec/java_home -v 17) ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
 ./gradlew :app:test :app:assembleStagingDebug :app:assembleDevDebugAndroidTest
 ```
@@ -73,7 +73,7 @@ Android:
 1. Install + launch staging build:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm run android:staging:up
 ```
 

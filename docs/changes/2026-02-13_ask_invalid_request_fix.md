@@ -20,7 +20,7 @@ Topic: Fix Android Ask "Invalid request" by normalizing roles + sanitizing store
 - Sanitize persisted chat history on read (normalize casing; drop invalid roles/blank messages) and write back once, so users do not need to manually clear chat to recover.
 
 Files:
-- `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/ask/AskViewModel.kt`
+- `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/ask/AskViewModel.kt`
 
 ### Web (Server)
 
@@ -30,15 +30,15 @@ Files:
 - Still enforces the same security boundary: only `user|assistant` roles are accepted; no `system` role is permitted.
 
 Files:
-- `/Users/shenkairan/Documents/RegShield CA/apps/web/src/app/api/ask/route.ts`
-- `/Users/shenkairan/Documents/RegShield CA/apps/web/src/app/api/ask/route.test.ts`
+- `<repo-root>/apps/web/src/app/api/ask/route.ts`
+- `<repo-root>/apps/web/src/app/api/ask/route.test.ts`
 
 ## How To Verify (Commands + Results)
 
 Web:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm -w apps/web run lint
 npm -w apps/web run typecheck
 npm -w apps/web run test
@@ -47,7 +47,7 @@ npm -w apps/web run test
 Android:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 JAVA_HOME=$(/usr/libexec/java_home -v 17) ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
 ./gradlew :app:test :app:assembleStagingDebug
 ```
@@ -69,7 +69,7 @@ Expected:
 1. Launch staging Android app (emulator):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm run android:staging:up
 ```
 

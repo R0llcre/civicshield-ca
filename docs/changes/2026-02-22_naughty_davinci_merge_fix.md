@@ -8,22 +8,22 @@
 
 ## What changed
 - Restored backward-compatible health fields in:
-  - `/Users/shenkairan/Documents/Spring26/RegShield CA/.claude/worktrees/naughty-davinci/apps/web/src/app/api/meta/health/route.ts`
+  - `~/Documents/Spring26/RegShield CA/.claude/worktrees/naughty-davinci/apps/web/src/app/api/meta/health/route.ts`
   - Fields restored across `postgres`/`sample`/`supabase`: `supabase_configured`, `db_configured`, `ask_configured`, `rag_configured`, `web_search_enabled`, `web_search_external`, `rag_strict`.
   - Kept `error` plus `db_error` details in postgres failure mode.
 - Added regression tests for health response compatibility:
-  - `/Users/shenkairan/Documents/Spring26/RegShield CA/.claude/worktrees/naughty-davinci/apps/web/src/app/api/meta/health/route.test.ts`
+  - `~/Documents/Spring26/RegShield CA/.claude/worktrees/naughty-davinci/apps/web/src/app/api/meta/health/route.test.ts`
 - Restored `unknown` IP bypass for rate limiting:
-  - `/Users/shenkairan/Documents/Spring26/RegShield CA/.claude/worktrees/naughty-davinci/apps/web/src/app/api/verify/ra/route.ts`
-  - `/Users/shenkairan/Documents/Spring26/RegShield CA/.claude/worktrees/naughty-davinci/apps/web/src/app/api/directory/search/route.ts`
+  - `~/Documents/Spring26/RegShield CA/.claude/worktrees/naughty-davinci/apps/web/src/app/api/verify/ra/route.ts`
+  - `~/Documents/Spring26/RegShield CA/.claude/worktrees/naughty-davinci/apps/web/src/app/api/directory/search/route.ts`
 - Switched CSP header back to rollout-safe report-only mode:
-  - `/Users/shenkairan/Documents/Spring26/RegShield CA/.claude/worktrees/naughty-davinci/apps/web/next.config.ts`
+  - `~/Documents/Spring26/RegShield CA/.claude/worktrees/naughty-davinci/apps/web/next.config.ts`
 - Added README note on CSP rollout posture:
-  - `/Users/shenkairan/Documents/Spring26/RegShield CA/.claude/worktrees/naughty-davinci/README.md`
+  - `~/Documents/Spring26/RegShield CA/.claude/worktrees/naughty-davinci/README.md`
 
 ## How to verify
 ```bash
-cd "/Users/shenkairan/Documents/Spring26/RegShield CA/.claude/worktrees/naughty-davinci"
+cd "~/Documents/Spring26/RegShield CA/.claude/worktrees/naughty-davinci"
 npm -w apps/web run test
 npm -w apps/web run lint
 npm -w apps/web run typecheck

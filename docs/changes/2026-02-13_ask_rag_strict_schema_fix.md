@@ -21,13 +21,13 @@ Tradeoffs:
 ## What Changed
 
 - Fixed Structured Outputs schema to satisfy OpenAI strict requirements:
-  - `/Users/shenkairan/Documents/RegShield CA/apps/web/src/app/api/ask/route.ts`
+  - `<repo-root>/apps/web/src/app/api/ask/route.ts`
     - `suggested_actions.items.required` now includes `payload` (OpenAI strict requirement).
     - `payload.additionalProperties=false` + `payload.required=["url"]` stays enforced.
 - Improved OpenAI instructions formatting (use real newlines):
-  - `/Users/shenkairan/Documents/RegShield CA/apps/web/src/server/openai.ts`
+  - `<repo-root>/apps/web/src/server/openai.ts`
 - Improved error handling for model access gating (org verification):
-  - `/Users/shenkairan/Documents/RegShield CA/apps/web/src/app/api/ask/route.ts`
+  - `<repo-root>/apps/web/src/app/api/ask/route.ts`
     - Returns HTTP 503 with a clear message when OpenAI responds with "organization must be verified" for `gpt-5-*`.
 
 ## How To Verify (Commands + Results)
@@ -35,7 +35,7 @@ Tradeoffs:
 Web (local):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm -w apps/web run lint
 npm -w apps/web run typecheck
 npm -w apps/web run test
@@ -46,7 +46,7 @@ Result: PASS.
 Azure staging deploy:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 bash scripts/azure_staging_deploy_web.sh
 ```
 
@@ -55,7 +55,7 @@ Result: Deployed to Azure Container Apps staging revision `ca-regshieldca-web-st
 Azure staging Ask RAG env/secret set:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 bash scripts/azure_staging_enable_ask_rag.sh
 ```
 
@@ -72,7 +72,7 @@ After OpenAI org verification:
 1. Re-run:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 bash scripts/azure_staging_enable_ask_rag.sh
 ```
 
@@ -83,7 +83,7 @@ Android (staging):
 1. Start full-screen emulator and install latest APK:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm run android:staging:up
 ```
 

@@ -13,26 +13,26 @@ Running CivicShield on a real iPhone failed because the app binary was built **w
 ## What Changed
 
 - Enabled signing for device builds while keeping simulator builds frictionless:
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/project.yml`
+  - `<repo-root>/apps/ios/CivicShield/project.yml`
     - `CODE_SIGNING_ALLOWED[sdk=iphoneos*] = YES`
     - `CODE_SIGNING_ALLOWED[sdk=iphonesimulator*] = NO`
 
 - Documented how to run on a real iPhone (Signing & Capabilities steps):
-  - `/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield/README.md`
+  - `<repo-root>/apps/ios/CivicShield/README.md`
 
 ## How To Verify (Commands + Results)
 
 Generate project:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+cd "<repo-root>/apps/ios/CivicShield"
 xcodegen generate
 ```
 
 Confirm build settings (expect: simulator `NO`, device `YES`):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+cd "<repo-root>/apps/ios/CivicShield"
 
 # Simulator
 xcodebuild -project CivicShield.xcodeproj -scheme CivicShield-Staging -configuration Staging \
@@ -48,7 +48,7 @@ xcodebuild -project CivicShield.xcodeproj -scheme CivicShield-Staging -configura
 Run unit tests (simulator):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA/apps/ios/CivicShield"
+cd "<repo-root>/apps/ios/CivicShield"
 xcodebuild test \
   -project CivicShield.xcodeproj \
   -scheme CivicShield-Staging \
@@ -60,7 +60,7 @@ xcodebuild test \
 Simulator (one command):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm run ios:staging:up
 ```
 

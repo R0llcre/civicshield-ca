@@ -15,23 +15,23 @@ Topic: Android Verify polish (full-width cards) + roster relevance scoring (0..1
 ## What Changed
 
 Android UI:
-- `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/components/CivicComponents.kt`
+- `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/components/CivicComponents.kt`
   - `CivicCard()` now defaults to `fillMaxWidth()` for consistent scanning.
-- `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/ui/screens/verify/VerifyScreen.kt`
+- `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/ui/screens/verify/VerifyScreen.kt`
   - Representative rows no longer show `• US` when the roster lacks state/city (reduces confusion with state filter).
-- `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/res/values/strings.xml`
+- `<repo-root>/apps/android/app/src/main/res/values/strings.xml`
   - Results hint changed to "Sorted by relevance".
 
 DB scoring (portable migrations):
-- `/Users/shenkairan/Documents/RegShield CA/db/migrations/0005_search_ra_entries_relevance_score.sql`
+- `<repo-root>/db/migrations/0005_search_ra_entries_relevance_score.sql`
   - Replaces `score` with relevance percent `0..100` using `pg_trgm` similarity plus explainable exact/prefix/contains floors.
-- `/Users/shenkairan/Documents/RegShield CA/supabase/migrations/0005_search_ra_entries_relevance_score.sql`
+- `<repo-root>/supabase/migrations/0005_search_ra_entries_relevance_score.sql`
   - Same function update for Supabase environments.
-- `/Users/shenkairan/Documents/RegShield CA/.github/workflows/db-migrate-azure-staging.yml`
+- `<repo-root>/.github/workflows/db-migrate-azure-staging.yml`
   - Applies the new 0005 migration on Azure staging.
 
 Docs:
-- `/Users/shenkairan/Documents/RegShield CA/docs/ENGINEERING_CHECKLIST.md`
+- `<repo-root>/docs/ENGINEERING_CHECKLIST.md`
   - Added a reminder step for Azure staging DB migrations when `db/migrations/*` changes.
 
 ## How To Verify (Commands + Results)
@@ -39,7 +39,7 @@ Docs:
 Web (local):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm -w apps/web run lint
 npm -w apps/web run typecheck
 npm -w apps/web run test
@@ -48,7 +48,7 @@ npm -w apps/web run test
 Android (local):
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 JAVA_HOME=$(/usr/libexec/java_home -v 17) ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
 ./gradlew :app:test :app:assembleStagingDebug
 ```
@@ -71,7 +71,7 @@ Expected:
 1) Install/launch Android staging build:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm run android:staging:up
 ```
 

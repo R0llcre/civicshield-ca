@@ -20,22 +20,22 @@ Topic: Fix Ask `Invalid request` in English locale by ensuring `locale` is alway
 - Still normalizes locale tags (e.g. `en-US`) and role casing (e.g. `User` -> `user`) and still only allows `user|assistant` roles.
 
 Files:
-- `/Users/shenkairan/Documents/RegShield CA/apps/web/src/app/api/ask/route.ts`
-- `/Users/shenkairan/Documents/RegShield CA/apps/web/src/app/api/ask/route.test.ts`
+- `<repo-root>/apps/web/src/app/api/ask/route.ts`
+- `<repo-root>/apps/web/src/app/api/ask/route.test.ts`
 
 ### Android
 
 - Removed defaults from `AskRequest` so `locale` is always encoded in JSON even when the value is `"en"`.
 
 Files:
-- `/Users/shenkairan/Documents/RegShield CA/apps/android/app/src/main/java/org/regshield/ca/api/Models.kt`
+- `<repo-root>/apps/android/app/src/main/java/org/regshield/ca/api/Models.kt`
 
 ## How To Verify (Commands + Results)
 
 Web:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm -w apps/web run lint
 npm -w apps/web run typecheck
 npm -w apps/web run test
@@ -44,7 +44,7 @@ npm -w apps/web run test
 Android:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 JAVA_HOME=$(/usr/libexec/java_home -v 17) ANDROID_SDK_ROOT="$HOME/Library/Android/sdk" \
 ./gradlew :app:test :app:assembleStagingDebug
 ```
@@ -69,7 +69,7 @@ Expected:
 1. Install and launch Android staging app:
 
 ```bash
-cd "/Users/shenkairan/Documents/RegShield CA"
+cd "<repo-root>"
 npm run android:staging:up
 ```
 
